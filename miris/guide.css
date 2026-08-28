@@ -1,0 +1,651 @@
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/geist-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/geist-500.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/geist-600.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/geistmono-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/geistmono-500.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+
+/* Miris kit ramps. --accent is set per track on .mw-panel. */
+.mw-panel,
+.mw-overlay {
+  --mono-000: #ffffff;
+  --mono-200: #d6d4d4;
+  --mono-400: #9e9d9f;
+  --mono-600: #6d6e71;
+  --mono-700: #535457;
+  --mono-800: #252526;
+  --mono-900: #111215;
+  --mono-1000: #08090d;
+  --accent: #00d5ff;
+  --sans: "Geist", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, monospace;
+}
+
+.mw-panel {
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: min(408px, 100vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--mono-900);
+  border-left: 1px solid var(--mono-800);
+  font: 400 14px/1.55 var(--sans);
+  color: var(--mono-200);
+  z-index: 20;
+}
+
+/* ── head ─────────────────────────────────────────────── */
+
+.mw-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: calc(18px + env(safe-area-inset-top)) 20px 14px;
+  border-bottom: 1px solid var(--mono-800);
+}
+
+.mw-head b {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--mono-000);
+  letter-spacing: -0.01em;
+}
+
+.mw-head .mw-of {
+  font: 400 11px/1 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-left: auto;
+}
+
+.mw-hide {
+  background: none;
+  border: 0;
+  color: var(--mono-600);
+  font: 400 18px/1 var(--sans);
+  cursor: pointer;
+  padding: 0 2px;
+}
+.mw-hide:hover { color: var(--mono-200); }
+
+.mw-tab {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--mono-900);
+  color: var(--mono-200);
+  border: 1px solid var(--mono-800);
+  border-radius: 2px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+.mw-tab:hover { border-color: var(--accent); color: var(--mono-000); }
+
+/* ── track chooser ────────────────────────────────────── */
+
+.mw-choose {
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mw-choose > p {
+  margin: 0 0 6px;
+  color: var(--mono-400);
+  font-size: 13px;
+}
+
+.mw-track {
+  --a: var(--mono-200);
+  text-align: left;
+  background: var(--mono-1000);
+  border: 1px solid var(--mono-800);
+  border-left: 2px solid var(--a);
+  border-radius: 2px;
+  padding: 14px 16px;
+  cursor: pointer;
+  font: inherit;
+  color: var(--mono-200);
+  transition: border-color 120ms, background 120ms;
+}
+
+.mw-track:hover,
+.mw-track:focus-visible {
+  background: var(--mono-900);
+  border-color: var(--a);
+  outline: none;
+}
+
+.mw-track b {
+  display: block;
+  font: 500 15px/1.3 var(--sans);
+  color: var(--mono-000);
+}
+
+.mw-track span {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--mono-400);
+}
+
+.mw-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--mono-800);
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.mw-bar button {
+  margin-left: auto;
+  background: none;
+  border: 0;
+  color: var(--mono-600);
+  font: 400 11px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.mw-bar button:hover { color: var(--mono-200); }
+.mw-runsheet { margin-top: 22px; }
+.mw-runsheet > b {
+  display: block;
+  font: 500 10px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mono-600);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--mono-800);
+}
+.mw-runsheet div {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--mono-800);
+  font-size: 13px;
+  color: var(--mono-400);
+}
+.mw-runsheet code { font: 400 11px/1 var(--mono); color: var(--mono-700); }
+.mw-runsheet span { margin-left: auto; font: 400 11px/1 var(--mono); color: var(--mono-700); }
+
+/* ── steps ────────────────────────────────────────────── */
+
+.mw-scroll {
+  overflow-y: auto;
+  padding: 0 20px calc(24px + env(safe-area-inset-bottom));
+  scrollbar-width: thin;
+  scrollbar-color: var(--mono-800) transparent;
+}
+
+.mw-scroll h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 26px 0 12px;
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mono-600);
+}
+.mw-scroll h2 em { font-style: normal; color: var(--mono-400); }
+.mw-scroll h2 .mw-mins { margin-left: auto; color: var(--mono-700); }
+
+/* The signature: a level-of-detail meter per step. Four blocks, filled as the
+   step resolves, because progressive detail is what the workshop is about. */
+.mw-sub {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 0 12px;
+  padding-bottom: 18px;
+}
+
+.mw-lod {
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
+  gap: 2px;
+  height: 26px;
+  margin-top: 5px;
+}
+
+.mw-lod i {
+  background: var(--mono-800);
+  border-radius: 1px;
+}
+.mw-sub[data-state="done"] .mw-lod i { background: var(--accent); opacity: 0.55; }
+.mw-sub[data-state="here"] .mw-lod i:nth-child(-n + 2) { background: var(--accent); }
+.mw-sub[data-state="here"] .mw-lod i:nth-child(3) { background: var(--accent); opacity: 0.4; }
+
+.mw-sub h3 {
+  margin: 0 0 5px;
+  font: 500 14px/1.4 var(--sans);
+  color: var(--mono-400);
+}
+.mw-sub[data-state="here"] h3 { color: var(--mono-000); }
+.mw-sub[data-state="done"] h3 { color: var(--mono-200); }
+
+.mw-sub h3 code {
+  font: 400 11px/1 var(--mono);
+  color: var(--mono-600);
+  margin-right: 7px;
+}
+
+.mw-sub p { margin: 0 0 9px; color: var(--mono-400); }
+.mw-sub[data-state="here"] p { color: var(--mono-200); }
+
+.mw-sub pre {
+  margin: 0 0 10px;
+  background: var(--mono-1000);
+  border: 1px solid var(--mono-800);
+  border-radius: 2px;
+  padding: 9px 11px;
+  overflow-x: auto;
+  font: 400 12px/1.55 var(--mono);
+  color: var(--mono-200);
+}
+
+.mw-why {
+  margin: 0 0 4px;
+  padding: 10px 12px;
+  background: var(--mono-1000);
+  border-left: 2px solid var(--mono-700);
+  font-size: 13px;
+  color: var(--mono-400);
+}
+.mw-why b {
+  display: block;
+  font: 500 10px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mono-600);
+  margin-bottom: 6px;
+}
+
+/* ── controls ─────────────────────────────────────────── */
+
+.mw-row { display: flex; gap: 8px; align-items: center; margin: 2px 0 10px; flex-wrap: wrap; }
+
+.mw-go,
+.mw-quiet {
+  font: 500 12px/1 var(--sans);
+  border-radius: 2px;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  border: 1px solid transparent;
+}
+
+.mw-go { background: var(--accent); color: var(--mono-1000); }
+.mw-go:hover { filter: brightness(1.12); }
+.mw-go:disabled { opacity: 0.45; cursor: default; filter: none; }
+
+.mw-quiet { background: transparent; color: var(--mono-400); border-color: var(--mono-800); }
+.mw-quiet:hover { color: var(--mono-200); border-color: var(--mono-700); }
+
+.mw-fields { display: grid; gap: 10px; margin: 2px 0 12px; }
+.mw-fields label {
+  display: grid;
+  gap: 5px;
+  font: 500 10px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mono-600);
+}
+
+.mw-fields input,
+.mw-card textarea {
+  font: 400 13px/1.5 var(--mono);
+  background: var(--mono-1000);
+  color: var(--mono-200);
+  border: 1px solid var(--mono-800);
+  border-radius: 2px;
+  padding: 9px 11px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.mw-fields input:focus,
+.mw-card textarea:focus { outline: none; border-color: var(--accent); }
+
+.mw-note-bar {
+  border-top: 1px solid var(--mono-800);
+  padding: 11px 20px calc(11px + env(safe-area-inset-bottom));
+  font: 400 12px/1.5 var(--mono);
+  color: var(--accent);
+}
+
+/* ── generator overlay ────────────────────────────────── */
+
+.mw-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 9, 13, 0.86);
+  display: grid;
+  place-items: center;
+  z-index: 30;
+  padding: 24px;
+}
+
+.mw-card {
+  position: relative;
+  width: min(440px, 100%);
+  background: var(--mono-900);
+  border: 1px solid var(--mono-800);
+  border-top: 2px solid var(--accent);
+  border-radius: 2px;
+  padding: 26px 24px 22px;
+  font: 400 14px/1.55 var(--sans);
+  color: var(--mono-200);
+}
+
+.mw-card h3 {
+  margin: 0 0 4px;
+  font: 500 16px/1.3 var(--sans);
+  color: var(--mono-000);
+}
+.mw-card .mw-step {
+  font: 500 10px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 10px;
+}
+.mw-card img { width: 100%; border-radius: 2px; display: block; margin: 12px 0; }
+.mw-card .mw-dim { opacity: 0.3; }
+.mw-card .mw-row { justify-content: flex-start; margin-top: 14px; }
+
+.mw-x {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: 0;
+  color: var(--mono-600);
+  font-size: 20px;
+  cursor: pointer;
+}
+.mw-x:hover { color: var(--mono-200); }
+
+.mw-note { color: var(--mono-400); font-size: 13px; margin: 10px 0 0; }
+.mw-elapsed {
+  font: 500 24px/1 var(--mono);
+  color: var(--mono-000);
+  margin: 4px 0 8px;
+  font-variant-numeric: tabular-nums;
+}
+.mw-error {
+  margin: 12px 0 0;
+  padding: 9px 11px;
+  background: rgba(242, 61, 61, 0.1);
+  border-left: 2px solid #f23d3d;
+  font: 400 12px/1.5 var(--mono);
+  color: #ffb4b4;
+  word-break: break-word;
+}
+
+/* A four-stage progress read rather than a spinner, because the wait is
+   minutes and a spinner tells you nothing. */
+.mw-stages { display: grid; gap: 1px; margin: 14px 0 4px; }
+.mw-stages div {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 7px 0;
+  font: 400 12px/1.4 var(--mono);
+  color: var(--mono-700);
+  border-bottom: 1px solid var(--mono-800);
+}
+.mw-stages div[data-on] { color: var(--mono-200); }
+.mw-stages div[data-on]::before { content: "▸"; color: var(--accent); }
+.mw-stages div:not([data-on])::before { content: "·"; }
+
+.mw-plate {
+  width: 200px;
+  background: rgba(17, 18, 21, 0.94);
+  border: 1px solid var(--mono-800);
+  border-left: 2px solid var(--accent);
+  border-radius: 2px;
+  padding: 13px 15px;
+  font: 400 13px/1.5 var(--sans);
+  color: var(--mono-200);
+}
+.mw-plate strong { display: block; font-weight: 500; color: var(--mono-000); margin-bottom: 5px; }
+.mw-plate p { margin: 0 0 9px; font-size: 12px; color: var(--mono-400); }
+.mw-plate ul { margin: 0; padding: 0; list-style: none; }
+.mw-plate li {
+  font: 400 11px/1.7 var(--mono);
+  color: var(--mono-400);
+  border-top: 1px solid var(--mono-800);
+  padding-top: 4px;
+  margin-top: 4px;
+}
+
+@media (max-width: 720px) {
+  .mw-panel { inset: auto 0 0 0; width: 100vw; height: min(62vh, 560px); border-left: 0; border-top: 1px solid var(--mono-800); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* ── entry gate ────────────────────────────────────────── */
+/* Three doors, full bleed. The column is the control: a radio list with a
+   Continue button is what would make this read as settings. */
+
+.mw-start {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  background: var(--mono-1000);
+  color: var(--mono-200);
+  font: 400 14px/1.55 var(--sans);
+  --mono-000: #ffffff;
+  --mono-200: #d6d4d4;
+  --mono-400: #9e9d9f;
+  --mono-600: #6d6e71;
+  --mono-700: #535457;
+  --mono-800: #252526;
+  --mono-900: #111215;
+  --mono-1000: #08090d;
+  --sans: "Geist", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, monospace;
+}
+
+.mw-start > header {
+  display: flex;
+  justify-content: space-between;
+  padding: calc(22px + env(safe-area-inset-top)) 32px 0;
+  font: 400 11px/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mono-600);
+}
+
+.mw-ask {
+  padding: 56px 32px 40px;
+  max-width: 620px;
+}
+
+.mw-ask h1 {
+  margin: 0 0 14px;
+  font: 600 clamp(30px, 4.4vw, 52px) / 1.04 var(--sans);
+  letter-spacing: -0.025em;
+  color: var(--mono-000);
+}
+
+.mw-ask p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--mono-400);
+  max-width: 46ch;
+}
+
+.mw-doors {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--mono-800);
+  min-height: 0;
+}
+
+.mw-door {
+  position: relative;
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 0 20px;
+  align-content: center;
+  text-align: left;
+  padding: 34px 30px calc(34px + env(safe-area-inset-bottom));
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--mono-800);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+
+.mw-door:last-child { border-right: 0; }
+.mw-door:hover,
+.mw-door:focus-visible { background: var(--mono-900); outline: none; }
+.mw-doors:hover .mw-door:not(:hover) { opacity: 0.44; }
+.mw-door:focus-visible .mw-door-body b { text-decoration: underline; text-underline-offset: 5px; }
+
+/* The signature: the rail is a hairline until you consider the door, then it
+   resolves into four filling blocks. Same level-of-detail language the step
+   rail uses, at hero scale. */
+.mw-rail {
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
+  gap: 3px;
+  align-self: stretch;
+  min-height: 120px;
+}
+
+.mw-rail i {
+  background: var(--mono-800);
+  transition: background 180ms ease, transform 180ms ease;
+  transform-origin: bottom;
+}
+
+.mw-door:hover .mw-rail i,
+.mw-door:focus-visible .mw-rail i { background: var(--a); }
+.mw-door:hover .mw-rail i:nth-child(1) { transition-delay: 0ms; }
+.mw-door:hover .mw-rail i:nth-child(2) { transition-delay: 45ms; }
+.mw-door:hover .mw-rail i:nth-child(3) { transition-delay: 90ms; }
+.mw-door:hover .mw-rail i:nth-child(4) { transition-delay: 135ms; }
+.mw-door .mw-rail i:last-child { background: var(--a); }
+
+.mw-door-body { display: block; max-width: 34ch; }
+
+.mw-door-body b {
+  display: block;
+  font: 500 13px/1 var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mono-000);
+}
+
+.mw-door-body em {
+  display: block;
+  margin: 10px 0 18px;
+  font: 400 13px/1 var(--mono);
+  font-style: normal;
+  color: var(--a);
+}
+
+.mw-door-body > p {
+  margin: 0 0 10px;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--mono-200);
+  letter-spacing: -0.01em;
+}
+
+.mw-door-body .mw-curates {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--mono-600);
+}
+
+.mw-begin {
+  display: inline-block;
+  margin-top: 20px;
+  font: 500 12px/1 var(--mono);
+  letter-spacing: 0.06em;
+  color: var(--mono-400);
+}
+.mw-door:hover .mw-begin,
+.mw-door:focus-visible .mw-begin { color: var(--mono-000); }
+
+.mw-start > footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 26px;
+  padding: 13px 32px calc(13px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--mono-800);
+  font: 400 11px/1.8 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mono-600);
+}
+.mw-start > footer code { color: var(--mono-700); }
+.mw-start > footer em { font-style: normal; color: var(--mono-400); }
+
+/* One orchestrated load: rails draw down, then the type arrives. */
+@keyframes mw-draw { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes mw-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.mw-rail { animation: mw-draw 420ms ease both; animation-delay: calc(var(--i) * 70ms + 60ms); }
+.mw-door-body { animation: mw-rise 380ms ease both; animation-delay: calc(var(--i) * 70ms + 220ms); }
+.mw-ask h1, .mw-ask p { animation: mw-rise 420ms ease both; }
+.mw-ask p { animation-delay: 90ms; }
+
+@media (max-width: 860px) {
+  .mw-doors { grid-template-columns: 1fr; overflow-y: auto; }
+  .mw-door { border-right: 0; border-bottom: 1px solid var(--mono-800); padding: 22px 24px; align-content: start; }
+  .mw-rail { min-height: 0; grid-template-rows: none; grid-auto-flow: column; height: 3px; }
+  .mw-ask { padding: 32px 24px 26px; }
+  .mw-doors:hover .mw-door:not(:hover) { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mw-rail, .mw-door-body, .mw-ask h1, .mw-ask p { animation: none; }
+}
