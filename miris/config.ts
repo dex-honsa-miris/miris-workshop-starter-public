@@ -23,5 +23,5 @@ export const JWKS_URL = "https://app.miris.com/.well-known/jwks.json";
 // Measured 2026-08-28 against @miris-inc/three 0.0.8-1238406. Both numbers are
 // version-specific: on 0.0.8-dc2d7ec the same asset measured floor -1.24.
 export const FIT_OVERRIDES: Record<string, { scale?: number; floor?: number }> = {
-  [DEMO_UUID]: { scale: 0.44, floor: -1.017 },
+  [DEMO_UUID]: { floor: -1.017 },
 };
