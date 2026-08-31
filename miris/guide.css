@@ -1,47 +1,16 @@
-@font-face {
-  font-family: "Geist";
-  src: url("/fonts/geist-400.woff2") format("woff2");
-  font-weight: 400;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Geist";
-  src: url("/fonts/geist-500.woff2") format("woff2");
-  font-weight: 500;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Geist";
-  src: url("/fonts/geist-600.woff2") format("woff2");
-  font-weight: 600;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Geist Mono";
-  src: url("/fonts/geistmono-400.woff2") format("woff2");
-  font-weight: 400;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Geist Mono";
-  src: url("/fonts/geistmono-500.woff2") format("woff2");
-  font-weight: 500;
-  font-display: swap;
-}
+/* Fonts, colour ramps, type classes and components all come from the kit, which
+   app/layout.tsx loads globally. Never redeclare a kit value in this file.
 
-/* Miris kit ramps. --accent is set per track on .mw-panel. */
+   These two aliases are the exception. They are not kit tokens: the .mw-* rules
+   below already reference the panel's fonts by these names, and there are 34 such
+   references. Do NOT rename --mono, and do not mistake it for the kit's
+   --mono-000..--mono-1000 greyscale ramp. Deleting it fails silently: the rules
+   keep parsing and quietly inherit whatever font the page has. */
 .mw-panel,
-.mw-overlay {
-  --mono-000: #ffffff;
-  --mono-200: #d6d4d4;
-  --mono-400: #9e9d9f;
-  --mono-600: #6d6e71;
-  --mono-700: #535457;
-  --mono-800: #252526;
-  --mono-900: #111215;
-  --mono-1000: #08090d;
-  --accent: #00d5ff;
-  --sans: "Geist", system-ui, sans-serif;
+.mw-overlay,
+.mw-tab,
+.mw-start {
+  --sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --mono: "Geist Mono", ui-monospace, monospace;
 }
 
