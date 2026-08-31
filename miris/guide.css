@@ -893,10 +893,11 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Deliberately NOT var(--focal): that value frames a portrait crop in the
-     chooser, and this strip is about 4:1, where the same value lands the crop
-     wherever it happens to fall. A fixed band reads as atmosphere. */
-  object-position: center 38%;
+  /* Its own value, NOT var(--focal): that one frames a portrait crop in the
+     chooser, and this strip is about 3.8:1, where the same number lands
+     wherever it happens to fall. Reusing it cropped the statue to a headless
+     torso. */
+  object-position: var(--focal-strip, 50% 38%);
   mix-blend-mode: screen;
   pointer-events: none;
   z-index: 0;
@@ -924,18 +925,123 @@
   .mw-bar-art { animation: none; opacity: 1; transform: none; }
 }
 
-/* The morph between the chooser and the panel. Travel on the kit's opening
-   curve; the browser cross-fades the two snapshots on its own. */
-::view-transition-old(track-art),
-::view-transition-new(track-art) {
+/* ── the morph between the chooser and the panel ──────────────
+   Picking a track morphs the door's artwork into the sidebar's art strip.
+
+   The thing that makes or breaks this: anything WITHOUT its own
+   view-transition-name is lumped into the single `root` snapshot, and `root`
+   cross-fades. The chooser and the panel are completely different layouts, so
+   letting them share `root` double-exposes them, and you read two sets of
+   overlapping type rather than one transition. Naming them separately is what
+   makes it clean.
+
+   So: the chooser leaves, the panel arrives, the artwork morphs between them,
+   and the ground behind both does not fade at all (it is the same 3D canvas in
+   both states, so fading it would only flicker it). */
+
+.mw-start { view-transition-name: chooser; }
+.mw-panel { view-transition-name: panel; }
+
+/* The ground is unchanged across the swap. Cross-fading it buys nothing and
+   costs a flicker. */
+::view-transition-image-pair(root) { isolation: auto; }
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; opacity: 1; mix-blend-mode: normal; }
+
+/* ::view-transition-group() drives POSITION and SIZE. A duration set only on
+   old/new paces the cross-fade and leaves the geometry at the UA default of
+   about 250ms, which is what reads as "too fast". */
+::view-transition-group(track-art) {
   animation-duration: var(--mo-travel);
   animation-timing-function: var(--ease-in);
+  /* REQUIRED. object-fit: cover below scales the snapshot to cover the box,
+     and the group does not clip its overflow by default, so without this the
+     oversized render paints straight across the rest of the screen. At 15%
+     through the morph that is a dragon about 490px wide spilling over all
+     three doors and the panel, which is what made this read as a mess rather
+     than a morph. */
+  overflow: hidden;
 }
+
+::view-transition-image-pair(track-art) {
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+/* Both snapshots are the same artwork, so their cross-fade is invisible and
+   the UA default is fine. What is NOT fine is the default stretch: the
+   snapshots are replaced elements and squash to the interpolating box, which
+   distorts a portrait door crop on its way to a roughly 4:1 strip. */
+::view-transition-old(track-art),
+::view-transition-new(track-art) {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+/* The two crops differ (the door frames a portrait, the strip a wide band), so
+   a hard swap would pop and a straight 50/50 cross-fade leaves the strip
+   looking empty at the midpoint. Overlap them: the incoming snapshot is solid
+   early, the outgoing one lingers, so there is ink on screen throughout. */
+@keyframes mw-art-out { to { opacity: 0; } }
+@keyframes mw-art-in { from { opacity: 0; } }
+
+::view-transition-old(track-art) {
+  animation: mw-art-out calc(var(--mo-travel) * 0.65) var(--ease-fade) both;
+}
+::view-transition-new(track-art) {
+  animation: mw-art-in calc(var(--mo-travel) * 0.4) var(--ease-fade) both;
+}
+
+@keyframes mw-chooser-out {
+  to { opacity: 0; transform: scale(0.985); }
+}
+@keyframes mw-panel-in {
+  from { opacity: 0; transform: translateX(28px); }
+}
+
+/* The chooser goes first and quickly, so it is out of the way before the panel
+   is solid. Opacity is linear, always. */
+/* The chooser leaves before the panel arrives. Overlapping them means two
+   full-screen layouts are semi-transparent at once in the region they share,
+   and you read two sets of type through each other. A short gap is cleaner
+   than a long blend. */
+::view-transition-old(chooser) {
+  animation: mw-chooser-out calc(var(--mo-travel) * 0.34) var(--ease-fade) both;
+}
+::view-transition-new(chooser) { animation: none; }
+
+/* The panel arrives from its own edge, on the kit's opening curve. 28px is an
+   in-place arrival, not an entrance from nothing, so it is well under the
+   kit's 40px --mo-rise. */
+::view-transition-new(panel) {
+  animation: mw-panel-in calc(var(--mo-travel) * 0.7) var(--ease-in) both;
+  /* Starts as the chooser finishes leaving, so the two barely coexist. */
+  animation-delay: calc(var(--mo-travel) * 0.3);
+}
+::view-transition-old(panel) { animation: none; }
+
+/* Closing is not opening reversed: running the opening ramp backwards dumps
+   most of its distance immediately and then creeps the last sliver. Change
+   gets the kit's own closing curve and less time. */
+html[data-vt="out"]::view-transition-group(track-art) {
+  animation-duration: var(--mo-close);
+  animation-timing-function: var(--ease-close);
+}
+html[data-vt="out"]::view-transition-old(panel) {
+  animation: mw-panel-in var(--mo-close) var(--ease-close) both reverse;
+}
+html[data-vt="out"]::view-transition-new(panel) { animation: none; }
+html[data-vt="out"]::view-transition-new(chooser) {
+  animation: mw-chooser-out var(--mo-close) var(--ease-close) both reverse;
+}
+html[data-vt="out"]::view-transition-old(chooser) { animation: none; }
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {
     animation: none !important;
+    opacity: 1 !important;
   }
 }

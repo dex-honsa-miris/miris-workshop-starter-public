@@ -99,10 +99,21 @@ export default function MirisGuide() {
     }
 
     const commit = () => flushSync(() => setData(next));
-    const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
+    const doc = document as Document & {
+      startViewTransition?: (cb: () => void) => { finished: Promise<void> };
+    };
+
     // Unsupported browsers get the same state change without the morph.
-    if (typeof doc.startViewTransition === "function") doc.startViewTransition(commit);
-    else commit();
+    if (typeof doc.startViewTransition !== "function") return commit();
+
+    // Direction, so the CSS can give closing its own curve and less time. The
+    // kit is explicit that closing is not opening reversed: running the opening
+    // ramp backwards dumps most of its distance immediately then creeps.
+    document.documentElement.dataset.vt = id ? "in" : "out";
+    const transition = doc.startViewTransition(commit);
+    transition.finished.finally(() => {
+      delete document.documentElement.dataset.vt;
+    });
   };
 
   // Only 5 of the 16 substeps carry a `fill`, and fill() was the sole writer of
@@ -168,6 +179,7 @@ export default function MirisGuide() {
             src={track.image}
             alt=""
             aria-hidden="true"
+            style={{ ["--focal-strip" as string]: track.focalStrip } as React.CSSProperties}
           />
           <span className="mw-bar-label">{track.label}</span>
           <button className="mw-bar-change" onClick={() => chooseTrack("")}>

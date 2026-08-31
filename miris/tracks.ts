@@ -21,11 +21,21 @@ export interface Track {
    *  shifts as the three loads land. */
   imageWidth: number;
   imageHeight: number;
-  /** object-position for the door's crop. The doors are portrait and two of the
-   *  renders are landscape, so a centre crop loses the subject: the dragon's
-   *  head sits upper-left and a centre crop shows mostly wing. Tuned per
-   *  render, not shared. */
+  /** object-position for the door's crop, which is portrait. Two of the renders
+   *  are landscape, so a centre crop loses the subject: the dragon's head sits
+   *  upper-left and a centre crop shows mostly wing.
+   *
+   *  Note which component actually does anything, it differs per render. Under
+   *  object-fit: cover only the overflowing axis responds. Reliquary's 900x1125
+   *  scales to exactly the door height, so its `y` is inert and only `x` moves
+   *  the crop. The two landscape renders are the other way round. */
   focal: string;
+  /** object-position for the sidebar strip, which is a ~3.8:1 band and needs
+   *  its own value. Reusing `focal` there cropped the statue to a headless
+   *  torso: at that band height 38% lands on the midsection, while the head
+   *  sits around 3-13% of the image. Here the landscape renders scale to
+   *  exactly the strip width, so for those only `y` does anything. */
+  focalStrip: string;
   /** Placeholder for the prompt field. */
   hint: string;
   /** Prepended to the prompt before it reaches fal. */
@@ -43,7 +53,8 @@ export const TRACKS: Track[] = [
     imageAlt: "A faceted crystal dragon perched on a plinth",
     imageWidth: 900,
     imageHeight: 756,
-    focal: "26% 32%",
+    focal: "14% 32%",
+    focalStrip: "50% 20%",
     hint: "a moss-covered lantern beast with too many eyes",
     style: "a fantasy creature for a monster-taming game, matte painted-resin surfaces, chunky readable silhouette",
   },
@@ -58,6 +69,7 @@ export const TRACKS: Track[] = [
     imageWidth: 900,
     imageHeight: 756,
     focal: "56% 46%",
+    focalStrip: "50% 40%",
     hint: "a brushed-steel pour-over kettle with a walnut handle",
     style: "a crafted retail product, studio product photograph, accurate materials, soft even light",
   },
@@ -72,6 +84,7 @@ export const TRACKS: Track[] = [
     imageWidth: 900,
     imageHeight: 1125,
     focal: "50% 26%",
+    focalStrip: "50% 10%",
     hint: "a bronze astrolabe engraved with wave patterns",
     style: "a museum artifact, aged surfaces, patina and wear, neutral backdrop, even light",
   },
