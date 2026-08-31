@@ -25,6 +25,21 @@ export default function Start({ onChoose }: { onChoose: (id: string) => void }) 
             style={{ ["--a" as string]: track.accent, ["--i" as string]: i } as React.CSSProperties}
             onClick={() => onChoose(track.id)}
           >
+            {/* The renders are on a pure black ground with no alpha, so the CSS
+                screen-blends them: the artwork's black resolves to the page's
+                own ground and the subject reads as lit by the same room. */}
+            <span className="mw-specimen">
+              <img
+                src={track.image}
+                alt={track.imageAlt}
+                width={track.imageWidth}
+                height={track.imageHeight}
+                loading="eager"
+                decoding="async"
+                draggable={false}
+              />
+            </span>
+
             <span className="mw-rail" aria-hidden="true">
               <i />
               <i />

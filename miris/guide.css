@@ -609,3 +609,133 @@
   outline: 2px solid var(--mono-400);
   outline-offset: 2px;
 }
+
+
+/* ── track specimens ──────────────────────────────────────────
+   Each door leads with the thing you are actually going to build. The three
+   renders share one language: a chrome subject on a pure black ground, no
+   alpha, one iridescent inlay, a star glint.
+
+   Because that ground is genuinely #000 (sampled: every corner is 0,0,0 to
+   1,1,1), `screen` resolves it to whatever sits behind the door. The subject
+   floats on the page's own surface rather than inside a rectangle, with no
+   masking and no alpha channel. Screen never darkens, so the artwork can only
+   ever add light to the page.
+
+   Before you swap the art: this only works with a black-ground render. A
+   white-ground or alpha PNG will blow out into a pale block, and it will not
+   throw an error. */
+
+.mw-door {
+  grid-template-rows: auto auto;
+  gap: 22px 20px;
+}
+
+.mw-specimen {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 0;
+}
+
+/* The cap is an explicit length, not `max-height: 100%`. The doors sit in
+   .mw-start's `1fr` row, and `1fr` means `minmax(auto, 1fr)` whose auto
+   minimum grows the track to fit its content. A percentage max-height
+   resolves against that content-derived height, which means it resolves to
+   none, the images render at their intrinsic 900px, and the track balloons
+   until the type is pushed off screen. An absolute cap cannot do that.
+
+   The three renders do not share an aspect ratio: the statue is portrait and
+   its plinth runs off the bottom edge of its own artwork, while the dragon
+   and the sneaker are landscape and float free. Bottom-anchoring all three
+   puts them on one floor line, so the statue's bleed reads as intentional. */
+.mw-specimen img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: min(38vh, 320px);
+  object-fit: contain;
+  object-position: bottom;
+  mix-blend-mode: screen;
+}
+
+.mw-rail {
+  grid-column: 1;
+  grid-row: 2;
+  min-height: 0;
+}
+
+.mw-door-body {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+/* Entrance. Travel and opacity are separate channels on separate curves, and
+   opacity is linear, because under an ease ramp a 300ms fade reads as a ~40ms
+   snap. 40px is the kit's entrance-from-nothing distance, which is what a
+   page load is.
+
+   The animation goes on the img, NOT on .mw-specimen. mix-blend-mode blends
+   only within the nearest isolated stacking context, and an ancestor carrying
+   a transform forces that isolation. Animating the wrapper would isolate the
+   blend and the render's black ground would reappear as a visible rectangle
+   for the length of the animation. The blended element may safely carry its
+   own transform; only ancestors are a problem. */
+@keyframes mw-specimen-rise {
+  from { transform: translateY(var(--mo-rise)); }
+  to   { transform: none; }
+}
+/* opacity 0 lives ONLY here, never in a static rule, so the reduced-motion
+   animation:none below cannot strand the artwork invisible. */
+@keyframes mw-specimen-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.mw-specimen img {
+  animation:
+    mw-specimen-rise var(--mo-travel) var(--ease-in) backwards,
+    mw-specimen-fade var(--mo-reveal) var(--ease-fade) backwards;
+  /* Absolute offset from page load, never chained off the door above, so no
+     door waits on another finishing. The specimen leads its own door: artwork
+     at 0, rail at +60ms, body at +220ms, reading top to bottom. */
+  animation-delay: calc(var(--i) * var(--mo-stagger));
+}
+
+/* Stacked doors need a scannable strip, not a hero. At 390px three full-height
+   specimens would push the third track below two screens of scroll. */
+@media (max-width: 860px) {
+  .mw-door {
+    grid-template-rows: auto auto;
+    align-content: start;
+    gap: 14px 20px;
+  }
+  .mw-specimen {
+    align-items: center;
+  }
+  .mw-specimen img {
+    max-height: 88px;
+  }
+  /* The rule above this one flips the rail horizontal at 3px tall, which was
+     right when the rail stretched across the door. It now sits in the door's
+     14px column beside the text, where a horizontal rail renders as a smear,
+     so keep it vertical at every width. */
+  .mw-rail {
+    grid-auto-flow: row;
+    grid-template-rows: repeat(4, 1fr);
+    height: auto;
+    min-height: 64px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mw-specimen img {
+    animation: none;
+    /* Defensive. The keyframe-only opacity means animation:none already
+       reverts to 1. Keep this so a future static opacity:0 cannot strand it. */
+    opacity: 1;
+    transform: none;
+  }
+}
