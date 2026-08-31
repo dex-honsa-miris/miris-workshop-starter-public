@@ -987,3 +987,32 @@ html[data-vt="out"]::view-transition-old(chooser) { animation: none; }
     opacity: 1 !important;
   }
 }
+
+/* ── the global error screen ──────────────────────────────────
+   app/global-error.tsx replaces the root layout, so it links the kit itself.
+   These are the only rules it needs. */
+
+.mw-fault {
+  max-width: 52ch;
+  margin: 0 auto;
+  padding: 18vh var(--space-m) var(--space-m);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-s);
+}
+.mw-fault .l12 { color: var(--accent); }
+.mw-fault h1 { color: var(--text-primary); }
+.mw-fault p { color: var(--text-secondary); }
+
+.mw-fault-msg {
+  width: 100%;
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  color: var(--text-primary);
+  overflow-x: auto;
+}
+.mw-fault-digest { color: var(--text-tertiary); }
