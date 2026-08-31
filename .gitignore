@@ -6,3 +6,4 @@ public/models/
 .superpowers/
 miris/data.json
 .playwright-mcp/
+tsconfig.tsbuildinfo
