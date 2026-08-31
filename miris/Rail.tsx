@@ -1,4 +1,3 @@
-"use client";
 import { STEPS, type Step } from "./curriculum";
 
 export interface RailProps {

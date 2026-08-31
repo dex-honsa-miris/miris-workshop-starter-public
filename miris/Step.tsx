@@ -1,4 +1,3 @@
-"use client";
 import type { Step, Sub } from "./curriculum";
 import type { Track } from "./tracks";
 import { nextSub, subState } from "./progress";

@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useState } from "react";
 import { CONSOLE_URL } from "./config";
 import type { Track } from "./tracks";

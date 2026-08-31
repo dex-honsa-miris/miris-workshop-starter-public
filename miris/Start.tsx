@@ -1,4 +1,3 @@
-"use client";
 import { STEPS } from "./curriculum";
 import { TRACKS } from "./tracks";
 

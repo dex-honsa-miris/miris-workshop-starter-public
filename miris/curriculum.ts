@@ -166,7 +166,7 @@ export const STEPS: Step[] = [
         num: "5.2",
         title: "Remove the guide",
         body:
-          "Open app/layout.tsx and comment out the MirisGuide line. The panel disappears and your app stays exactly as you built it. The Miris styling stays too, because layout.tsx loads it, not the guide.",
+          "Open app/main.tsx and comment out the MirisGuide line. The panel disappears and your app stays exactly as you built it. The Miris styling stays too, because index.html loads it, not the guide.",
         code: "{/* <MirisGuide /> */}",
       },
       {

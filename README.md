@@ -78,14 +78,14 @@ spinner, because a spinner tells you nothing across minutes.
 
 - `app/stage.tsx` is the attendee's file. It ships with marker comments and the
   sidebar writes between them.
-- `app/api/miris/route.ts` is the only server code: it writes files, proxies
+- `miris/devApi.ts` is the only server code: it writes files, proxies
   fal, and owns `data.json`. The fal key never reaches the browser.
 - `miris/` holds the guide, the curriculum copy, the snippets, the store and the
   config.
 
 ### Removing the guide
 
-Comment out `<MirisGuide />` in `app/layout.tsx`. That is step 5.2, and it is
+Comment out `<MirisGuide />` in `app/main.tsx`. That is step 5.2, and it is
 the only line the guide adds to the app. Verified: the production build is clean
 with it commented out.
 
@@ -147,7 +147,8 @@ the scene still has children and fails three engine assertions.
 
 ### The API is development-only
 
-`app/api/miris` refuses every request unless `NODE_ENV === "development"`, and
+`/api/miris` exists only as Vite dev middleware, so a production build has no
+such endpoint at all, and
 returns 403. Attendees publish this app and share the link at step 5.3, and
 commenting out the guide does not remove the route: without the gate, anyone
 with the link could spend their fal key or rewrite files. Verified against a

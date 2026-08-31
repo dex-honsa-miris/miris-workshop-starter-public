@@ -1,4 +1,3 @@
-"use client";
 import { useCallback, useEffect, useState } from "react";
 import { flushSync } from "react-dom";
 import Panel from "./Panel";
