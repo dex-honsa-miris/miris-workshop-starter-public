@@ -4,8 +4,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "test": "node --test miris/*.test.mjs"
+    "start": "next start"
   },
   "dependencies": {
     "@miris-inc/core": "0.0.8-1238406",

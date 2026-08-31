@@ -4,7 +4,8 @@ export interface Sub {
   body: string;
   code?: string;
   /** A snippet id from miris/snippets.mjs. Typed loosely on purpose: the
-   *  snippets live in a .mjs file so node --test can run them with no loader. */
+   *  snippets live in a plain .mjs file, so there is no exported union to
+   *  narrow against. */
   fill?: string;
   /** Required whenever `fill` is set. What the button wrote, and why. */
   explain?: string;

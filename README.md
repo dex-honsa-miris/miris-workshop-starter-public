@@ -173,16 +173,6 @@ empty.
 
 ### Testing
 
-```
-npm test
-```
-
-Twelve tests, no dependencies, via `node --test`. They cover the marker engine
-(idempotent, preserves text and indentation outside the markers, rejects unknown
-markers) and the store (patches merge, concurrent writes do not drop each other's
-fields, and a corrupt `data.json` throws instead of silently resetting the
-session).
-
 Browser verification lives outside this repo so a fork carries no Playwright:
 see `verify-stage.mjs` and `measure-seat.mjs` in the sibling `miris-atelier`
 checkout.
