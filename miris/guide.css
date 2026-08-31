@@ -913,3 +913,77 @@
 @media (prefers-reduced-motion: reduce) {
   .mw-bar-art { animation: none; opacity: 1; transform: none; }
 }
+
+/* ── the chooser/panel transition ──────────────────────────────
+   Picking a track transitions the two screens. The artwork is deliberately
+   NOT part of it: an earlier version gave the art its own
+   view-transition-name so it morphed from the door into the sidebar strip,
+   and it dropped frames badly. A named element whose group interpolates size
+   forces the browser to resample its snapshot every frame, and these renders
+   are 900px wide. Opacity and a translate do not resample, which is why this
+   version is cheap and that one was not.
+
+   The other thing that matters: anything WITHOUT a name is lumped into the
+   single `root` snapshot, and `root` cross-fades. The chooser and the panel
+   are completely different layouts, so sharing `root` double-exposes them and
+   you read two sets of type through each other. Naming them separately is
+   what makes this clean. */
+
+.mw-start { view-transition-name: chooser; }
+.mw-panel { view-transition-name: panel; }
+
+/* The ground is the same 3D canvas in both states. Cross-fading it buys
+   nothing and costs a flicker. */
+::view-transition-image-pair(root) { isolation: auto; }
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  opacity: 1;
+  mix-blend-mode: normal;
+}
+
+@keyframes mw-chooser-out {
+  to { opacity: 0; transform: scale(0.985); }
+}
+@keyframes mw-panel-in {
+  from { opacity: 0; transform: translateX(28px); }
+}
+
+/* The chooser leaves before the panel arrives. Overlapping two full-screen
+   layouts means both are semi-transparent where they share space, which is
+   what looked muddy. A short gap beats a long blend. */
+::view-transition-old(chooser) {
+  animation: mw-chooser-out calc(var(--mo-travel) * 0.34) var(--ease-fade) both;
+}
+::view-transition-new(chooser) { animation: none; }
+
+/* The panel arrives from its own edge on the kit's opening curve. 28px is an
+   in-place arrival, well under the kit's 40px --mo-rise for an entrance from
+   nothing. */
+::view-transition-new(panel) {
+  animation: mw-panel-in calc(var(--mo-travel) * 0.7) var(--ease-in) both;
+  animation-delay: calc(var(--mo-travel) * 0.3);
+}
+::view-transition-old(panel) { animation: none; }
+
+/* Closing is not opening reversed: running the opening ramp backwards dumps
+   most of its distance immediately then creeps the last sliver. Change gets
+   the kit's own closing curve and less time. */
+html[data-vt="out"]::view-transition-old(panel) {
+  animation: mw-panel-in calc(var(--mo-close) * 0.6) var(--ease-close) both reverse;
+}
+html[data-vt="out"]::view-transition-new(panel) { animation: none; }
+html[data-vt="out"]::view-transition-new(chooser) {
+  animation: mw-chooser-out var(--mo-close) var(--ease-close) both reverse;
+  animation-delay: calc(var(--mo-close) * 0.35);
+}
+html[data-vt="out"]::view-transition-old(chooser) { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}

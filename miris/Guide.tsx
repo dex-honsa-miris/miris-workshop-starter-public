@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import Panel from "./Panel";
 import { STEPS } from "./curriculum";
 import { stepOfSub } from "./progress";
@@ -77,10 +78,39 @@ export default function MirisGuide() {
   const track = trackById(data.track);
   const trackVars = { ["--track" as string]: track.accent } as React.CSSProperties;
 
+  // Swapping between the chooser and the panel is a view transition: the
+  // chooser leaves, then the panel arrives from its edge. The artwork is not
+  // part of it, deliberately, see the note in guide.css.
+  //
+  // The commit must be synchronous inside the callback, hence flushSync. The
+  // browser snapshots the DOM before and after that callback runs, so a normal
+  // async setState lands after the snapshot and animates nothing.
   const chooseTrack = async (id: string) => {
     const { ok, json } = await post({ action: "save", patch: { track: id } });
     if (!ok) return setNote(json.error);
-    await load();
+
+    let next: any;
+    try {
+      const res = await fetch("/api/miris");
+      next = await res.json();
+      if (!res.ok) return setNote(next.error ?? `could not read data.json (${res.status})`);
+    } catch (e) {
+      return setNote(`could not reach the workshop API: ${(e as Error).message}`);
+    }
+
+    const commit = () => flushSync(() => setData(next));
+    const doc = document as Document & {
+      startViewTransition?: (cb: () => void) => { finished: Promise<void> };
+    };
+
+    // Unsupported browsers get the same state change without the transition.
+    if (typeof doc.startViewTransition !== "function") return commit();
+
+    // Direction, so the CSS can give closing its own curve and less time.
+    document.documentElement.dataset.vt = id ? "in" : "out";
+    doc.startViewTransition(commit).finished.finally(() => {
+      delete document.documentElement.dataset.vt;
+    });
   };
 
   // Only 5 of the 16 substeps carry a `fill`, and fill() was the sole writer of
