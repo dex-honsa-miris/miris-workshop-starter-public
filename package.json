@@ -2,8 +2,10 @@
   "name": "miris-workshop-starter",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "dev:turbo": "next dev",
+    "build": "next build --webpack",
+    "build:turbo": "next build",
     "start": "next start"
   },
   "dependencies": {
