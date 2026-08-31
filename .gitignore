@@ -8,3 +8,8 @@ public/models/
 miris/data.json
 .playwright-mcp/
 tsconfig.tsbuildinfo
+
+# The raw upstream kit drop. public/kit/ is the vendored copy the app loads,
+# and docs/miris-web-kit/ keeps the provenance notes. This third copy is a
+# working directory, not part of the project.
+miris-web-kit/
