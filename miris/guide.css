@@ -212,9 +212,9 @@
   background: var(--mono-800);
   border-radius: var(--radius-xs);
 }
-.mw-sub[data-state="done"] .mw-lod i { background: var(--accent); opacity: 0.55; }
-.mw-sub[data-state="here"] .mw-lod i:nth-child(-n + 2) { background: var(--accent); }
-.mw-sub[data-state="here"] .mw-lod i:nth-child(3) { background: var(--accent); opacity: 0.4; }
+.mw-sub[data-state="done"] .mw-lod i { background: var(--track); opacity: 0.55; }
+.mw-sub[data-state="here"] .mw-lod i:nth-child(-n + 2) { background: var(--track); }
+.mw-sub[data-state="here"] .mw-lod i:nth-child(3) { background: var(--track); opacity: 0.4; }
 
 .mw-sub h3 {
   margin: 0 0 5px;

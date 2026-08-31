@@ -78,10 +78,10 @@ export default function Panel({ track, onClose }: { track: Track; onClose: () =>
 
   const mmss = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
 
-  const accent = { ["--accent" as string]: track.accent } as React.CSSProperties;
+  const trackVars = { ["--track" as string]: track.accent } as React.CSSProperties;
 
   return (
-    <div className="mw-overlay" style={accent}>
+    <div className="mw-overlay" style={trackVars}>
       <div className="mw-card">
         <button className="mw-x" onClick={onClose} aria-label="Close">
           ×

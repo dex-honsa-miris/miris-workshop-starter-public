@@ -69,7 +69,7 @@ export default function MirisGuide() {
   };
 
   const track = trackById(data.track);
-  const accent = { ["--accent" as string]: track.accent } as React.CSSProperties;
+  const trackVars = { ["--track" as string]: track.accent } as React.CSSProperties;
 
   const chooseTrack = async (id: string) => {
     await post({ action: "save", patch: { track: id } });
@@ -80,7 +80,7 @@ export default function MirisGuide() {
 
   if (!open) {
     return (
-      <button className="mw-tab" style={accent} onClick={() => setOpen(true)}>
+      <button className="mw-tab" style={trackVars} onClick={() => setOpen(true)}>
         Guide
       </button>
     );
@@ -89,7 +89,7 @@ export default function MirisGuide() {
   return (
     <>
       {panel && <Panel track={track} onClose={() => setPanel(false)} />}
-      <aside className="mw-panel" style={accent}>
+      <aside className="mw-panel" style={trackVars}>
         <header className="mw-head">
           <b className="b14">Spatial Streaming</b>
           <button className="mw-hide" onClick={() => setOpen(false)} aria-label="Hide the guide">
