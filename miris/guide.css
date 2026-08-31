@@ -9,7 +9,8 @@
 .mw-panel,
 .mw-overlay,
 .mw-tab,
-.mw-start {
+.mw-start,
+.mw-plate {
   --sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --mono: "Geist Mono", ui-monospace, monospace;
 }
@@ -445,16 +446,6 @@
   background: var(--mono-1000);
   color: var(--mono-200);
   font: 400 14px/1.55 var(--sans);
-  --mono-000: #ffffff;
-  --mono-200: #d6d4d4;
-  --mono-400: #9e9d9f;
-  --mono-600: #6d6e71;
-  --mono-700: #535457;
-  --mono-800: #252526;
-  --mono-900: #111215;
-  --mono-1000: #08090d;
-  --sans: "Geist", system-ui, sans-serif;
-  --mono: "Geist Mono", ui-monospace, monospace;
 }
 
 .mw-start > header {
