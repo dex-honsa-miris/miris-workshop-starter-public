@@ -1,0 +1,1018 @@
+/* Fonts, colour ramps, type classes and components all come from the kit, which
+   app/layout.tsx loads globally. Never redeclare a kit value in this file.
+
+   These two aliases are the exception. They are not kit tokens: the .mw-* rules
+   below already reference the panel's fonts by these names, and there are 34 such
+   references. Do NOT rename --mono, and do not mistake it for the kit's
+   --mono-000..--mono-1000 greyscale ramp. Deleting it fails silently: the rules
+   keep parsing and quietly inherit whatever font the page has. */
+.mw-panel,
+.mw-overlay,
+.mw-tab,
+.mw-start,
+.mw-plate {
+  --sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, monospace;
+}
+
+.mw-panel {
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: min(408px, 100vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--mono-900);
+  border-left: 1px solid var(--mono-800);
+  font: 400 14px/1.55 var(--sans);
+  color: var(--mono-200);
+  z-index: 20;
+}
+
+/* ── head ─────────────────────────────────────────────── */
+
+.mw-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: calc(18px + env(safe-area-inset-top)) 20px 14px;
+  border-bottom: 1px solid var(--mono-800);
+}
+
+.mw-head b {
+  color: var(--mono-000);
+}
+
+.mw-head .mw-of {
+  font: 400 11px/1 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-left: auto;
+}
+
+.mw-hide {
+  background: none;
+  border: 0;
+  color: var(--mono-600);
+  font: 400 18px/1 var(--sans);
+  cursor: pointer;
+  padding: 0 2px;
+}
+.mw-hide:hover { color: var(--mono-200); }
+
+.mw-tab {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--mono-900);
+  color: var(--mono-200);
+  border: 1px solid var(--mono-800);
+  border-radius: var(--radius-s);
+  padding: 10px 14px;
+  cursor: pointer;
+}
+.mw-tab:hover { border-color: var(--text-primary); color: var(--text-primary); }
+
+/* ── track chooser ────────────────────────────────────── */
+
+.mw-choose {
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mw-choose > p {
+  margin: 0 0 6px;
+  color: var(--mono-400);
+  font-size: 13px;
+}
+
+.mw-track {
+  --a: var(--mono-200);
+  text-align: left;
+  background: var(--mono-1000);
+  border: 1px solid var(--mono-800);
+  border-left: 2px solid var(--a);
+  border-radius: var(--radius-s);
+  padding: 14px 16px;
+  cursor: pointer;
+  font: inherit;
+  color: var(--mono-200);
+  transition: border-color 120ms, background 120ms;
+}
+
+.mw-track:hover,
+.mw-track:focus-visible {
+  background: var(--mono-900);
+  border-color: var(--text-primary);
+}
+
+.mw-track b {
+  display: block;
+  font: 500 15px/1.3 var(--sans);
+  color: var(--mono-000);
+}
+
+.mw-track span {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--mono-400);
+}
+
+.mw-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--mono-800);
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.mw-bar button {
+  margin-left: auto;
+  background: none;
+  border: 0;
+  color: var(--mono-600);
+  font: 400 11px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.mw-bar button:hover { color: var(--mono-200); }
+.mw-runsheet { margin-top: 22px; }
+.mw-runsheet > b {
+  display: block;
+  font: 500 10px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mono-600);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--mono-800);
+}
+.mw-runsheet div {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--mono-800);
+  font-size: 13px;
+  color: var(--mono-400);
+}
+.mw-runsheet code { font: 400 11px/1 var(--mono); color: var(--mono-700); }
+.mw-runsheet span { margin-left: auto; font: 400 11px/1 var(--mono); color: var(--mono-700); }
+
+/* ── steps ────────────────────────────────────────────── */
+
+.mw-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 18px calc(20px + env(safe-area-inset-bottom));
+  scrollbar-width: thin;
+  scrollbar-color: var(--mono-800) transparent;
+}
+
+.mw-scroll h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 26px 0 12px;
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mono-600);
+}
+.mw-scroll h2 em { font-style: normal; color: var(--mono-400); }
+.mw-scroll h2 .mw-mins { margin-left: auto; color: var(--mono-700); }
+
+
+.mw-lod {
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
+  gap: 2px;
+  height: 26px;
+  margin-top: 5px;
+}
+
+.mw-lod i {
+  background: var(--mono-800);
+  border-radius: var(--radius-xs);
+}
+/* The pips used to hang off .mw-sub[data-state]. The pane renders one current
+   substep, so the state is implicit: this IS the step in progress. */
+.mw-now .mw-lod i:nth-child(-n + 3) { background: var(--track); }
+.mw-now .mw-lod i:nth-child(3) { opacity: 0.45; }
+
+
+
+
+
+.mw-why {
+  margin: 0 0 4px;
+  padding: 10px 12px;
+  background: var(--mono-1000);
+  border-left: 2px solid var(--mono-700);
+  font-size: 13px;
+  color: var(--mono-400);
+}
+.mw-why b {
+  display: block;
+  font: 500 10px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mono-600);
+  margin-bottom: 6px;
+}
+
+/* ── controls ─────────────────────────────────────────── */
+
+.mw-row { display: flex; gap: 8px; align-items: center; margin: 2px 0 10px; flex-wrap: wrap; }
+
+.mw-go,
+.mw-quiet {
+  font: 500 12px/1 var(--sans);
+  border-radius: 2px;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  border: 1px solid transparent;
+}
+
+.mw-go { background: var(--accent); color: var(--mono-1000); }
+.mw-go:hover { filter: brightness(1.12); }
+.mw-go:disabled { opacity: 0.45; cursor: default; filter: none; }
+
+.mw-quiet { background: transparent; color: var(--mono-400); border-color: var(--mono-800); }
+.mw-quiet:hover { color: var(--mono-200); border-color: var(--mono-700); }
+
+.mw-fields { display: grid; gap: 10px; margin: 2px 0 12px; }
+.mw-fields label {
+  display: grid;
+  gap: 5px;
+  color: var(--mono-600);
+}
+
+.mw-fields input,
+.mw-card textarea {
+  font: 400 13px/1.5 var(--mono);
+  background: var(--mono-1000);
+  color: var(--mono-200);
+  border: 1px solid var(--mono-800);
+  border-radius: var(--radius-s);
+  padding: 9px 11px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.mw-fields input:focus,
+.mw-card textarea:focus { border-color: var(--text-primary); }
+
+.mw-note-bar {
+  border-top: 1px solid var(--mono-800);
+  padding: 11px 20px calc(11px + env(safe-area-inset-bottom));
+  font: 400 12px/1.5 var(--mono);
+  color: var(--accent);
+}
+
+/* ── generator overlay ────────────────────────────────── */
+
+.mw-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 9, 13, 0.86);
+  display: grid;
+  place-items: center;
+  z-index: 30;
+  padding: 24px;
+}
+
+.mw-card {
+  position: relative;
+  width: min(440px, 100%);
+  background: var(--mono-900);
+  border: 1px solid var(--mono-800);
+  border-top: 2px solid var(--accent);
+  border-radius: var(--radius-m);
+  padding: 26px 24px 22px;
+  font: 400 14px/1.55 var(--sans);
+  color: var(--mono-200);
+}
+
+.mw-card h3 {
+  margin: 0 0 4px;
+  font: 500 16px/1.3 var(--sans);
+  color: var(--mono-000);
+}
+.mw-card .mw-step {
+  font: 500 10px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 10px;
+}
+.mw-card img { width: 100%; border-radius: var(--radius-s); display: block; margin: 12px 0; }
+.mw-card .mw-dim { opacity: 0.3; }
+.mw-card .mw-row { justify-content: flex-start; margin-top: 14px; }
+
+.mw-x {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: 0;
+  color: var(--mono-600);
+  font-size: 20px;
+  cursor: pointer;
+}
+.mw-x:hover { color: var(--mono-200); }
+
+.mw-note { color: var(--mono-400); font-size: 13px; margin: 10px 0 0; }
+.mw-elapsed {
+  font: 500 24px/1 var(--mono);
+  color: var(--mono-000);
+  margin: 4px 0 8px;
+  font-variant-numeric: tabular-nums;
+}
+.mw-error {
+  margin: 12px 0 0;
+  padding: 9px 11px;
+  background: rgba(242, 61, 61, 0.1);
+  border-left: 2px solid #f23d3d;
+  font: 400 12px/1.5 var(--mono);
+  color: #ffb4b4;
+  word-break: break-word;
+}
+
+/* A four-stage progress read rather than a spinner, because the wait is
+   minutes and a spinner tells you nothing. */
+.mw-stages { display: grid; gap: 1px; margin: 14px 0 4px; }
+.mw-stages div {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 7px 0;
+  font: 400 12px/1.4 var(--mono);
+  color: var(--mono-700);
+  border-bottom: 1px solid var(--mono-800);
+}
+.mw-stages div[data-on] { color: var(--mono-200); }
+.mw-stages div[data-on]::before { content: "▸"; color: var(--accent); }
+.mw-stages div:not([data-on])::before { content: "·"; }
+
+.mw-plate {
+  width: 200px;
+  background: rgba(17, 18, 21, 0.94);
+  border: 1px solid var(--mono-800);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--radius-m);
+  padding: 13px 15px;
+  font: 400 13px/1.5 var(--sans);
+  color: var(--mono-200);
+}
+.mw-plate strong { display: block; font-weight: 500; color: var(--mono-000); margin-bottom: 5px; }
+.mw-plate p { margin: 0 0 9px; font-size: 12px; color: var(--mono-400); }
+.mw-plate ul { margin: 0; padding: 0; list-style: none; }
+.mw-plate li {
+  font: 400 11px/1.7 var(--mono);
+  color: var(--mono-400);
+  border-top: 1px solid var(--mono-800);
+  padding-top: 4px;
+  margin-top: 4px;
+}
+
+@media (max-width: 720px) {
+  .mw-panel { inset: auto 0 0 0; width: 100vw; height: min(62vh, 560px); border-left: 0; border-top: 1px solid var(--mono-800); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* ── entry gate ────────────────────────────────────────── */
+/* Three doors, full bleed. The column is the control: a radio list with a
+   Continue button is what would make this read as settings. */
+
+.mw-start {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  background: var(--mono-1000);
+  color: var(--mono-200);
+  font: 400 14px/1.55 var(--sans);
+}
+
+.mw-start > header {
+  display: flex;
+  justify-content: space-between;
+  padding: calc(22px + env(safe-area-inset-top)) 32px 0;
+  font: 400 11px/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mono-600);
+}
+
+.mw-ask {
+  padding: 40px 32px 28px;
+  max-width: 620px;
+}
+
+.mw-ask h1 {
+  margin: 0 0 14px;
+  font: 600 clamp(28px, 3.4vw, 40px) / 1.06 var(--sans);
+  letter-spacing: -0.025em;
+  color: var(--mono-000);
+}
+
+.mw-ask p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--mono-400);
+  max-width: 46ch;
+}
+
+.mw-doors {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--mono-800);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.mw-door {
+  position: relative;
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 0 20px;
+  align-content: center;
+  text-align: left;
+  padding: 34px 30px calc(34px + env(safe-area-inset-bottom));
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--mono-800);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+
+.mw-door:last-child { border-right: 0; }
+.mw-door:hover,
+.mw-door:focus-visible { background: var(--mono-900); }
+.mw-doors:hover .mw-door:not(:hover) { opacity: 0.44; }
+.mw-door:focus-visible .mw-door-body b { text-decoration: underline; text-underline-offset: 5px; }
+
+/* The signature: the rail is a hairline until you consider the door, then it
+   resolves into four filling blocks. Same level-of-detail language the step
+   rail uses, at hero scale. */
+.mw-rail {
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
+  gap: 3px;
+  align-self: stretch;
+  min-height: 120px;
+}
+
+.mw-rail i {
+  background: var(--mono-800);
+  transition: background 180ms ease, transform 180ms ease;
+  transform-origin: bottom;
+}
+
+.mw-door:hover .mw-rail i,
+.mw-door:focus-visible .mw-rail i { background: var(--a); }
+.mw-door:hover .mw-rail i:nth-child(1) { transition-delay: 0ms; }
+.mw-door:hover .mw-rail i:nth-child(2) { transition-delay: 45ms; }
+.mw-door:hover .mw-rail i:nth-child(3) { transition-delay: 90ms; }
+.mw-door:hover .mw-rail i:nth-child(4) { transition-delay: 135ms; }
+.mw-door .mw-rail i:last-child { background: var(--a); }
+
+.mw-door-body { display: block; max-width: 34ch; }
+
+.mw-door-body b {
+  display: block;
+  font: 500 13px/1 var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mono-000);
+}
+
+.mw-door-body > p {
+  margin: 12px 0 16px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--mono-200);
+  letter-spacing: -0.005em;
+  max-width: 34ch;
+}
+
+.mw-begin {
+  display: inline-block;
+  margin-top: 20px;
+  font: 500 12px/1 var(--mono);
+  letter-spacing: 0.06em;
+  color: var(--mono-400);
+}
+.mw-door:hover .mw-begin,
+.mw-door:focus-visible .mw-begin { color: var(--mono-000); }
+
+.mw-start > footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 26px;
+  padding: 13px 32px calc(13px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--mono-800);
+  font: 400 11px/1.8 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mono-600);
+}
+.mw-start > footer code { color: var(--mono-700); }
+.mw-start > footer em { font-style: normal; color: var(--mono-400); }
+
+/* One orchestrated load: rails draw down, then the type arrives. */
+@keyframes mw-draw { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes mw-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.mw-rail { animation: mw-draw 420ms ease both; animation-delay: calc(var(--i) * 70ms + 60ms); }
+.mw-door-body { animation: mw-rise 380ms ease both; animation-delay: calc(var(--i) * 70ms + 220ms); }
+.mw-ask h1, .mw-ask p { animation: mw-rise 420ms ease both; }
+.mw-ask p { animation-delay: 90ms; }
+
+@media (max-width: 720px) {
+  .mw-doors { grid-template-columns: 1fr; overflow-y: auto; }
+  .mw-door { border-right: 0; border-bottom: 1px solid var(--mono-800); padding: 22px 24px; align-content: start; }
+  .mw-rail { min-height: 0; grid-template-rows: none; grid-auto-flow: column; height: 3px; }
+  .mw-ask { padding: 32px 24px 26px; }
+  .mw-doors:hover .mw-door:not(:hover) { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mw-rail, .mw-door-body, .mw-ask h1, .mw-ask p { animation: none; }
+}
+
+/* One focus language for the panel. Neutral, never the accent. */
+.mw-panel :focus-visible,
+.mw-overlay :focus-visible,
+.mw-start :focus-visible,
+.mw-tab:focus-visible {
+  outline: 2px solid var(--mono-400);
+  outline-offset: 2px;
+}
+
+
+/* ── split: step rail beside the focused pane ─────────────────
+   The rail is .mw-steprail, NOT .mw-rail: that class is already the track
+   chooser's four-block LOD meter on each door, with its own hover cascade and
+   entrance animation. Reusing it turns every door's pips into a 52px column. */
+
+.mw-split {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.mw-steprail {
+  flex: none;
+  width: 52px;
+  border-right: 1px solid var(--border);
+  padding: var(--space-s) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mw-steptick {
+  appearance: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 0;
+  border-radius: var(--radius-s);
+  color: var(--text-tertiary);
+  transition: color var(--mo-color) var(--ease-micro);
+}
+.mw-steptick:hover { color: var(--text-primary); }
+
+.mw-steptick em {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mono-800);
+}
+.mw-steptick[data-state="done"] em { background: var(--mono-600); }
+.mw-steptick[data-state="now"] em { background: var(--track); }
+.mw-steptick[data-state="now"],
+.mw-steptick[aria-current="step"] { color: var(--text-primary); }
+
+/* ── the focused pane ───────────────────────────────────────── */
+
+.mw-pane-time { color: var(--text-tertiary); }
+.mw-pane-title { color: var(--text-primary); margin: 8px 0 var(--space-s); }
+
+.mw-line {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 8px 0;
+}
+.mw-line .k { flex: none; width: 28px; color: var(--text-tertiary); }
+.mw-line .ttl { color: var(--text-secondary); }
+.mw-line .tick { margin-left: auto; color: var(--mono-600); }
+.mw-line[data-state="done"] .ttl { color: var(--mono-600); }
+.mw-line[data-state="done"] .k { color: var(--mono-700); }
+
+/* 4px because it is nested inside the 8px panel. */
+.mw-now {
+  background: var(--mono-1000);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  padding: var(--space-s);
+  margin: 8px 0 10px;
+}
+.mw-now-eb { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.mw-now-eb .l12 { color: var(--accent); }
+.mw-now-eb .mw-lod { margin-left: auto; grid-auto-flow: column; grid-template-rows: none; height: 10px; }
+.mw-now-eb .mw-lod i { width: 3px; }
+.mw-now-title {
+  margin: 0 0 8px;
+  font-family: var(--sans);
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+}
+.mw-now p { max-width: var(--measure-body, 51ch); }
+.mw-now pre {
+  margin: 10px 0 0;
+  background: var(--mono-900);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  padding: 9px 11px;
+  overflow-x: auto;
+  color: var(--text-secondary);
+}
+
+.mw-next { width: 100%; margin-top: var(--space-s); }
+
+/* Entrance for the pane. Travel and opacity are separate channels on separate
+   curves, and opacity is linear because under an ease ramp a 300ms fade reads
+   as a ~40ms snap. Travel is 12px, not the kit's 40px --mo-rise: this is an
+   in-place swap when the attendee changes step, and 40px badly overshoots one.
+   No token exists for the swap distance, so it is a literal. */
+@keyframes mw-pane-swap {
+  from { transform: translateY(12px); }
+  to   { transform: none; }
+}
+/* opacity 0 lives ONLY here, never in a static rule, so the reduced-motion
+   animation:none below cannot strand the pane invisible. */
+@keyframes mw-pane-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.mw-pane {
+  animation:
+    mw-pane-swap var(--mo-travel) var(--ease-in) backwards,
+    mw-pane-fade var(--mo-reveal) var(--ease-fade) backwards;
+}
+
+/* Below 479 the rail goes horizontal so the pane gets full width. 52px out of a
+   375px viewport is too large a share, and 479 is already a kit breakpoint. */
+@media (max-width: 479px) {
+  .mw-split { flex-direction: column; }
+  .mw-steprail {
+    width: auto;
+    flex-direction: row;
+    justify-content: space-between;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 10px var(--space-s);
+  }
+  .mw-steptick { flex-direction: row; gap: 8px; padding: 6px 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mw-pane {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .mw-steptick { transition: none; }
+}
+
+/* ── track specimens ──────────────────────────────────────────
+   The renders are on a pure black ground with no alpha (sampled: every corner
+   is 0,0,0 to 1,1,1), so `screen` resolves that ground to whatever is behind
+   the door and the subject floats on the page's own surface.
+
+   The art fills the whole door and is cropped, rather than sitting in a box
+   above the text. Two things keep the type readable over it:
+
+   1. a mask that fades the artwork out before it reaches the text, so the
+      render dissolves into the ground instead of ending at an edge. Combined
+      with screen blending there is no scrim rectangle anywhere: the image
+      simply stops existing where the words start.
+   2. a gradient floor under the text, in the page's own --bg, which catches
+      any bright pixel the mask leaves behind.
+
+   Before you swap the art: this only works with a black-ground render. A
+   white-ground or alpha PNG will blow out into a pale block, silently. */
+
+.mw-door {
+  position: relative;
+  overflow: hidden;
+  grid-template-rows: 1fr auto;
+  align-content: end;
+}
+
+.mw-specimen {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.mw-specimen img {
+  width: 100%;
+  height: 100%;
+  /* cover, not contain: the subject is meant to fill its door and be cropped
+     by it. Pulled up to 42% so heads and silhouettes stay in frame while the
+     plinths crop away into the masked zone. */
+  object-fit: cover;
+  /* Per-render, set inline from tracks.ts. A shared centre crop loses two of
+     the three subjects. */
+  object-position: var(--focal, center 42%);
+  mix-blend-mode: screen;
+  /* The dissolve. Opaque through the upper half, gone by the time the label
+     starts, so the artwork has no bottom edge at all. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 76%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 76%);
+}
+
+/* The floor. Sits above the artwork, below the type, and is the page's own
+   background colour so it reads as the ground rising rather than as a panel. */
+.mw-door::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 62%;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--bg) 62%);
+}
+
+/* Type sits above both layers. Bottom-anchored, so all three labels align on
+   one line however each blurb wraps. */
+.mw-rail,
+.mw-door-body {
+  position: relative;
+  z-index: 1;
+  grid-row: 2;
+}
+.mw-rail { grid-column: 1; min-height: 0; }
+.mw-door-body { grid-column: 2; }
+
+/* Entrance. Opacity is linear, always: under an eased ramp a 300ms fade reads
+   as a roughly 40ms snap.
+
+   The animation goes on the img, NOT on .mw-specimen. mix-blend-mode blends
+   only within the nearest isolated stacking context, and an ancestor carrying
+   a transform or an opacity forces that isolation, which would make the
+   render's black ground reappear as a visible rectangle. */
+/* opacity 0 lives ONLY here, never in a static rule, so the reduced-motion
+   animation:none below cannot strand the artwork invisible. */
+@keyframes mw-specimen-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.mw-specimen img {
+  /* Opacity only, deliberately. These images carry mix-blend-mode and a mask,
+     which puts them off the compositor fast path, so animating transform makes
+     the browser recomposite the blend and resample the mask every frame. A
+     fade costs a recomposite; a scale costs a recomposite plus a resample of a
+     900px raster, three at once. */
+  animation: mw-specimen-fade var(--mo-reveal) var(--ease-fade) backwards;
+  /* Absolute offset from page load, never chained off the door above, so no
+     door waits on another finishing. The specimen leads its own door: artwork
+     at 0, rail at +60ms, body at +220ms, reading top to bottom. */
+  animation-delay: calc(var(--i) * var(--mo-stagger));
+}
+
+/* Stacked doors need a scannable strip, not a hero. At 390px three full-height
+   specimens would push the third track below two screens of scroll. */
+@media (max-width: 720px) {
+  .mw-door {
+    /* Stacked doors have no height of their own to give the full-bleed art, so
+       set a floor. 260px keeps the subject readable without pushing the third
+       track two screens down. */
+    min-height: 260px;
+    grid-template-rows: 1fr auto;
+    align-content: end;
+    gap: 14px 20px;
+  }
+
+  /* The rule above this one flips the rail horizontal at 3px tall, which was
+     right when the rail stretched across the door. It now sits in the door's
+     14px column beside the text, where a horizontal rail renders as a smear,
+     so keep it vertical at every width. */
+  .mw-rail {
+    grid-auto-flow: row;
+    grid-template-rows: repeat(4, 1fr);
+    height: auto;
+    min-height: 64px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mw-specimen img {
+    animation: none;
+    /* Defensive. The keyframe-only opacity means animation:none already
+       reverts to 1. Keep this so a future static opacity:0 cannot strand it. */
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* A bolt.new-style preview pane is short as well as narrow. Height, not width,
+   is what pushes the CTAs below the fold, so this band is keyed on height. */
+@media (max-height: 780px) {
+  .mw-ask { padding: 26px 32px 20px; }
+  .mw-ask h1 { font-size: clamp(26px, 3vw, 34px); margin-bottom: 10px; }
+  .mw-ask p { font-size: 14px; }
+  .mw-door { padding: 22px 26px calc(22px + env(safe-area-inset-bottom)); }
+  .mw-door-body > p { margin: 10px 0 12px; }
+}
+
+/* ── the chosen specimen, carried into the sidebar ────────────
+   Full-width art strip at the top of the panel with the track name and the
+   Change control sitting on it. Same treatment as the chooser doors: screen
+   blend so the render's black ground becomes the panel's own fill, and a mask
+   plus a gradient floor so the type stays readable without a scrim box. */
+
+.mw-bar {
+  position: relative;
+  overflow: hidden;
+  min-height: 108px;
+  align-items: flex-end;
+  padding: 0 20px 12px;
+}
+
+.mw-bar-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Its own value, NOT var(--focal): that one frames a portrait crop in the
+     chooser, and this strip is about 3.8:1, where the same number lands
+     wherever it happens to fall. Reusing it cropped the statue to a headless
+     torso. */
+  object-position: var(--focal-strip, 50% 38%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 0;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 54%, transparent 94%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 54%, transparent 94%);
+}
+
+/* Gradient floor in --surface, because the panel's fill is what the strip sits
+   on, not the page's --bg. */
+.mw-bar::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 70%;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--surface) 78%);
+}
+
+.mw-bar-label,
+.mw-bar-change { position: relative; z-index: 1; }
+.mw-bar-label { color: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .mw-bar-art { animation: none; opacity: 1; transform: none; }
+}
+
+/* ── the chooser/panel transition ──────────────────────────────
+   Picking a track transitions the two screens. The artwork is deliberately
+   NOT part of it: an earlier version gave the art its own
+   view-transition-name so it morphed from the door into the sidebar strip,
+   and it dropped frames badly. A named element whose group interpolates size
+   forces the browser to resample its snapshot every frame, and these renders
+   are 900px wide. Opacity and a translate do not resample, which is why this
+   version is cheap and that one was not.
+
+   The other thing that matters: anything WITHOUT a name is lumped into the
+   single `root` snapshot, and `root` cross-fades. The chooser and the panel
+   are completely different layouts, so sharing `root` double-exposes them and
+   you read two sets of type through each other. Naming them separately is
+   what makes this clean. */
+
+.mw-start { view-transition-name: chooser; }
+.mw-panel { view-transition-name: panel; }
+
+/* The ground is the same 3D canvas in both states. Cross-fading it buys
+   nothing and costs a flicker. */
+::view-transition-image-pair(root) { isolation: auto; }
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  opacity: 1;
+  mix-blend-mode: normal;
+}
+
+@keyframes mw-chooser-out {
+  to { opacity: 0; transform: scale(0.985); }
+}
+@keyframes mw-panel-in {
+  from { opacity: 0; transform: translateX(28px); }
+}
+
+/* The chooser leaves before the panel arrives. Overlapping two full-screen
+   layouts means both are semi-transparent where they share space, which is
+   what looked muddy. A short gap beats a long blend. */
+::view-transition-old(chooser) {
+  animation: mw-chooser-out calc(var(--mo-travel) * 0.34) var(--ease-fade) both;
+}
+::view-transition-new(chooser) { animation: none; }
+
+/* The panel arrives from its own edge on the kit's opening curve. 28px is an
+   in-place arrival, well under the kit's 40px --mo-rise for an entrance from
+   nothing. */
+::view-transition-new(panel) {
+  animation: mw-panel-in calc(var(--mo-travel) * 0.7) var(--ease-in) both;
+  animation-delay: calc(var(--mo-travel) * 0.3);
+}
+::view-transition-old(panel) { animation: none; }
+
+/* Closing is not opening reversed: running the opening ramp backwards dumps
+   most of its distance immediately then creeps the last sliver. Change gets
+   the kit's own closing curve and less time. */
+html[data-vt="out"]::view-transition-old(panel) {
+  animation: mw-panel-in calc(var(--mo-close) * 0.6) var(--ease-close) both reverse;
+}
+html[data-vt="out"]::view-transition-new(panel) { animation: none; }
+html[data-vt="out"]::view-transition-new(chooser) {
+  animation: mw-chooser-out var(--mo-close) var(--ease-close) both reverse;
+  animation-delay: calc(var(--mo-close) * 0.35);
+}
+html[data-vt="out"]::view-transition-old(chooser) { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* ── the global error screen ──────────────────────────────────
+   app/global-error.tsx replaces the root layout, so it links the kit itself.
+   These are the only rules it needs. */
+
+.mw-fault {
+  max-width: 52ch;
+  margin: 0 auto;
+  padding: 18vh var(--space-m) var(--space-m);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-s);
+}
+.mw-fault .l12 { color: var(--accent); }
+.mw-fault h1 { color: var(--text-primary); }
+.mw-fault p { color: var(--text-secondary); }
+
+.mw-fault-msg {
+  width: 100%;
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  color: var(--text-primary);
+  overflow-x: auto;
+}
+.mw-fault-digest { color: var(--text-tertiary); }

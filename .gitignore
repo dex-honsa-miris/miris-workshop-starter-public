@@ -1,0 +1,9 @@
+node_modules/
+.next/
+.env.local
+.DS_Store
+public/models/
+.superpowers/
+miris/data.json
+.playwright-mcp/
+tsconfig.tsbuildinfo
