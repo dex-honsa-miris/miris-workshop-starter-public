@@ -1,6 +1,5 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { flushSync } from "react-dom";
 import Panel from "./Panel";
 import { STEPS } from "./curriculum";
 import { stepOfSub } from "./progress";
@@ -78,42 +77,10 @@ export default function MirisGuide() {
   const track = trackById(data.track);
   const trackVars = { ["--track" as string]: track.accent } as React.CSSProperties;
 
-  // Swapping between the chooser and the panel is a view transition, so the
-  // door's artwork morphs into the sidebar's art strip rather than one screen
-  // cutting to the other. Both elements carry view-transition-name track-art.
-  //
-  // The commit has to be synchronous inside the callback, hence flushSync: the
-  // browser snapshots the DOM before and after that callback runs, and a
-  // normal async setState would land after the snapshot and animate nothing.
   const chooseTrack = async (id: string) => {
     const { ok, json } = await post({ action: "save", patch: { track: id } });
     if (!ok) return setNote(json.error);
-
-    let next: any;
-    try {
-      const res = await fetch("/api/miris");
-      next = await res.json();
-      if (!res.ok) return setNote(next.error ?? `could not read data.json (${res.status})`);
-    } catch (e) {
-      return setNote(`could not reach the workshop API: ${(e as Error).message}`);
-    }
-
-    const commit = () => flushSync(() => setData(next));
-    const doc = document as Document & {
-      startViewTransition?: (cb: () => void) => { finished: Promise<void> };
-    };
-
-    // Unsupported browsers get the same state change without the morph.
-    if (typeof doc.startViewTransition !== "function") return commit();
-
-    // Direction, so the CSS can give closing its own curve and less time. The
-    // kit is explicit that closing is not opening reversed: running the opening
-    // ramp backwards dumps most of its distance immediately then creeps.
-    document.documentElement.dataset.vt = id ? "in" : "out";
-    const transition = doc.startViewTransition(commit);
-    transition.finished.finally(() => {
-      delete document.documentElement.dataset.vt;
-    });
+    await load();
   };
 
   // Only 5 of the 16 substeps carry a `fill`, and fill() was the sole writer of
@@ -170,9 +137,8 @@ export default function MirisGuide() {
 
         {/* The chosen specimen carries into the sidebar as a full-width strip,
             so the choice stays visible for the whole workshop. Same screen
-            blend and dissolve as the chooser, and the same
-            view-transition-name, which is what lets the door's art morph into
-            this strip when a track is picked. */}
+            blend and dissolve as the chooser doors, with its own focal point
+            because this band is far wider than it is tall. */}
         <div className="mw-bar">
           <img
             className="mw-bar-art"

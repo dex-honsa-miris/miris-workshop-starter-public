@@ -23,15 +23,7 @@ export default function Start({ onChoose }: { onChoose: (id: string) => void }) 
             key={track.id}
             className="mw-door"
             style={{ ["--a" as string]: track.accent, ["--i" as string]: i, ["--focal" as string]: track.focal } as React.CSSProperties}
-            onClick={(e) => {
-              // Name the clicked door's art as the morph source, synchronously,
-              // BEFORE the state change: the browser snapshots the outgoing DOM
-              // when the transition starts, so a React state update would be
-              // too late. Only one element may hold the name at a time, which
-              // is why this is set per click rather than on all three doors.
-              e.currentTarget.querySelector("img")?.style.setProperty("view-transition-name", "track-art");
-              onChoose(track.id);
-            }}
+            onClick={() => onChoose(track.id)}
           >
             {/* The renders are on a pure black ground with no alpha, so the CSS
                 screen-blends them: the artwork's black resolves to the page's
