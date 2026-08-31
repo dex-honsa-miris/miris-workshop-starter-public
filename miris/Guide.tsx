@@ -91,7 +91,7 @@ export default function MirisGuide() {
       {panel && <Panel track={track} onClose={() => setPanel(false)} />}
       <aside className="mw-panel" style={accent}>
         <header className="mw-head">
-          <b>Spatial Streaming</b>
+          <b className="b14">Spatial Streaming</b>
           <button className="mw-hide" onClick={() => setOpen(false)} aria-label="Hide the guide">
             ×
           </button>
@@ -108,7 +108,7 @@ export default function MirisGuide() {
               <h2>
                 {step.num}
                 <em>{step.title}</em>
-                <span className="mw-mins">{step.time}</span>
+                <span className="mw-mins l12">{step.time}</span>
               </h2>
 
               {step.subs.map((sub) => (
@@ -122,24 +122,28 @@ export default function MirisGuide() {
                   </span>
                   <div>
                   <h3>
-                    <code>{sub.num}</code>
+                    <code className="l12">{sub.num}</code>
                     {sub.title}
                   </h3>
-                  <p>{sub.body}</p>
-                  {sub.code && <pre>{sub.code}</pre>}
+                  <p className="c14">{sub.body}</p>
+                  {sub.code && <pre className="k14">{sub.code}</pre>}
 
                   {sub.panel && (
-                    <button className="mw-go" onClick={() => setPanel(true)}>
+                    <button className="btn-primary btn-sm b12" onClick={() => setPanel(true)}>
                       Describe your {track.noun}
                     </button>
                   )}
 
                   {sub.fill && (
                     <div className="mw-row">
-                      <button className="mw-go" disabled={busy === sub.num} onClick={() => fill(sub.fill!, sub.num)}>
+                      <button
+                        className="btn-primary btn-sm b12"
+                        disabled={busy === sub.num}
+                        onClick={() => fill(sub.fill!, sub.num)}
+                      >
                         {busy === sub.num ? "Writing" : "Fill in app/stage.tsx"}
                       </button>
-                      <button className="mw-quiet" onClick={() => clear(sub.fill!)}>
+                      <button className="btn-ghost btn-sm b12" onClick={() => clear(sub.fill!)}>
                         Clear block
                       </button>
                     </div>
@@ -147,7 +151,7 @@ export default function MirisGuide() {
 
                   {sub.fields && (
                     <div className="mw-fields">
-                      <label>
+                      <label className="l12">
                         Asset uuid
                         <input
                           key={`uuid-${data.uuid ?? ""}`}
@@ -160,7 +164,7 @@ export default function MirisGuide() {
                           }}
                         />
                       </label>
-                      <label>
+                      <label className="l12">
                         Viewer key
                         <input
                           key={`key-${data.viewerKey ?? ""}`}

@@ -39,10 +39,7 @@
 }
 
 .mw-head b {
-  font-weight: 600;
-  font-size: 15px;
   color: var(--mono-000);
-  letter-spacing: -0.01em;
 }
 
 .mw-head .mw-of {
@@ -74,11 +71,11 @@
   background: var(--mono-900);
   color: var(--mono-200);
   border: 1px solid var(--mono-800);
-  border-radius: 2px;
+  border-radius: var(--radius-s);
   padding: 10px 14px;
   cursor: pointer;
 }
-.mw-tab:hover { border-color: var(--accent); color: var(--mono-000); }
+.mw-tab:hover { border-color: var(--text-primary); color: var(--text-primary); }
 
 /* ── track chooser ────────────────────────────────────── */
 
@@ -101,7 +98,7 @@
   background: var(--mono-1000);
   border: 1px solid var(--mono-800);
   border-left: 2px solid var(--a);
-  border-radius: 2px;
+  border-radius: var(--radius-s);
   padding: 14px 16px;
   cursor: pointer;
   font: inherit;
@@ -112,8 +109,7 @@
 .mw-track:hover,
 .mw-track:focus-visible {
   background: var(--mono-900);
-  border-color: var(--a);
-  outline: none;
+  border-color: var(--text-primary);
 }
 
 .mw-track b {
@@ -214,7 +210,7 @@
 
 .mw-lod i {
   background: var(--mono-800);
-  border-radius: 1px;
+  border-radius: var(--radius-xs);
 }
 .mw-sub[data-state="done"] .mw-lod i { background: var(--accent); opacity: 0.55; }
 .mw-sub[data-state="here"] .mw-lod i:nth-child(-n + 2) { background: var(--accent); }
@@ -229,22 +225,20 @@
 .mw-sub[data-state="done"] h3 { color: var(--mono-200); }
 
 .mw-sub h3 code {
-  font: 400 11px/1 var(--mono);
   color: var(--mono-600);
   margin-right: 7px;
 }
 
-.mw-sub p { margin: 0 0 9px; color: var(--mono-400); }
+.mw-sub p { margin: 0 0 9px; color: var(--mono-400); max-width: var(--measure-body, 51ch); }
 .mw-sub[data-state="here"] p { color: var(--mono-200); }
 
 .mw-sub pre {
   margin: 0 0 10px;
   background: var(--mono-1000);
   border: 1px solid var(--mono-800);
-  border-radius: 2px;
+  border-radius: var(--radius-s);
   padding: 9px 11px;
   overflow-x: auto;
-  font: 400 12px/1.55 var(--mono);
   color: var(--mono-200);
 }
 
@@ -291,9 +285,6 @@
 .mw-fields label {
   display: grid;
   gap: 5px;
-  font: 500 10px/1 var(--mono);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: var(--mono-600);
 }
 
@@ -303,13 +294,13 @@
   background: var(--mono-1000);
   color: var(--mono-200);
   border: 1px solid var(--mono-800);
-  border-radius: 2px;
+  border-radius: var(--radius-s);
   padding: 9px 11px;
   width: 100%;
   box-sizing: border-box;
 }
 .mw-fields input:focus,
-.mw-card textarea:focus { outline: none; border-color: var(--accent); }
+.mw-card textarea:focus { border-color: var(--text-primary); }
 
 .mw-note-bar {
   border-top: 1px solid var(--mono-800);
@@ -336,7 +327,7 @@
   background: var(--mono-900);
   border: 1px solid var(--mono-800);
   border-top: 2px solid var(--accent);
-  border-radius: 2px;
+  border-radius: var(--radius-m);
   padding: 26px 24px 22px;
   font: 400 14px/1.55 var(--sans);
   color: var(--mono-200);
@@ -355,7 +346,7 @@
   display: block;
   margin-bottom: 10px;
 }
-.mw-card img { width: 100%; border-radius: 2px; display: block; margin: 12px 0; }
+.mw-card img { width: 100%; border-radius: var(--radius-s); display: block; margin: 12px 0; }
 .mw-card .mw-dim { opacity: 0.3; }
 .mw-card .mw-row { justify-content: flex-start; margin-top: 14px; }
 
@@ -409,7 +400,7 @@
   background: rgba(17, 18, 21, 0.94);
   border: 1px solid var(--mono-800);
   border-left: 2px solid var(--accent);
-  border-radius: 2px;
+  border-radius: var(--radius-m);
   padding: 13px 15px;
   font: 400 13px/1.5 var(--sans);
   color: var(--mono-200);
@@ -504,7 +495,7 @@
 
 .mw-door:last-child { border-right: 0; }
 .mw-door:hover,
-.mw-door:focus-visible { background: var(--mono-900); outline: none; }
+.mw-door:focus-visible { background: var(--mono-900); }
 .mw-doors:hover .mw-door:not(:hover) { opacity: 0.44; }
 .mw-door:focus-visible .mw-door-body b { text-decoration: underline; text-underline-offset: 5px; }
 
@@ -608,4 +599,13 @@
 
 @media (prefers-reduced-motion: reduce) {
   .mw-rail, .mw-door-body, .mw-ask h1, .mw-ask p { animation: none; }
+}
+
+/* One focus language for the panel. Neutral, never the accent. */
+.mw-panel :focus-visible,
+.mw-overlay :focus-visible,
+.mw-start :focus-visible,
+.mw-tab:focus-visible {
+  outline: 2px solid var(--mono-400);
+  outline-offset: 2px;
 }
