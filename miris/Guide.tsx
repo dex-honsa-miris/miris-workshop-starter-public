@@ -2,6 +2,9 @@
 import { useCallback, useEffect, useState } from "react";
 import Panel from "./Panel";
 import { STEPS } from "./curriculum";
+import { stepOfSub } from "./progress";
+import Rail from "./Rail";
+import StepPane, { type StepActions } from "./Step";
 import { MARKER_FOR } from "./snippets.mjs";
 import { trackById } from "./tracks";
 import Start from "./Start";
@@ -13,6 +16,9 @@ export default function MirisGuide() {
   const [data, setData] = useState<any>({ step: "1.1" });
   const [busy, setBusy] = useState("");
   const [note, setNote] = useState("");
+  // View state, deliberately separate from data.step. data.step is how far the
+  // attendee has actually got; `selected` is only which step the pane shows.
+  const [selected, setSelected] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -76,6 +82,37 @@ export default function MirisGuide() {
     await load();
   };
 
+  // Only 5 of the 16 substeps carry a `fill`, and fill() was the sole writer of
+  // data.step. With every substep on screen that was cosmetic; with one step in
+  // view it would pin an attendee to step 01 for the whole workshop.
+  const advance = async (toSubNum: string) => {
+    setNote("");
+    const { ok, json } = await post({ action: "save", patch: { step: toSubNum } });
+    if (!ok) return setNote(json.error);
+    setSelected(null);
+    await load();
+  };
+
+  const saveField = async (field: "uuid" | "viewerKey", value: string) => {
+    await post({ action: "save", patch: { [field]: value } });
+    await load();
+    setNote("Saved. Reload the page to stream it.");
+  };
+
+  const progressStep = stepOfSub(data.step ?? "1.1");
+  const shownStep = selected
+    ? STEPS.find((s) => s.num === selected) ?? progressStep
+    : progressStep;
+
+  const actions: StepActions = {
+    fill,
+    clear,
+    openPanel: () => setPanel(true),
+    saveField,
+    advance,
+    backToProgress: () => setSelected(null),
+  };
+
   if (!data.track) return <Start onChoose={chooseTrack} />;
 
   if (!open) {
@@ -91,7 +128,7 @@ export default function MirisGuide() {
       {panel && <Panel track={track} onClose={() => setPanel(false)} />}
       <aside className="mw-panel" style={trackVars}>
         <header className="mw-head">
-          <b className="b14">Spatial Streaming</b>
+          <b className="b14">Spatial streaming</b>
           <button className="mw-hide" onClick={() => setOpen(false)} aria-label="Hide the guide">
             ×
           </button>
@@ -102,95 +139,22 @@ export default function MirisGuide() {
           <button onClick={() => chooseTrack("")}>Change</button>
         </div>
 
-        <div className="mw-scroll">
-          {STEPS.map((step) => (
-            <section key={step.num}>
-              <h2>
-                {step.num}
-                <em>{step.title}</em>
-                <span className="mw-mins l12">{step.time}</span>
-              </h2>
-
-              {step.subs.map((sub) => (
-                <article
-                  key={sub.num}
-                  className="mw-sub"
-                  data-state={data.step === sub.num ? "here" : data.step > sub.num ? "done" : "ahead"}
-                >
-                  <span className="mw-lod" aria-hidden="true">
-                    <i /><i /><i /><i />
-                  </span>
-                  <div>
-                  <h3>
-                    <code className="l12">{sub.num}</code>
-                    {sub.title}
-                  </h3>
-                  <p className="c14">{sub.body}</p>
-                  {sub.code && <pre className="k14">{sub.code}</pre>}
-
-                  {sub.panel && (
-                    <button className="btn-primary btn-sm b12" onClick={() => setPanel(true)}>
-                      Describe your {track.noun}
-                    </button>
-                  )}
-
-                  {sub.fill && (
-                    <div className="mw-row">
-                      <button
-                        className="btn-primary btn-sm b12"
-                        disabled={busy === sub.num}
-                        onClick={() => fill(sub.fill!, sub.num)}
-                      >
-                        {busy === sub.num ? "Writing" : "Fill in app/stage.tsx"}
-                      </button>
-                      <button className="btn-ghost btn-sm b12" onClick={() => clear(sub.fill!)}>
-                        Clear block
-                      </button>
-                    </div>
-                  )}
-
-                  {sub.fields && (
-                    <div className="mw-fields">
-                      <label className="l12">
-                        Asset uuid
-                        <input
-                          key={`uuid-${data.uuid ?? ""}`}
-                          defaultValue={data.uuid ?? ""}
-                          placeholder="2b21e89f-ef5d-4175-bbdf-03e8649bcb76"
-                          onBlur={async (e) => {
-                            await post({ action: "save", patch: { uuid: e.target.value.trim() } });
-                            await load();
-                            setNote("Saved. Reload the page to stream it.");
-                          }}
-                        />
-                      </label>
-                      <label className="l12">
-                        Viewer key
-                        <input
-                          key={`key-${data.viewerKey ?? ""}`}
-                          defaultValue={data.viewerKey ?? ""}
-                          placeholder="leave empty to use the demo key"
-                          onBlur={async (e) => {
-                            await post({ action: "save", patch: { viewerKey: e.target.value.trim() } });
-                            await load();
-                            setNote("Saved. Reload the page to stream it.");
-                          }}
-                        />
-                      </label>
-                    </div>
-                  )}
-
-                  {sub.explain && (
-                    <p className="mw-why">
-                      <b>Why</b>
-                      {sub.explain}
-                    </p>
-                  )}
-                  </div>
-                </article>
-              ))}
-            </section>
-          ))}
+        <div className="mw-split">
+          <Rail
+            progressStepNum={progressStep.num}
+            shownStepNum={shownStep.num}
+            onSelect={setSelected}
+          />
+          <div className="mw-scroll">
+            <StepPane
+              step={shownStep}
+              currentSubNum={data.step ?? "1.1"}
+              data={data}
+              track={track}
+              busy={busy}
+              actions={actions}
+            />
+          </div>
         </div>
 
         {note && <footer className="mw-note-bar">{note}</footer>}
