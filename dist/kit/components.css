@@ -1,0 +1,385 @@
+/* Miris components — structure and behaviour · miris-web-kit v2026-08-21.01
+   Branched from the internal component library v2026-08-14.08.
+
+   Companion to tokens.css, which owns the tokens and the 27 type classes.
+   This file owns STRUCTURE and BEHAVIOUR: page shell, 12-col grid, grid
+   overlay, sticky bar, cards, buttons, fields, segmented control, chips,
+   callout, table, arrow lists, stat tiles, scroll reveal, code block.
+   Load tokens.css FIRST — every value here resolves through it.
+
+   Conventions: verbose component names (.btn-primary), `is-` state prefix,
+   and every open value is a named variable with its decided value as the
+   default, so a page can override without forking the file.
+
+   ONE CHANGE from the source library: focus rings are 2px --mono-400, not
+   --accent. Ruled by Jeff Gardner 2026-08-21, following the shipped B00-E
+   readout page, which uses a neutral ring throughout. The accent still does
+   links, arrows and the eyebrow.
+
+   This difference is DELIBERATE AND PERMANENT, not drift. Jeff ruled on
+   2026-08-21 to keep the internal library on the accent ring and this kit on
+   the neutral one. If you are comparing the two files and think this one is
+   out of date: it isn't. Everything else is byte-identical. */
+
+/* ══ RESET — load-bearing, not housekeeping ════════════════════
+   The additive-edge rule below DEPENDS on border-box: with the browser
+   default content-box, `max-width: calc(cap + edge*2)` + edge padding yields
+   a 1328px content box, not 1280, and the 12 columns stop tiling at 92px.
+   Measured 2026-08-14: stat tiles sat 448px apart instead of 416px and every
+   specimen read off-grid. Neither tokens.css nor this file declared it, so
+   any page without its own reset inherited the bug. */
+*{box-sizing:border-box;}
+
+/* ══ SHELL ═════════════════════════════════════════════════════
+   The edge is ADDITIVE: columns own the full 1280, the 24px edge sits
+   OUTSIDE it. max-width = cap + 2×edge, edge as padding. The classic
+   border-box-at-1280 mistake un-seats every column on the page. */
+.wrap{max-width:calc(var(--grid-cap) + var(--grid-edge)*2);margin:0 auto;
+  padding:var(--space-2xl) var(--grid-edge) var(--space-3xl);}
+
+/* 12 columns compute to exactly 92px at the cap; fluid below it */
+.g12{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--grid-gutter);}
+@media (max-width:767px){.g12{grid-template-columns:repeat(4,minmax(0,1fr));}}
+
+/* derived column seat — valid at ANY width, never a hard px */
+:root{--gcol:calc((100% - 11*var(--grid-gutter)) / 12);
+  --seat-2:calc(var(--gcol)*2 + var(--grid-gutter));
+  --seat-3:calc(var(--gcol)*3 + var(--grid-gutter)*2);
+  --seat-4:calc(var(--gcol)*4 + var(--grid-gutter)*3);}
+
+/* Section rhythm: 128px as 64 + 64. Was 60+60=120, which failed the triad
+   test (odd part 15). Jeff, 2026-08-14. */
+.sec{padding-top:var(--grid-rhythm);padding-bottom:var(--grid-rhythm);}
+
+/* ── hero band ──
+   [SETTLED — O-1, Jeff 2026-08-14] 96 / 96, the fifth strand. Never defined
+   before, here or in Theresa's doc; pages inherited .wrap's generic 64/96,
+   which is why heroes read tight. Still variables so a page can override. */
+.hero{padding-top:var(--hero-pt,96px);padding-bottom:var(--hero-pb,96px);}
+
+/* ══ GRID OVERLAY — the page-side twin of the Figma guide ══════
+   Inert, togglable (scaffold binds the G key). FF0000 @ 25% = Figma's default. */
+.gridguide{position:fixed;inset:0;pointer-events:none;display:none;z-index:90;}
+.gridguide.is-on{display:block;}
+.gg-in{max-width:calc(var(--grid-cap) + var(--grid-edge)*2);margin:0 auto;height:100%;
+  padding:0 var(--grid-edge);display:grid;
+  grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--grid-gutter);}
+.gridguide i{display:block;background:#FF0000;opacity:.25;}
+@media (max-width:767px){
+  .gg-in{grid-template-columns:repeat(4,minmax(0,1fr));}
+  .gridguide i:nth-child(n+5){display:none;}
+}
+
+/* ══ STICKY BAR — full-bleed chrome, capped content ════════════
+   Sticky chrome (toc, progress, actions) is NEVER inside .wrap: the bar's
+   background, blur and border span the full viewport; only .stickybar-in
+   re-imposes the grid. A bar capped at the wrap floats as a box with the
+   page grain leaking round its sides. (The primer's .tocbar pattern.) */
+.stickybar{position:sticky;top:0;z-index:40;
+  background:color-mix(in srgb,var(--bg) var(--glass-op,90%),transparent);
+  backdrop-filter:blur(var(--glass-blur,8px));
+  -webkit-backdrop-filter:blur(var(--glass-blur,8px));
+  border-bottom:1px solid var(--border);}
+.stickybar-in{max-width:calc(var(--grid-cap) + var(--grid-edge)*2);margin:0 auto;
+  padding:var(--sticky-py,16px) var(--grid-edge);display:flex;align-items:center;
+  gap:var(--space-s);flex-wrap:wrap;}
+
+/* ══ PAGE FURNITURE ════════════════════════════════════════════ */
+/* Page hero = Title/64, always — the site's own hero style and the primer's.
+   Pair with the type class: <h1 class="ms-title-64 hero-title">.
+   Below 479 it takes the Title/40 token wholesale (size AND its tracking).
+   This rule exists so hero size stops being a per-page decision. */
+.hero-title{max-width:24ch;text-wrap:balance;}
+@media (max-width:479px){
+  .hero-title{font-size:40px;line-height:40px;
+    letter-spacing:calc(-.025em + var(--tr-adj,0em));}
+}
+.eyebrow{color:var(--accent);margin-bottom:var(--space-m);}
+.eyebrow-chip{display:inline-block;padding:7px 12px;border-radius:var(--radius-s);
+  background:var(--surface-raised);border:1px solid var(--border);
+  font-family:"Geist Mono",ui-monospace,monospace;font-size:12px;line-height:16px;
+  letter-spacing:calc(.08em + var(--tr-adj,0em));text-transform:uppercase;
+  font-weight:var(--fw-medium);color:var(--text-secondary);}
+.lede{color:var(--text-secondary);max-width:var(--measure-body,51ch);margin-top:var(--space-m);} /* 51ch = 73 CPL in Geist */
+.sec-head{display:flex;align-items:baseline;gap:var(--space-s);flex-wrap:wrap;
+  margin-bottom:var(--space-m);}
+.sec-head .num{color:var(--text-tertiary);}
+.sec-note{color:var(--text-secondary);max-width:var(--measure-note,51ch);margin:0 0 var(--space-l);}
+
+/* ── sub-section separation ──
+   [O-14, Jeff 2026-08-14] 48px between component rows — the fifth strand.
+   Page sections use the 60+60→64+64 rhythm; this is the level below it. */
+.rows > * + *{margin-top:var(--row-sep,48px);}
+
+/* ══ CARD ══════════════════════════════════════════════════════ */
+.card{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-m);padding:var(--card-pad,var(--space-20));}
+.card h3{margin:0 0 var(--space-xs);
+  font-size:var(--card-h-fs,18px);line-height:var(--card-h-lh,28px);
+  font-weight:var(--fw-semibold);
+  letter-spacing:calc(var(--card-h-tr,0em) + var(--tr-adj,0em));}
+.card p{margin:0;color:var(--text-secondary);font-size:14px;line-height:22px;
+  letter-spacing:calc(.01em + var(--tr-adj,0em));max-width:var(--measure-body,51ch);}
+.card p + p{margin-top:12px;}
+.card code{font-family:"Geist Mono",ui-monospace,monospace;
+  font-size:var(--icode-fs,14px);
+  color:var(--text-primary);background:var(--surface-raised);padding:1px 5px;
+  border-radius:var(--radius-nested);}
+/* two-up on the 12-col grid; peers stretch (grid default) — never align-items:start */
+.cards{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--space-s);}
+.cards > .card{grid-column:span 6;}
+@media (max-width:767px){
+  .cards{grid-template-columns:repeat(4,minmax(0,1fr));}
+  .cards > .card{grid-column:1 / -1;}
+}
+
+/* ══ BUTTONS ═══════════════════════════════════════════════════
+   Radius 4. Colour is faster than fill (120/140ms). Focus ring = accent.
+   Sizing follows the SITE's settled model (shipped 2026-08-11): the rigid
+   class-wide 250px is the sitewide default at the Large tier, and pairs that
+   must hold one row take the `is-paired` row combo. Height 48px at Large.
+   Tertiary/ghost is a link with no container, so it takes no width. */
+.btn{appearance:none;cursor:pointer;border-radius:var(--radius-s);
+  font-family:"Geist",ui-sans-serif,system-ui,sans-serif;font-size:16px;line-height:20px;
+  letter-spacing:calc(.005em + var(--tr-adj,0em));font-weight:var(--fw-semibold);
+  /* Height drives the tier, same model as the input: vertical padding is
+     moot once the box is a fixed height and the label is flex-centred.
+     Tiers snapped to the triad (Jeff, 2026-08-14): 48 fifth / 40 third /
+     32 root — one member of each strand. Was 48/40/28; 28 is septimal.
+     R-1 SETTLED (Jeff, 2026-08-14): 16px horizontal (root, matching the seg
+     control and table cells) and an 8px icon gap (root). Was 22/10 — 22 is
+     off-triad (odd part 11). Padding only shows on the auto-width Medium and
+     Small tiers; Primary/Secondary are a rigid 250 with a centred label. */
+  padding:0 var(--btn-px,16px);border:1px solid transparent;
+  min-height:var(--btn-h,48px);
+  /* Link-safe: a .btn is routinely an <a>, and any page-level
+     `a:hover{text-decoration:underline}` would otherwise underline the label
+     on hover while an identical <button> stayed clean. Declared on both
+     states so the page rule cannot win. (Found 2026-08-21 by Jeff, on the
+     starter's anchor CTAs.) */
+  text-decoration:none;
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:var(--btn-gap,8px);
+  transition:color var(--mo-color) var(--ease-micro),
+             background-color var(--mo-fade) var(--ease-micro),
+             border-color var(--mo-color) var(--ease-micro);}
+/* Focus stroke: 2px, kept. Jeff, 2026-08-14 — 4px reads too heavy.
+   DELIBERATE DIVERGENCE from Theresa's Buttons spec, which states a 4px focus
+   stroke (SKILL.md L317). Supporting rationale: 2px here and 2px on the input
+   gives ONE focus language across the system rather than two weights.
+   Raise it with C1 as an intentional difference, not an oversight. */
+.btn:hover,.btn:focus,.btn:active{text-decoration:none;}
+.btn:focus-visible{outline:2px solid var(--mono-400);outline-offset:2px;}
+/* Containered buttons carry the rigid width; the pair reads as one unit. */
+.btn-primary,.btn-secondary{width:250px;}
+.btn-md{--btn-h:40px;font-size:14px;line-height:20px;}
+.btn-sm{--btn-h:32px;font-size:14px;line-height:20px;width:auto;}
+
+/* ── the pair row ──
+   `is-paired` = the retired head rule's physics, Designer-visible.
+   BASIS MUST BE 250px, NOT 0: hugging ancestors size from the pair's
+   intrinsic weight, so a 0 basis collapses them. And the hug chain has to
+   stretch TOP-DOWN — grow/shrink at the leaves does nothing while an
+   ancestor is `align-items: flex-start` (two failed rounds proved that). */
+.btn-row{display:flex;gap:var(--space-s);flex-wrap:wrap;align-items:center;}
+.btn-row.is-paired{flex-wrap:nowrap;flex-grow:1;}
+.btn-row.is-paired > .btn{flex:1 1 250px;min-width:0;max-width:250px;width:auto;}
+/* A tertiary sitting alongside a pair stays inline at its natural width — it
+   is a link, so it must not join the 250px sizing or take a row of its own. */
+.btn-row.is-paired > .btn-ghost{flex:0 0 auto;max-width:none;width:auto;}
+/* Stock stack/full-width model below 480 only — 250+250+16 cannot fit the
+   480–767 band either way, so that band keeps 250px rather than 100%. */
+@media (max-width:479px){
+  .btn-row,.btn-row.is-paired{flex-wrap:wrap;}
+  .btn-primary,.btn-secondary,.btn-row.is-paired > .btn{width:100%;max-width:none;}
+}
+/* Tripwire, live on the site: .button-l-primary's align-self:center centres it
+   in ANY column-direction parent. Do not add align-self here. */
+
+/* Primary inverts with the ground (tokens.css --cta-*) and carries the
+   local-polarity bump: a white CTA on a dark page is locally a LIGHT surface. */
+.btn-primary{background:var(--cta-bg);color:var(--cta-fg);
+  /* dark page → white CTA = locally a LIGHT surface → bump (default case) */
+  --fw-semibold:700;--tr-adj:-.01em;}
+.btn-primary:hover{background:var(--accent-hover-fill,#FF3500);color:#FFFFFF;}
+/* light page → dark CTA = locally dark → no bump */
+.on-light .btn-primary,[data-ground="light"] .btn-primary{--fw-semibold:600;--tr-adj:0em;}
+/* Deliberately NOT re-flipped on :hover — weight change resizes the button. */
+
+/* Secondary + tertiary: brighten toward Text/Primary. The accent never
+   appears on hover, and neither does Analog. Jeff's ruling 2026-08-14 —
+   the mono hover, with tertiary going to Mono-000 rather than to the accent
+   (the accent-on-ghost-hover here was my error, and it contradicted the
+   skill's own rule). STILL OPEN WITH THERESA (board C1): her Buttons
+   component has Secondary filling orange and Tertiary turning orange. This
+   is Jeff's position, not a settled joint decision. */
+.btn-secondary{background:transparent;color:var(--text-primary);border-color:var(--border-strong);}
+.btn-secondary:hover{border-color:var(--text-primary);}
+.btn-ghost{background:transparent;color:var(--text-secondary);
+  padding-left:4px;padding-right:4px;min-height:0;}
+.btn-ghost:hover{color:var(--text-primary);}
+
+/* ══ FIELD ═════════════════════════════════════════════════════ */
+.fld{display:flex;flex-direction:column;gap:var(--fld-gap,8px);
+  min-width:var(--fld-min,216px);}
+.fld label{font-family:"Geist Mono",ui-monospace,monospace;font-size:14px;line-height:20px;
+  letter-spacing:calc(.07em + var(--tr-adj,0em));text-transform:uppercase;
+  font-weight:var(--fw-medium);color:var(--text-secondary);}
+/* Height DRIVES the input, because that is how the tiers are specified.
+   min-height + padding + line-height overshot (rendered 42 for a 40 tier);
+   an explicit height with horizontal-only padding hits the tier exactly and
+   lets the input centre its own text. */
+.fld input{font-family:"Geist",sans-serif;font-size:16px;line-height:24px;
+  height:var(--input-h,40px);padding:0 var(--input-px,16px);
+  background:var(--surface-raised);color:var(--text-primary);
+  border:1px solid var(--border-strong);border-radius:var(--radius-s);}
+/* R-3 — her three input tiers adopted (SKILL.md L333). Base is Small/40 per
+   Jeff's O-9 pick; her stated default is Medium/48, available as .is-md.
+   Large snapped from her 56 to 64 (Jeff, 2026-08-14): 56 is septimal. */
+.fld.is-md input{--input-h:48px;}
+.fld.is-lg input{--input-h:64px;}   /* snapped from her 56 (septimal) to 64 root */
+/* R-4 SETTLED (Jeff, 2026-08-14): outline ONLY, no border recolour — drawing
+   both made a focused field read heavier than its own stroke, so fields
+   appeared to shift weight while tabbing.
+   Offset is -2px, NOT -1px. Outlines are never laid out (measured: zero shift
+   on focus), but they still PAINT: a 2px ring at -1px spans -1 to +1, so 1px
+   lands outside the border edge, onto a flush neighbour or into an
+   overflow:hidden clip. At -2px the ring spans -2 to 0 — entirely inside,
+   covering the 1px border plus 1px of interior, so the field's edge simply
+   becomes a 2px accent stroke. */
+.fld input:focus{outline:2px solid var(--mono-400);outline-offset:-2px;}
+
+/* ══ SEGMENTED CONTROL ═════════════════════════════════════════ */
+.seg{display:flex;border:1px solid var(--border-strong);border-radius:var(--radius-s);
+  overflow:hidden;width:max-content;}
+.seg button{appearance:none;cursor:pointer;font-family:"Geist",sans-serif;
+  font-size:var(--seg-fs,14px);
+  font-weight:var(--fw-medium);background:var(--surface-raised);color:var(--text-secondary);
+  border:0;padding:var(--seg-py,8px) var(--seg-px,16px);
+  transition:color var(--mo-color) var(--ease-micro),background-color var(--mo-fade) var(--ease-micro);}
+.seg button + button{border-left:1px solid var(--border-strong);}
+.seg button:hover{color:var(--text-primary);}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--mono-1000);}
+.seg button:focus-visible{outline:2px solid var(--mono-400);outline-offset:-2px;}
+
+/* ══ CHIPS + PILLS ═════════════════════════════════════════════ */
+.tag{display:inline-block;padding:var(--tag-py,4px) var(--tag-px,12px);border-radius:var(--radius-s);
+  background:var(--surface-raised);border:1px solid var(--border);
+  font-family:"Geist Mono",ui-monospace,monospace;font-size:12px;line-height:16px;
+  letter-spacing:calc(.08em + var(--tr-adj,0em));text-transform:uppercase;
+  font-weight:var(--fw-medium);color:var(--text-secondary);}
+.pill{display:inline-flex;align-items:center;gap:var(--tag-py,4px);
+  padding:var(--tag-py,4px) var(--tag-px,12px);
+  border-radius:var(--radius-pill);font-family:"Geist Mono",ui-monospace,monospace;
+  font-size:12px;line-height:16px;letter-spacing:calc(.08em + var(--tr-adj,0em));
+  text-transform:uppercase;font-weight:var(--fw-medium);}
+.pill i{width:var(--dot,8px);height:var(--dot,8px);border-radius:50%;background:currentColor;flex:none;}
+.stat-chip{display:inline-block;padding:11px 16px;border-radius:var(--radius-s);
+  background:var(--surface-raised);border:1px solid var(--border);color:var(--text-primary);
+  font-size:16px;line-height:20px;letter-spacing:calc(.005em + var(--tr-adj,0em));
+  font-weight:var(--fw-semibold);font-variant-numeric:tabular-nums;}
+
+/* ══ CALLOUT ═══════════════════════════════════════════════════
+   ONE callout, the primer's: accent rail = "the key point", square corner
+   on the railed side. Not a severity system — the Feedback ramp is for
+   status/system messaging only, and severity presentation waits on the
+   component states pending with Theresa. (A severity-rail family invented
+   2026-08-14 was removed same day: second blue, misused Feedback.) */
+.callout{border-left:var(--border-emphasis) solid var(--accent);
+  background:var(--surface);border-radius:0 var(--radius-m) var(--radius-m) 0;
+  padding:var(--space-m);color:var(--text-secondary);
+  font-size:14px;line-height:22px;max-width:var(--measure-body,51ch);}
+.callout b,.callout strong{color:var(--text-primary);font-weight:var(--fw-medium);}
+
+/* ══ TABLE ═════════════════════════════════════════════════════
+   Always inside .tbl-scroll. Seated columns take PLAIN percentages —
+   table-layout:fixed silently discards calc() widths containing %. */
+.tbl-scroll{overflow-x:auto;}
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th,.tbl td{text-align:left;padding:var(--td-py,12px) var(--td-px,16px);border-bottom:1px solid var(--border);
+  vertical-align:top;}
+/* Strip the outer cell inset: padding on the first/last cell pushes text off
+   the column line, so a table inside a grid-aligned wrapper reads misaligned
+   even when the table box is correct. */
+.tbl th:first-child,.tbl td:first-child{padding-left:0;}
+.tbl th:last-child,.tbl td:last-child{padding-right:0;}
+/* Column seats as PLAIN percentages of the cap — table-layout:fixed silently
+   discards calc() widths containing %, falling back to equal columns.
+   The seat unit is 108px (column 92 + gutter 16), NOT cap/12: a cell has to
+   span its columns AND the gutter that follows, or every boundary after the
+   first lands short. n×108 ÷ 1280. Leave the LAST cell unseated so it absorbs
+   the remainder and ends flush at the content edge (its trailing gutter
+   doesn't exist). Drift below the cap is under 2px. */
+.tbl.is-seated{table-layout:fixed;}
+.tbl.is-seated .seat-1{width:8.4375%;}
+.tbl.is-seated .seat-2{width:16.875%;}
+.tbl.is-seated .seat-3{width:25.3125%;}
+.tbl.is-seated .seat-4{width:33.75%;}
+.tbl.is-seated .seat-5{width:42.1875%;}
+.tbl.is-seated .seat-6{width:50.625%;}
+.tbl th{color:var(--text-tertiary);font-family:"Geist Mono",ui-monospace,monospace;
+  font-size:var(--th-fs,12px);line-height:var(--th-lh,16px);
+  letter-spacing:calc(.08em + var(--tr-adj,0em));
+  text-transform:uppercase;font-weight:var(--fw-medium);}
+.tbl td{color:var(--text-secondary);font-size:14px;line-height:22px;}
+.tbl td strong{color:var(--text-primary);font-weight:var(--fw-medium);}
+
+/* ══ ARROW LIST — where the accent earns its keep ══════════════ */
+.arrows{list-style:none;margin:0;padding:0;display:grid;gap:var(--arrow-gap,12px);}
+.arrows li{display:grid;max-width:var(--measure-body,51ch);grid-template-columns:24px 1fr;gap:12px;
+  align-items:start;font-size:16px;line-height:24px;color:var(--text-secondary);}
+.arrows i{color:var(--accent);font-style:normal;
+  font-size:var(--arrow-glyph,16px);line-height:24px;}
+
+/* ══ STAT TILES — no accent rail: a marker on every tile marks nothing ══
+   On the 12-col grid, not auto-fit: an auto-fit track lands wherever the
+   content falls and straddles column lines. Three tiles seat 4/4/4. */
+.stats{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--grid-gutter);}
+.stats > .stat{grid-column:span 4;}
+@media (max-width:767px){
+  .stats{grid-template-columns:repeat(4,minmax(0,1fr));}
+  .stats > .stat{grid-column:1 / -1;}
+}
+.stat{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-m);padding:var(--stat-pad,var(--space-20));}
+.stat b{display:block;font-size:32px;line-height:32px;
+  letter-spacing:calc(-.02em + var(--tr-adj,0em));font-weight:var(--fw-medium);
+  color:var(--text-primary);font-variant-numeric:tabular-nums;}
+.stat span{display:block;margin-top:8px;font-family:"Geist Mono",ui-monospace,monospace;
+  font-size:12px;line-height:16px;letter-spacing:calc(.08em + var(--tr-adj,0em));
+  text-transform:uppercase;font-weight:var(--fw-medium);color:var(--text-tertiary);}
+
+/* ══ STAGED REVEAL — two channels, absolute stagger ════════════
+   Elements are visible at rest (`backwards` fill), so a reduced-motion
+   animation:none kill CANNOT strand anything invisible. Keep it that way. */
+@keyframes mc-rise{from{transform:translateY(var(--mo-rise));}to{transform:none;}}
+@keyframes mc-fade{from{opacity:0;}to{opacity:1;}}
+.reveal > *{animation:mc-rise var(--mo-travel) var(--ease-in) backwards,
+            mc-fade var(--mo-reveal) var(--ease-fade) backwards;
+  animation-delay:calc(var(--i,0) * var(--mo-stagger));}
+@media (prefers-reduced-motion:reduce){.reveal > *{animation:none;}}
+
+/* ══ CODE BLOCK ════════════════════════════════════════════════ */
+pre.code{margin:0;padding:var(--space-s);background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--radius-s);overflow-x:auto;
+  font-family:"Geist Mono",ui-monospace,monospace;
+  font-size:var(--code-fs,14px);line-height:var(--code-lh,20px);
+  color:var(--mono-200);letter-spacing:0;font-weight:var(--fw-medium);}
+pre.code b{color:var(--accent);font-weight:var(--fw-medium);}
+
+/* ══ TOOL TIP — deliberately NOT built ═════════════════════════
+   Jeff, 2026-08-14: skipped for v01. Her doc specifies it fully and the
+   component exists ("Tooltip with carat", Components file dhJwGSZx0pcIuv3patGnKp,
+   updated 2026-06-02) — but nothing in the corpus has an icon-only control that
+   needs labelling. The primer, the board, the brand-kit page and both decision
+   artifacts contain zero. Building it now means maintaining a component with no
+   consumer, which is the same problem the register found on her side.
+   Cite her component when one is genuinely needed.
+
+   THE RULE APPLIES REGARDLESS OF THE COMPONENT — it is accessibility, not style:
+   never hide critical information behind hover, and always pair a tooltip with a
+   static affordance so keyboard and touch users reach the same information.
+   (Her doc, SKILL.md L348 / L356.)
+
+   Naming drift to fix upstream: her doc calls it "Tool Tip" with a carat option
+   of `None`; the component is named "Tooltip with carat". */

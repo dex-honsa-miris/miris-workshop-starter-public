@@ -1,0 +1,111 @@
+/* Miris responsive type · miris-web-kit v2026-08-21.01
+   Load AFTER tokens.css. Optional, but a page with a .t64 hero needs it —
+   64px does not fit a 390px screen, and without this the page scrolls
+   sideways.
+
+   ───────────────────────────────────────────────────────────────────────────
+   PROVISIONAL. The step map below is NOT ratified.
+   ───────────────────────────────────────────────────────────────────────────
+   The responsive *contract* is settled internally (2026-08-04):
+
+     · A class is named for its BASE-breakpoint value. `.t64` is 64px at
+       desktop and keeps its name at every width.
+     · A breakpoint override may only land on ANOTHER RUNG OF THE SCALE.
+       No in-between sizes, ever.
+     · An override must transpose the WHOLE VOICE — size, line-height,
+       letter-spacing and weight — so the rendered result equals the target
+       rung exactly. Half-transposing is how the main site ended up with a
+       .t32 rendering at 36px.
+     · Sizes in rem, never em. (em compounds against the parent; that was the
+       actual cause of the 36px bug.)
+     · Fluid type / clamp() is deliberately NOT used. It fights the discrete
+       token architecture, and the scale is a harmonic set of specific rungs
+       rather than a continuum.
+
+   What is NOT settled is WHICH rung each tier lands on. Two candidates were
+   on the table and Jeff has not picked:
+
+     A. One rung per breakpoint — .t64 → 48 → 40. Matches the GOV.UK / CFPB
+        convention. Conservative.
+     B. An octave drop at tablet — .t64 → 32. In key with the harmonic scale,
+        more aggressive than any surveyed convention.
+
+   THIS FILE IMPLEMENTS (A), because it is the surveyed convention and the
+   safer default for someone who isn't in the room when it gets ratified.
+   If Jeff has since ruled for (B), or for anything else, that ruling wins
+   over this file. Ask before assuming this is the house answer.
+
+   Overriding it for one element is fine and expected — put the rung you want
+   on the element at that breakpoint. Don't invent a size to sit between rungs.
+
+   Copy, Label, Button and Code tiers HOLD at every width. Body text at 16px
+   is already correct on a phone; headlines are what need to move. */
+
+
+/* ══ TABLET · ≤991 — one rung down ═════════════════════════════ */
+@media (max-width:991px){
+  /* 80 → 64 */
+  .t80{font-size:4rem;line-height:4rem;
+    letter-spacing:calc(-0.03500em + var(--tr-adj,0em));
+    font-weight:var(--fw-regular);}
+  /* 64 → 48 */
+  .t64{font-size:3rem;line-height:3rem;
+    letter-spacing:calc(-0.03000em + var(--tr-adj,0em));
+    font-weight:var(--fw-regular);}
+  /* 48 → 40 */
+  .t48{font-size:2.5rem;line-height:2.5rem;
+    letter-spacing:calc(-0.02500em + var(--tr-adj,0em));
+    font-weight:var(--fw-regular);}
+  /* 40 → 32. NOTE the weight change: the Title tier switches from regular to
+     medium at 32, so this step has to carry it or the transposition is a
+     lie. */
+  .t40{font-size:2rem;line-height:2rem;
+    letter-spacing:calc(-0.02000em + var(--tr-adj,0em));
+    font-weight:var(--fw-medium);}
+  /* 32 → 24 */
+  .t32{font-size:1.5rem;line-height:1.5rem;
+    letter-spacing:calc(-0.01500em + var(--tr-adj,0em));
+    font-weight:var(--fw-medium);}
+  /* 24 → 20 */
+  .t24{font-size:1.25rem;line-height:1.25rem;
+    letter-spacing:calc(-0.01000em + var(--tr-adj,0em));
+    font-weight:var(--fw-medium);}
+  /* .t20 holds — it is the floor of the Title tier. */
+}
+
+
+/* ══ MOBILE · ≤767 — two rungs down from base ══════════════════ */
+@media (max-width:767px){
+  /* 80 → 48 */
+  .t80{font-size:3rem;line-height:3rem;
+    letter-spacing:calc(-0.03000em + var(--tr-adj,0em));
+    font-weight:var(--fw-regular);}
+  /* 64 → 40 */
+  .t64{font-size:2.5rem;line-height:2.5rem;
+    letter-spacing:calc(-0.02500em + var(--tr-adj,0em));
+    font-weight:var(--fw-regular);}
+  /* 48 → 32 */
+  .t48{font-size:2rem;line-height:2rem;
+    letter-spacing:calc(-0.02000em + var(--tr-adj,0em));
+    font-weight:var(--fw-medium);}
+  /* 40 → 24 */
+  .t40{font-size:1.5rem;line-height:1.5rem;
+    letter-spacing:calc(-0.01500em + var(--tr-adj,0em));
+    font-weight:var(--fw-medium);}
+  /* 32 → 20 */
+  .t32{font-size:1.25rem;line-height:1.25rem;
+    letter-spacing:calc(-0.01000em + var(--tr-adj,0em));
+    font-weight:var(--fw-medium);}
+  /* 24 → 20, the floor. .t20 holds. */
+  .t24{font-size:1.25rem;line-height:1.25rem;
+    letter-spacing:calc(-0.01000em + var(--tr-adj,0em));
+    font-weight:var(--fw-medium);}
+}
+
+
+/* ══ MEASURE ═══════════════════════════════════════════════════
+   A ch-based max-width is a *measure* cap, not a layout width — below the
+   cap the container is already narrower than 24ch of 64px type, so the cap
+   stops doing anything and the type just needs to be smaller (above).
+   Nothing to change here; this note exists so nobody "fixes" the measure
+   when the real problem is the size. */
