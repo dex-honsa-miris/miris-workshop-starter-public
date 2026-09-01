@@ -1,3 +1,5 @@
+import { FAL_KEYS_URL } from "./config";
+
 export interface Sub {
   num: string;
   title: string;
@@ -9,6 +11,10 @@ export interface Sub {
   fill?: string;
   /** Required whenever `fill` is set. What the button wrote, and why. */
   explain?: string;
+  /** Renders an outbound link as a button, for steps that send you somewhere
+   *  else to fetch something. Opens in a new tab: losing the guide mid-step
+   *  would cost more than the link saves. */
+  link?: { href: string; label: string };
   /** Renders the fal panel opener. */
   panel?: boolean;
   /** Renders the uuid and viewer key fields. */
@@ -34,6 +40,7 @@ export const STEPS: Step[] = [
         body:
           "Sign in at fal.ai, open Keys, create one, and paste it into a file called .env.local at the top level of this project. Create the file if it is not there. Then stop and restart the dev server: environment files are only read at boot.",
         code: "FAL_KEY=your-key-here",
+        link: { href: FAL_KEYS_URL, label: "Open fal keys" },
       },
       {
         num: "1.2",

@@ -7,6 +7,7 @@ export const MAX_DIM = 1.6;
 export const IMAGE_MODEL = "fal-ai/flux/schnell";
 export const MODEL_3D = "meshy/v7/image-to-3d";
 export const CONSOLE_URL = "https://app.miris.com";
+export const FAL_KEYS_URL = "https://fal.ai/dashboard/keys";
 
 // The engine authorises every stream against this. Measured cold at 6 to 9s,
 // then 0.3s once warm, and the engine's own fetch gives up during a cold start.

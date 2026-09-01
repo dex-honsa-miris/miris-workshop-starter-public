@@ -74,6 +74,17 @@ export default function StepPane({
             <p className="c14">{sub.body}</p>
             {sub.code && <pre className="k14">{sub.code}</pre>}
 
+            {sub.link && (
+              <a
+                className="btn btn-secondary btn-sm mw-goto"
+                href={sub.link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {sub.link.label} &rarr;
+              </a>
+            )}
+
             {sub.panel && (
               <button className="btn btn-primary btn-sm" onClick={actions.openPanel}>
                 Describe your {track.noun}

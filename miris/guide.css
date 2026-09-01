@@ -1029,3 +1029,11 @@ html[data-vt="out"]::view-transition-old(chooser) { animation: none; }
 @media (max-width: 720px) {
   .mw-start-note { padding: 10px 24px; }
 }
+
+/* An outbound link in a step card. The kit's .btn is link-safe by design, so
+   this only needs the spacing an inline anchor does not get for free. */
+.mw-goto {
+  display: inline-flex;
+  margin-top: 2px;
+  text-decoration: none;
+}
