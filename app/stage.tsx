@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, extend } from "@react-three/fiber";
 import { Environment, OrbitControls } from "@react-three/drei";
+import { MirisStream } from "@miris-inc/three";
 import { ACESFilmicToneMapping } from "three";
 import Card from "../miris/Card";
 import { DEMO_UUID, VIEWER_KEY } from "../miris/config";
-import "../miris/element";
+
+// A Miris stream is now a scene node: <mirisStream args={[{ uuid, viewerKey }]} />
+extend({ MirisStream });
 
 // Your file. The sidebar writes between the miris: comments.
 export default function Stage() {
