@@ -6,7 +6,8 @@ import type { Track } from "./tracks";
 type Phase = "idle" | "image" | "review" | "model" | "done";
 
 const GRID = 9;
-const WAVE = 1.4;
+// Must match the mw-dot duration in guide.css: the delays are fractions of it.
+const WAVE = 3.2;
 
 /* A dot grid rather than a shimmering block. Delay runs off (x + y), so the
    crest travels the diagonal, and each dot carries the wave in both its scale
@@ -157,8 +158,10 @@ export default function Build({ track }: { track: Track }) {
       {phase === "image" && (
         <>
           <span className="mw-tray-eb l12">Drawing</span>
-          <DotWave />
-          <p className="mw-elapsed">{mmss}</p>
+          <div className="mw-loading">
+            <DotWave />
+            <p className="mw-elapsed">{mmss}</p>
+          </div>
           <p className="mw-note">About a minute.</p>
         </>
       )}

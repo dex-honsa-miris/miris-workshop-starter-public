@@ -421,29 +421,42 @@ a:hover { text-decoration: underline; }
 .mw-tray .mw-row { justify-content: flex-start; flex-wrap: wrap; margin: 0; }
 .mw-tray > .mw-note,
 .mw-tray > .mw-elapsed { margin: 0; }
-.mw-tray > .mw-elapsed { text-align: center; }
 
 /* Stands in for the image at its own aspect ratio, so the tray does not resize
-   under the attendee when the render lands. */
+   under the attendee when the render lands. A hairline slot on the tray's own
+   ground, not a filled black block: the placeholder should read quieter than
+   the image it becomes, not heavier. */
+.mw-loading { position: relative; }
+.mw-loading .mw-elapsed {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font-size: 14px;
+  color: var(--mono-500);
+}
 .mw-skel {
   display: block;
   width: 100%;
   aspect-ratio: 1;
   border-radius: var(--radius-m);
-  background: var(--mono-1000);
+  border: 1px solid var(--border);
 }
 /* The wave is carried by the dots themselves, in both axes at once: scale and
    opacity peak together. Delay comes off (x + y) in the markup, which is what
-   sends the crest down the diagonal rather than across. */
+   sends the crest down the diagonal rather than across. Duration is mirrored
+   by WAVE in Build.tsx. A breath, not a pulse: the whole range stays dim and
+   the travel is slow enough to be ignorable. */
 .mw-skel circle {
-  fill: var(--mono-400);
+  fill: var(--mono-500);
   transform-box: fill-box;
   transform-origin: center;
-  animation: mw-dot 1.4s linear infinite;
+  animation: mw-dot 3.2s ease-in-out infinite;
 }
 @keyframes mw-dot {
-  0%, 100% { transform: scale(0.35); opacity: 0.16; }
-  50% { transform: scale(1.25); opacity: 0.9; }
+  0%, 100% { transform: scale(0.7); opacity: 0.07; }
+  50% { transform: scale(1); opacity: 0.26; }
 }
 
 /* ── the build block, inline in step 1.2 ──────────────── */
