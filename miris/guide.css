@@ -165,7 +165,10 @@ a:hover { text-decoration: underline; }
 
 /* --sans and --mono are this file's own aliases, not kit tokens, and 34 rules
    below need them. */
+/* .mw-tray is portalled to body, so it inherits none of the panel's context and
+   needs the aliases declared on itself. */
 .mw-panel,
+.mw-tray,
 .mw-tab,
 .mw-start,
 .mw-plate {
@@ -319,7 +322,8 @@ a:hover { text-decoration: underline; }
 }
 
 .mw-fields input,
-.mw-build textarea {
+.mw-build textarea,
+.mw-tray textarea {
   font: 400 13px/1.5 var(--mono);
   background: var(--mono-1000);
   color: var(--mono-200);
@@ -330,12 +334,13 @@ a:hover { text-decoration: underline; }
   box-sizing: border-box;
 }
 .mw-fields input:focus,
-.mw-build textarea:focus { border-color: var(--text-primary); }
+.mw-build textarea:focus,
+.mw-tray textarea:focus { border-color: var(--text-primary); }
 
 /* The dice sits inside the field it fills. Bottom right, and the textarea gets
    padding on that side so a long third line cannot run under it. */
 .mw-prompt { position: relative; display: flex; }
-.mw-prompt textarea { padding-right: 38px; }
+.mw-prompt textarea { padding-right: 38px; width: 100%; }
 
 .mw-dice {
   position: absolute;
@@ -364,6 +369,77 @@ a:hover { text-decoration: underline; }
   padding: 11px 20px calc(11px + env(safe-area-inset-bottom));
   font: 400 12px/1.5 var(--mono);
   color: var(--accent);
+}
+
+/* ── the build tray ───────────────────────────────────── */
+
+/* Anchored against the guide, not centred over the stage. The stage is the
+   thing being built, so a centred dialog covers the subject; a tray flush to
+   the panel's left edge reads as an extension of it and leaves the pedestal
+   visible. */
+.mw-tray {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: min(408px, 100vw);
+  width: min(340px, 100vw);
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: calc(18px + env(safe-area-inset-top)) 20px 20px;
+  overflow-y: auto;
+  background: var(--mono-900);
+  border-left: 1px solid var(--mono-800);
+  font: 400 14px/1.55 var(--sans);
+  color: var(--mono-200);
+  scrollbar-width: thin;
+  scrollbar-color: var(--mono-800) transparent;
+  animation: mw-tray-in var(--mo-reveal) var(--ease-in) both;
+}
+@keyframes mw-tray-in {
+  from { opacity: 0; transform: translateX(10px); }
+}
+
+/* Below 720 the guide is a bottom sheet, so the tray takes the room above it
+   rather than a column beside a full-width panel. */
+@media (max-width: 720px) {
+  .mw-tray {
+    right: 0;
+    left: 0;
+    bottom: min(62vh, 560px);
+    width: auto;
+    border-left: 0;
+    border-bottom: 1px solid var(--mono-800);
+  }
+}
+
+.mw-tray-eb { color: var(--accent); }
+.mw-tray img { width: 100%; border-radius: var(--radius-s); display: block; }
+.mw-tray .mw-dim { opacity: 0.3; }
+.mw-tray .mw-row { justify-content: flex-start; flex-wrap: wrap; margin: 0; }
+.mw-tray > .mw-note,
+.mw-tray > .mw-elapsed { margin: 0; }
+
+/* Stands in for the image at its own aspect ratio, so the tray does not resize
+   under the attendee when the render lands. */
+.mw-skel {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-s);
+  background: linear-gradient(
+    100deg,
+    var(--mono-800) 20%,
+    var(--mono-700) 40%,
+    var(--mono-800) 60%
+  );
+  background-size: 220% 100%;
+  animation: mw-skel 1.6s linear infinite;
+}
+@keyframes mw-skel {
+  from { background-position: 130% 0; }
+  to { background-position: -30% 0; }
 }
 
 /* ── the build block, inline in step 1.2 ──────────────── */
@@ -639,6 +715,7 @@ a:hover { text-decoration: underline; }
 
 /* One focus language for the panel. Neutral, never the accent. */
 .mw-panel :focus-visible,
+.mw-tray :focus-visible,
 .mw-start :focus-visible,
 .mw-tab:focus-visible {
   outline: 2px solid var(--mono-400);
