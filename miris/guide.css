@@ -1016,3 +1016,16 @@ html[data-vt="out"]::view-transition-old(chooser) { animation: none; }
   overflow-x: auto;
 }
 .mw-fault-digest { color: var(--text-tertiary); }
+
+/* Track selection used to fail silently: the guide's note bar renders inside
+   the panel, and on the chooser there is no panel yet. This is the same message
+   surfaced where the tap happened. */
+.mw-start-note {
+  margin: 0;
+  padding: 10px 32px;
+  color: var(--accent);
+  border-top: 1px solid var(--border);
+}
+@media (max-width: 720px) {
+  .mw-start-note { padding: 10px 24px; }
+}

@@ -10,6 +10,16 @@ import { trackById } from "./tracks";
 import Start from "./Start";
 import "./guide.css";
 
+/* The workshop API is Vite dev middleware, so a build has no counterpart for it.
+ * The tell is not the status code: a built app answers /api/miris with its SPA
+ * fallback, which is 200 and text/html. Checking the content type is what
+ * actually distinguishes "no dev server" from "real error". */
+const NOT_DEV =
+  "The workshop API is not running. It only exists under npm run dev, not in a built preview.";
+
+const isJson = (res: Response) =>
+  (res.headers.get("content-type") ?? "").includes("json");
+
 export default function MirisGuide() {
   const [open, setOpen] = useState(true);
   const [panel, setPanel] = useState(false);
@@ -43,7 +53,8 @@ export default function MirisGuide() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    return { ok: res.ok, json: await res.json() };
+    if (!isJson(res)) return { ok: false, json: {}, jsonResponse: false };
+    return { ok: res.ok, json: await res.json(), jsonResponse: true };
   };
 
   const fill = async (snippetId: string, num: string) => {
@@ -85,16 +96,23 @@ export default function MirisGuide() {
   // browser snapshots the DOM before and after that callback runs, so a normal
   // async setState lands after the snapshot and animates nothing.
   const chooseTrack = async (id: string) => {
-    const { ok, json } = await post({ action: "save", patch: { track: id } });
-    if (!ok) return setNote(json.error);
+    // Feedback first. A tap on the chooser that turns out to fail used to
+    // produce nothing at all, because the note bar only renders inside the
+    // panel and the panel does not exist yet.
+    setNote(id ? "Setting up your track" : "Going back to the chooser");
+
+    const { ok, json, jsonResponse } = await post({ action: "save", patch: { track: id } });
+    if (!jsonResponse) return setNote(NOT_DEV);
+    if (!ok) return setNote(json.error ?? "Could not save your track.");
 
     let next: any;
     try {
       const res = await fetch("/api/miris");
+      if (!isJson(res)) return setNote(NOT_DEV);
+      if (!res.ok) return setNote(`Could not read data.json (${res.status}).`);
       next = await res.json();
-      if (!res.ok) return setNote(next.error ?? `could not read data.json (${res.status})`);
     } catch (e) {
-      return setNote(`could not reach the workshop API: ${(e as Error).message}`);
+      return setNote(`Could not reach the workshop API: ${(e as Error).message}`);
     }
 
     const commit = () => flushSync(() => setData(next));
@@ -107,9 +125,15 @@ export default function MirisGuide() {
 
     // Direction, so the CSS can give closing its own curve and less time.
     document.documentElement.dataset.vt = id ? "in" : "out";
-    doc.startViewTransition(commit).finished.finally(() => {
+    try {
+      doc.startViewTransition(commit).finished.finally(() => {
+        delete document.documentElement.dataset.vt;
+      });
+    } catch {
+      // Never let the animation decide whether the app advances.
       delete document.documentElement.dataset.vt;
-    });
+      commit();
+    }
   };
 
   // Only 5 of the 16 substeps carry a `fill`, and fill() was the sole writer of
@@ -143,7 +167,7 @@ export default function MirisGuide() {
     backToProgress: () => setSelected(null),
   };
 
-  if (!data.track) return <Start onChoose={chooseTrack} />;
+  if (!data.track) return <Start onChoose={chooseTrack} note={note} />;
 
   if (!open) {
     return (

@@ -1,7 +1,16 @@
 import { STEPS } from "./curriculum";
 import { TRACKS } from "./tracks";
 
-export default function Start({ onChoose }: { onChoose: (id: string) => void }) {
+export default function Start({
+  onChoose,
+  note,
+}: {
+  onChoose: (id: string) => void;
+  /* Failures during track selection used to be invisible here: the guide's note
+   * bar lives inside the panel, which does not exist until a track is picked, so
+   * a tap that failed produced no output at all. */
+  note?: string;
+}) {
   return (
     <div className="mw-start">
       <header>
@@ -15,6 +24,12 @@ export default function Start({ onChoose }: { onChoose: (id: string) => void }) 
           the link.
         </p>
       </div>
+
+      {note && (
+        <p className="mw-start-note l12" role="status">
+          {note}
+        </p>
+      )}
 
       <div className="mw-doors">
         {TRACKS.map((track, i) => (
