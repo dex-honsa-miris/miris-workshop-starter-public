@@ -23,6 +23,9 @@ export const SNIPPETS = {
   environment: `${PEDESTAL}\n${ENVIRONMENT}`,
   stream: `${PEDESTAL}\n${ENVIRONMENT}\n${STREAM}`,
   card: `      {data.card ? <Card card={data.card} /> : null}`,
+  // Shares the `card` marker deliberately, so step 5.2 replaces step 5.1's
+  // overlay rather than adding a second card beside it.
+  cardSurface: `      {data.card ? <CardSurface card={data.card} /> : null}`,
 };
 
 export const MARKER_FOR = {
@@ -30,4 +33,5 @@ export const MARKER_FOR = {
   environment: "scene",
   stream: "scene",
   card: "card",
+  cardSurface: "card",
 };
