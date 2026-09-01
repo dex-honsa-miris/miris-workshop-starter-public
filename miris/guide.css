@@ -553,20 +553,20 @@ a:hover { text-decoration: underline; }
   inset: 0;
   z-index: 40;
   display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   background: var(--mono-1000);
   color: var(--mono-200);
   font: 400 14px/1.55 var(--sans);
 }
-/* Placed explicitly, because the note is conditional. Left to document order,
-   an absent note shifted every row up and handed the doors' 1fr to whatever
+/* Placed explicitly, because children are conditional. Left to document order,
+   an absent child shifted every row up and handed the doors' 1fr to whatever
    landed in it: the doors collapsed to content height and the artwork
-   overflowed across the text. Row 3 sizes to 0 when there is no note. */
+   overflowed across the text. The note is out of flow entirely: in a row it
+   resized the doors when it appeared, and the artwork visibly jumped. */
 .mw-start > header { grid-row: 1; }
 .mw-start .mw-ask { grid-row: 2; }
-.mw-start .mw-start-note { grid-row: 3; }
-.mw-start .mw-doors { grid-row: 4; }
-.mw-start > footer { grid-row: 5; }
+.mw-start .mw-doors { grid-row: 3; }
+.mw-start > footer { grid-row: 4; }
 
 .mw-start > header {
   display: flex;
@@ -789,7 +789,11 @@ a:hover { text-decoration: underline; }
 .mw-line .k { flex: none; width: 28px; color: var(--text-tertiary); }
 .mw-line .ttl { color: var(--text-secondary); }
 .mw-line .tick { margin-left: auto; color: var(--mono-600); }
-.mw-line[data-state="done"] .ttl { color: var(--mono-600); }
+.mw-line[data-state="done"] .ttl {
+  color: var(--mono-600);
+  text-decoration: line-through;
+  text-decoration-color: var(--mono-700);
+}
 .mw-line[data-state="done"] .k { color: var(--mono-700); }
 
 /* 4px because it is nested inside the 8px panel. */
@@ -1196,13 +1200,14 @@ html[data-vt="out"]::view-transition-old(chooser) { animation: none; }
 .mw-fault h1 { color: var(--text-primary); }
 .mw-fault p { color: var(--text-secondary); }
 .mw-start-note {
+  position: absolute;
+  top: calc(20px + env(safe-area-inset-top));
+  right: 32px;
   margin: 0;
-  padding: 10px 32px;
   color: var(--accent);
-  border-top: 1px solid var(--border);
 }
 @media (max-width: 720px) {
-  .mw-start-note { padding: 10px 24px; }
+  .mw-start-note { right: 24px; }
 }
 .mw-goto {
   display: inline-flex;
