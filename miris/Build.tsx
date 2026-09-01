@@ -5,7 +5,7 @@ import type { Track } from "./tracks";
 
 type Phase = "idle" | "image" | "review" | "model" | "done";
 
-const GRID = 9;
+const GRID = 16;
 // Must match the mw-dot duration in guide.css: the delays are fractions of it.
 const WAVE = 3.2;
 
@@ -23,7 +23,7 @@ function DotWave() {
           key={`${x}-${y}`}
           cx={(x + 0.5) * step}
           cy={(y + 0.5) * step}
-          r={step / 5}
+          r={step / 7}
           style={{ animationDelay: `${(-(x + y) / (GRID * 2 - 2)) * WAVE}s` }}
         />,
       );
