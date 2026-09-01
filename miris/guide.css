@@ -416,7 +416,17 @@ a:hover { text-decoration: underline; }
 }
 
 .mw-tray-eb { color: var(--accent); }
-.mw-tray img { width: 100%; border-radius: var(--radius-m); display: block; }
+/* Same box as the skeleton it replaces, held from the first frame: without the
+   aspect ratio the img mounts at zero height until its bytes arrive, and the
+   reveal shoves everything below it. cover in case fal ever returns
+   non-square; today square_hd is 1:1 and crops nothing. */
+.mw-tray img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: var(--radius-m);
+  display: block;
+}
 .mw-tray .mw-dim { opacity: 0.3; }
 .mw-tray .mw-row { justify-content: flex-start; flex-wrap: wrap; margin: 0; }
 .mw-tray > .mw-note,
