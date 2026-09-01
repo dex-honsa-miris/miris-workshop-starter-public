@@ -1117,20 +1117,39 @@ a:hover { text-decoration: underline; }
 
 /* The chooser leaves before the panel arrives. Overlapping two full-screen
    layouts means both are semi-transparent where they share space, which is
-   what looked muddy. A short gap beats a long blend. */
-::view-transition-old(chooser) {
-  animation: mw-chooser-out calc(var(--mo-travel) * 0.34) var(--ease-fade) both;
-}
-::view-transition-new(chooser) { animation: none; }
+   what looked muddy. A short gap beats a long blend. The animations
+   themselves are below, gated per direction. */
 
 /* The panel arrives from its own edge on the kit's opening curve. 28px is an
    in-place arrival, well under the kit's 40px --mo-rise for an entrance from
-   nothing. */
-::view-transition-new(panel) {
+   nothing.
+
+   Gated on data-vt, which only the chooser swap sets. When the chooser was the
+   only transition in the app the gate was implicit; once Done and the rail
+   started transitions of their own, the ungated rule replayed the whole
+   sidebar's arrival on every advance. */
+html[data-vt="in"]::view-transition-new(panel) {
   animation: mw-panel-in calc(var(--mo-travel) * 0.7) var(--ease-in) both;
   animation-delay: calc(var(--mo-travel) * 0.3);
 }
-::view-transition-old(panel) { animation: none; }
+html[data-vt="in"]::view-transition-old(chooser) {
+  animation: mw-chooser-out calc(var(--mo-travel) * 0.34) var(--ease-fade) both;
+}
+
+/* Any transition that is not the chooser swap holds the panel and chooser
+   still: substeps animate as their own groups, and the frame around them
+   should not move at all. */
+::view-transition-old(panel),
+::view-transition-new(panel),
+::view-transition-old(chooser),
+::view-transition-new(chooser) {
+  animation: none;
+  opacity: 1;
+  /* Same trap the root rules dodge above: two static snapshots blend
+     plus-lighter by default, which sums two copies of the sidebar into a
+     blown-out double exposure. */
+  mix-blend-mode: normal;
+}
 
 /* Closing is not opening reversed: running the opening ramp backwards dumps
    most of its distance immediately then creeps the last sliver. Change gets
