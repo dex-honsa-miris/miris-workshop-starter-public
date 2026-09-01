@@ -1084,3 +1084,24 @@ html[data-vt="out"]::view-transition-old(chooser) { animation: none; }
   display: inline-flex;
   text-decoration: none;
 }
+
+/* ── html-in-canvas path badge ─────────────────────────── */
+/* Always present on step 5.2, including when the native path ran: silence
+   would leave an attendee who did the flag setup wondering whether it took. */
+.mw-path {
+  margin: 10px 0 0;
+  padding: 9px 11px;
+  border: 1px solid var(--mono-800);
+  border-radius: var(--radius-s);
+  background: var(--mono-900);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--mono-400);
+}
+.mw-path[data-native] { color: var(--mono-200); }
+.mw-path code {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--mono-200);
+  word-break: break-all;
+}

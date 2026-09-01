@@ -1,5 +1,7 @@
+import { useSyncExternalStore } from "react";
 import type { Step, Sub } from "./curriculum";
 import type { Track } from "./tracks";
+import { detect, getPath, subscribePath } from "./htmlInCanvas";
 import { nextSub, subState } from "./progress";
 
 export interface StepActions {
@@ -23,6 +25,39 @@ export interface StepPaneProps {
   /** Substep number currently being written, or "". */
   busy: string;
   actions: StepActions;
+}
+
+const FLAG = "chrome://flags/#canvas-draw-element";
+
+/* Which drawing path actually ran, read from the module store rather than
+ * re-detected: detection can say yes and the call can still throw. Shown on the
+ * happy path too, so an attendee who did the setup gets confirmation. */
+function RenderPathBadge() {
+  const path = useSyncExternalStore(subscribePath, getPath, getPath);
+  const { engine, flaggable } = detect();
+
+  if (path === "drawElement") {
+    return (
+      <p className="mw-path" data-native>
+        Drawing your live DOM into the scene
+      </p>
+    );
+  }
+
+  return (
+    <p className="mw-path">
+      Fallback path, in system-ui rather than Geist.{" "}
+      {flaggable ? (
+        <>
+          Chrome can draw the real thing. Turn on <code>{FLAG}</code> and reload.
+        </>
+      ) : engine === "webkit" ? (
+        <>Safari has no flag for this yet. The card still renders.</>
+      ) : (
+        <>Your browser has no flag for this yet. The card still renders.</>
+      )}
+    </p>
+  );
 }
 
 export default function StepPane({
@@ -71,6 +106,7 @@ export default function StepPane({
 
             <h3 className="mw-now-title">{sub.title}</h3>
             <p className="c14">{sub.body}</p>
+            {sub.renderPath && <RenderPathBadge />}
             {sub.code && <pre className="k14">{sub.code}</pre>}
 
             {sub.link && (
