@@ -966,6 +966,12 @@ html[data-vt="out"]::view-transition-old(chooser) { animation: none; }
   align-items: flex-start;
   gap: var(--space-s);
 }
+/* Above 720px the guide is a fixed right rail, so centring in the viewport hides
+   the half of the sentence that says how to recover. Below it, it is a bottom
+   sheet and the 18vh top padding already clears it. */
+@media (min-width: 721px) {
+  .mw-fault { margin-inline: auto calc(408px + var(--space-m)); }
+}
 .mw-fault .l12 { color: var(--accent); }
 .mw-fault h1 { color: var(--text-primary); }
 .mw-fault p { color: var(--text-secondary); }

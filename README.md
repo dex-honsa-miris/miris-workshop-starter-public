@@ -71,21 +71,27 @@ prose. The step rail is a four-block level-of-detail meter: one block ahead,
 partially filled at the current step, four when done. The chrome renders
 progressive detail because that is what the workshop is about.
 
-The four minute wait shows a stage list and an elapsed clock rather than a
-spinner, because a spinner tells you nothing across minutes.
+Both waits show an elapsed clock rather than a spinner, and the four minute one
+adds a stage list, because a spinner tells you nothing across minutes.
 
 ### The shape of it
 
+`app/` holds the two files attendees touch. Everything else is `miris/`.
+
 - `app/stage.tsx` is the attendee's file. It ships with marker comments and the
-  sidebar writes between them.
+  sidebar writes between them. The `extend({ MirisStream })` at the top is what
+  makes `<mirisStream>` an ordinary scene node; step 2.3 explains it.
+- `app/main.tsx` mounts the stage and the guide. Attendees edit it once, at
+  step 5.2, to remove the guide.
 - `miris/devApi.ts` is the only server code: it writes files, proxies
   fal, and owns `data.json`. The fal key never reaches the browser.
-- `miris/engine.ts`, `miris/Frame.tsx` and `miris/Stream.tsx` hold the engine
-  plumbing: booting one scene per page load, handing the frame to the engine,
-  and fitting a stream once its reported size settles. Steps 2.3, 2.4 and 3.2
-  explain them. Nothing here needs editing.
-- `miris/` holds the guide, the curriculum copy, the snippets, the store and the
-  config.
+- `miris/StageBoundary.tsx` keeps a runtime error in the stage from taking the
+  guide down with it. Without it, one typo blanks the page — instructions
+  included.
+- `miris/miris.d.ts` types the `<mirisStream>` tag for React Three Fiber. It is
+  the only reason the tag typechecks, and it is not worth reading.
+- `miris/` also holds the guide, the curriculum copy, the snippets, the store
+  and the config. Nothing in it needs editing.
 
 ### Removing the guide
 
