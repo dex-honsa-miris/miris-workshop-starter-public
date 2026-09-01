@@ -80,6 +80,10 @@ spinner, because a spinner tells you nothing across minutes.
   sidebar writes between them.
 - `miris/devApi.ts` is the only server code: it writes files, proxies
   fal, and owns `data.json`. The fal key never reaches the browser.
+- `miris/engine.ts`, `miris/Frame.tsx` and `miris/Stream.tsx` hold the engine
+  plumbing: booting one scene per page load, handing the frame to the engine,
+  and fitting a stream once its reported size settles. Steps 2.3, 2.4 and 3.2
+  explain them. Nothing here needs editing.
 - `miris/` holds the guide, the curriculum copy, the snippets, the store and the
   config.
 
