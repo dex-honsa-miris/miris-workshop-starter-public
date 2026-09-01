@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { flushSync } from "react-dom";
 import { STEPS, type Sub } from "./curriculum";
+import { transition } from "./transition";
 import { nextSub, stepOfSub } from "./progress";
 import Rail from "./Rail";
 import StepPane, { type StepActions } from "./Step";
@@ -110,10 +110,6 @@ export default function MirisGuide() {
   // Swapping between the chooser and the panel is a view transition: the
   // chooser leaves, then the panel arrives from its edge. The artwork is not
   // part of it, deliberately, see the note in guide.css.
-  //
-  // The commit must be synchronous inside the callback, hence flushSync. The
-  // browser snapshots the DOM before and after that callback runs, so a normal
-  // async setState lands after the snapshot and animates nothing.
   const chooseTrack = async (id: string) => {
     // Feedback first. A tap on the chooser that turns out to fail used to
     // produce nothing at all, because the note bar only renders inside the
@@ -141,29 +137,10 @@ export default function MirisGuide() {
 
     // Clearing here, not before: every failure path above returns with its own
     // note still showing.
-    const commit = () =>
-      flushSync(() => {
-        setNote("");
-        setData(next);
-      });
-    const doc = document as Document & {
-      startViewTransition?: (cb: () => void) => { finished: Promise<void> };
-    };
-
-    // Unsupported browsers get the same state change without the transition.
-    if (typeof doc.startViewTransition !== "function") return commit();
-
-    // Direction, so the CSS can give closing its own curve and less time.
-    document.documentElement.dataset.vt = id ? "in" : "out";
-    try {
-      doc.startViewTransition(commit).finished.finally(() => {
-        delete document.documentElement.dataset.vt;
-      });
-    } catch {
-      // Never let the animation decide whether the app advances.
-      delete document.documentElement.dataset.vt;
-      commit();
-    }
+    transition(() => {
+      setNote("");
+      setData(next);
+    }, id ? "in" : "out");
   };
 
   // Only 5 of the 16 substeps carry a `fill`, and fill() was the sole writer of
@@ -173,8 +150,20 @@ export default function MirisGuide() {
     setNote(carryNote);
     const r = await post({ action: "save", patch: { step: toSubNum } });
     if (!r.ok) return setNote(r.problem!);
-    setSelected(null);
-    await load();
+    let next: any = null;
+    try {
+      const got = await readApi(await fetch("/api/miris"));
+      if (!got.ok) return setNote(got.problem!);
+      next = got.data;
+    } catch (e) {
+      return setNote(`Could not reach the workshop API: ${(e as Error).message}`);
+    }
+    // One commit, so the card that collapses and the line that expands are a
+    // single transition rather than two frames.
+    transition(() => {
+      setSelected(null);
+      setData(next);
+    });
   };
 
   // Done verifies before it advances. The check lives on the server because
@@ -263,7 +252,7 @@ export default function MirisGuide() {
           <Rail
             progressStepNum={progressStep.num}
             shownStepNum={shownStep.num}
-            onSelect={setSelected}
+            onSelect={(num) => transition(() => setSelected(num))}
           />
           <div className="mw-scroll">
             <StepPane

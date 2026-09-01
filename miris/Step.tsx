@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 import type { Step, Sub } from "./curriculum";
 import type { Track } from "./tracks";
 import Build from "./Build";
+import { subName } from "./transition";
 import { detect, getPath, subscribePath } from "./htmlInCanvas";
 import { nextSub, subState } from "./progress";
 
@@ -89,7 +90,12 @@ export default function StepPane({
 
         if (state !== "here") {
           return (
-            <div key={sub.num} className="mw-line" data-state={state}>
+            <div
+              key={sub.num}
+              className="mw-line"
+              data-state={state}
+              style={{ viewTransitionName: subName(sub.num) } as React.CSSProperties}
+            >
               <span className="l12 k">{sub.num}</span>
               <span className="c14 ttl">{withNoun(sub.title, track.noun)}</span>
               {state === "done" && (
@@ -102,7 +108,11 @@ export default function StepPane({
         }
 
         return (
-          <article key={sub.num} className="mw-now">
+          <article
+            key={sub.num}
+            className="mw-now"
+            style={{ viewTransitionName: subName(sub.num) } as React.CSSProperties}
+          >
             <div className="mw-now-eb">
               <p className="l12">Step {sub.num}</p>
               <span className="mw-lod" aria-hidden="true">

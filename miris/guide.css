@@ -1065,6 +1065,36 @@ a:hover { text-decoration: underline; }
    resamples its snapshot every frame. Anything unnamed shares `root`, which
    cross-fades, so the two layouts are named separately. */
 
+/* ── substeps expanding and collapsing ────────────────────
+   A substep's collapsed line and its expanded card are different elements, so
+   no CSS transition can cross them. Step.tsx gives both the same
+   view-transition-name, which makes the browser pair them and morph the box;
+   the class is what lets one rule cover all fifteen without naming them. */
+.mw-line,
+.mw-now {
+  view-transition-class: sub;
+}
+
+::view-transition-group(.sub) {
+  animation-duration: var(--mo-reveal);
+  animation-timing-function: var(--ease-in);
+  /* Groups do not clip their contents. Without this, a tall card collapsing to
+     a line paints its full height across whatever is below it. */
+  overflow: hidden;
+}
+
+/* Filling the morphing box instead of keeping the snapshot's own height. The
+   default stretches both snapshots to fit, which reads as the text squashing
+   rather than the card closing over it. */
+::view-transition-old(.sub),
+::view-transition-new(.sub) {
+  height: 100%;
+  object-fit: none;
+  object-position: top left;
+  animation-duration: var(--mo-reveal);
+  animation-timing-function: var(--ease-fade);
+}
+
 .mw-start { view-transition-name: chooser; }
 .mw-panel { view-transition-name: panel; }
 
