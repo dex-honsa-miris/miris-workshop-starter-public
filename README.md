@@ -182,6 +182,13 @@ inside the four minute model wait, which is the only reason it fits.
 whose upload stalls can still finish on the demo asset by leaving the uuid field
 empty.
 
+**Laptops on battery drop to 30fps.** Chrome's Energy Saver caps rendering at
+30fps once the battery hits 20%, browser-wide, and a room without enough power
+strips is exactly where that happens. The stage and every animation suddenly
+look janky and nothing in the app is wrong. Diagnosed 2026-09-01: a blank tab
+frame-timed at the same 33ms as the app. Tell attendees to plug in, or expect
+"the demo feels slow" reports that track battery level.
+
 ### Testing
 
 Browser verification lives outside this repo so a fork carries no Playwright:
