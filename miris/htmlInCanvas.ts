@@ -82,10 +82,15 @@ export function subscribePath(cb: () => void): () => void {
 export const getPath = (): RenderPath => current;
 
 /* ── the card's styles ────────────────────────────────────
- * One source, two consumers: injected as a <style> for the live DOM inside the
- * hidden canvas, and embedded into the SVG for the fallback. Values are
- * resolved rather than var() because custom properties do not cross into a
- * foreignObject. Mirrors .mw-plate in guide.css:463-481.
+ * One consumer only: the SVG in drawViaForeignObject, which is the one place
+ * guide.css cannot reach. Values are resolved rather than var() because custom
+ * properties do not cross into a foreignObject. Mirrors .mw-plate in
+ * guide.css:463-481.
+ *
+ * Never inject this as a <style> for the live DOM. A <style> applies to the
+ * whole document wherever it sits, so it would also restyle the native path's
+ * card and every other .mw-plate on the page, and the two paths would stop
+ * looking different.
  *
  * The font stack deliberately omits Geist. Same-origin woff2 could be fetched
  * and base64'd in, but a visible difference between the two paths is the point
@@ -144,8 +149,10 @@ async function drawViaForeignObject(
 /** Paint `el` onto `target`. Resolves with the path that actually ran, and
  *  rejects only when neither path could draw anything.
  *
- *  `el` must be a descendant of `target`, and `target` must carry
- *  `layoutsubtree`, or the native call throws and the fallback runs instead. */
+ *  The native path only: `el` must be a descendant of `target`, and `target`
+ *  must carry `layoutsubtree`, or the native call throws and the fallback runs
+ *  instead. The fallback has no such rule and takes `el` from anywhere, as long
+ *  as it has been laid out. */
 export async function paintElement(
   el: HTMLElement,
   target: HTMLCanvasElement,
