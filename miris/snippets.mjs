@@ -9,7 +9,11 @@ const PEDESTAL = `      <mesh position={[0, 0.25, 0]}>
 
 const ENVIRONMENT = `      <Environment files="/env/white-chapel.hdr" environmentIntensity={1.6} />`;
 
-const STREAM = `      <Stream uuid={data.uuid || DEMO_UUID} viewerKey={data.viewerKey || VIEWER_KEY} />`;
+const STREAM = `      <mirisStream
+        position={[0.043, 0.64, 0.221]}
+        scale={0.138}
+        args={[{ uuid: data.uuid || DEMO_UUID, viewerKey: data.viewerKey || VIEWER_KEY }]}
+      />`;
 
 // pedestal, environment and stream share the `scene` marker, so each snippet
 // contains the ones before it. Writing them non-cumulatively would make step
@@ -18,7 +22,6 @@ export const SNIPPETS = {
   pedestal: PEDESTAL,
   environment: `${PEDESTAL}\n${ENVIRONMENT}`,
   stream: `${PEDESTAL}\n${ENVIRONMENT}\n${STREAM}`,
-  frame: `      <Frame backend={boot.backend} />`,
   card: `      {data.card ? <Card card={data.card} /> : null}`,
 };
 
@@ -26,6 +29,5 @@ export const MARKER_FOR = {
   pedestal: "scene",
   environment: "scene",
   stream: "scene",
-  frame: "frame",
   card: "card",
 };

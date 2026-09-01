@@ -60,7 +60,7 @@ export const STEPS: Step[] = [
   {
     num: "02",
     title: "Build the stage",
-    time: "35 min",
+    time: "25 min",
     subs: [
       {
         num: "2.1",
@@ -78,32 +78,23 @@ export const STEPS: Step[] = [
           "One line, and the whole scene changes. Press the button and look at the pedestal before and after.",
         fill: "environment",
         explain:
-          "An HDR image lights the scene from every direction at once, which is what makes a surface look like it is in a real room rather than under a lamp. Note the intensity is 1.6, not the 0.6 a normal scene wants. This canvas renders in linear colour space because that is what the splat compositor needs, and that darkens everything else, so the environment is pushed up to compensate.",
+          "An HDR image lights the scene from every direction at once, which is what makes a surface look like it is in a real room rather than under a lamp. Note the intensity is 1.6, not the 0.6 a normal scene wants. This canvas renders in linear colour space, which darkens everything else, so the environment is pushed up to compensate.",
       },
       {
         num: "2.3",
-        title: "Hand the frame to Miris",
-        body:
-          "This is the one genuinely surprising thing in the whole workshop. Press the button, then read the explanation carefully, because it is the difference between a working stage and a blank one.",
-        fill: "frame",
-        explain:
-          "React Three Fiber normally draws every frame for you. Here it must not. The Miris engine draws the frame instead, and its doRendering call draws both the ordinary three.js content and the streamed splats. If R3F also rendered, everything would be drawn twice. Passing a priority of 1 to useFrame switches R3F's automatic render off and hands the job over. That is also why the scene given to Canvas is a MirisScene rather than a plain three.js one: the stream registers itself with the scene, and a plain scene has nowhere to register.",
-      },
-      {
-        num: "2.4",
         title: "Your first stream",
         body:
           "This uses our demo asset so you can see it working before yours is ready. Yours goes in at step 4.",
         fill: "stream",
         explain:
-          "A stream is not a file you load, it is a subscription. Detail arrives progressively, which means the size of the thing is not known when it first appears and grows as more of it arrives. That is why the code waits for the reported size to stop changing before it places the asset: fitting on the first reading puts it in the wrong place at the wrong scale. It gives up waiting after twenty tries, because a slightly wrong fit beats an empty pedestal.",
+          "A stream is not a file you load, it is a subscription. What appears first is a coarse version of the whole asset, and it sharpens as more arrives, so there is never a moment where you wait on a download. The element takes position and scale like any other three.js object, because that is all it is: React Three Fiber draws it in the same pass as the pedestal. The numbers are measured for the demo asset. Yours will need its own, at step 4.4.",
       },
     ],
   },
   {
     num: "03",
     title: "Make it yours",
-    time: "20 min",
+    time: "15 min",
     subs: [
       {
         num: "3.1",
@@ -114,13 +105,6 @@ export const STEPS: Step[] = [
       },
       {
         num: "3.2",
-        title: "Sit it properly on the plinth",
-        body:
-          "Read this now and apply it at step 4.3, once your own asset is streaming: it will probably float, and that is worth understanding rather than working around. The SDK reports a bounding box that is the octree cell holding your asset, not the asset itself, so its floor is not where your model starts. Open miris/config.ts and add an entry to FIT_OVERRIDES keyed by your uuid, then adjust floor until it sits on the rim. Negative floor values push it up. Leave scale alone unless it also looks wrong: the automatic fit already sizes the asset to the plinth.",
-        code: 'FIT_OVERRIDES["your-uuid"] = { scale: 0.44, floor: -1.017 };',
-      },
-      {
-        num: "3.3",
         title: "Light it your way",
         body:
           "Change environmentIntensity in the Environment line. Below 1.0 gets moody and the rim starts to dominate. Above 2.5 blows out the highlights. You can also drop in your own .hdr: put it in public/env/ and change the filename. Polyhaven has thousands, free.",
@@ -130,7 +114,7 @@ export const STEPS: Step[] = [
   {
     num: "04",
     title: "Go live",
-    time: "20 min",
+    time: "25 min",
     subs: [
       {
         num: "4.1",
@@ -152,6 +136,15 @@ export const STEPS: Step[] = [
           "Your own asset is now streaming onto the same pedestal, under the same lighting, through the same camera.",
         explain:
           "Nothing about your scene changed except where the geometry comes from. The pedestal, the environment, the camera and the render loop are identical. That is the whole point of this workshop: streaming is a delivery change, not a rendering change. You did not load a file that happened to be big. You subscribed to something that arrives at whatever detail the view justifies.",
+      },
+      {
+        num: "4.4",
+        title: "Sit it on the plinth",
+        body:
+          "Yours will not land where the demo asset did. Open app/stage.tsx and edit the position and scale on mirisStream until it sits on the rim. Change scale first, then the middle number of position to drop it onto the surface, then the outer two to centre it. The pedestal top is at y 0.5. Save and the page updates as you type.",
+        code: "position={[0.043, 0.64, 0.221]} scale={0.138}",
+        explain:
+          "You are doing this by eye because there is nothing better to compute it from. The SDK will report a bounding box, but it describes the octree cell holding your asset rather than the asset itself, so its floor is not where your model starts. Three numbers you can see the effect of beat a fit that is right for some assets and quietly wrong for others.",
       },
     ],
   },
