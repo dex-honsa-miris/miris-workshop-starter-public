@@ -120,7 +120,14 @@ export default function MirisGuide() {
     // panel and the panel does not exist yet.
     setNote(id ? "Setting up your track" : "Going back to the chooser");
 
-    const saved = await post({ action: "save", patch: { track: id } });
+    // A different track means a different subject, so the previous one's
+    // prompt, render and mesh do not carry over: they were the reason a
+    // creature prompt turned up under Atelier.
+    const patch: Record<string, unknown> =
+      id && id !== data.track
+        ? { track: id, prompt: "", imageUrl: "", falRequestId: "", glb: "", card: null }
+        : { track: id };
+    const saved = await post({ action: "save", patch });
     if (!saved.ok) return setNote(saved.problem!);
 
     let next: any;

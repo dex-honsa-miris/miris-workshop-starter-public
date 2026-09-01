@@ -416,30 +416,34 @@ a:hover { text-decoration: underline; }
 }
 
 .mw-tray-eb { color: var(--accent); }
-.mw-tray img { width: 100%; border-radius: var(--radius-s); display: block; }
+.mw-tray img { width: 100%; border-radius: var(--radius-m); display: block; }
 .mw-tray .mw-dim { opacity: 0.3; }
 .mw-tray .mw-row { justify-content: flex-start; flex-wrap: wrap; margin: 0; }
 .mw-tray > .mw-note,
 .mw-tray > .mw-elapsed { margin: 0; }
+.mw-tray > .mw-elapsed { text-align: center; }
 
 /* Stands in for the image at its own aspect ratio, so the tray does not resize
    under the attendee when the render lands. */
 .mw-skel {
+  display: block;
   width: 100%;
   aspect-ratio: 1;
-  border-radius: var(--radius-s);
-  background: linear-gradient(
-    100deg,
-    var(--mono-800) 20%,
-    var(--mono-700) 40%,
-    var(--mono-800) 60%
-  );
-  background-size: 220% 100%;
-  animation: mw-skel 1.6s linear infinite;
+  border-radius: var(--radius-m);
+  background: var(--mono-1000);
 }
-@keyframes mw-skel {
-  from { background-position: 130% 0; }
-  to { background-position: -30% 0; }
+/* The wave is carried by the dots themselves, in both axes at once: scale and
+   opacity peak together. Delay comes off (x + y) in the markup, which is what
+   sends the crest down the diagonal rather than across. */
+.mw-skel circle {
+  fill: var(--mono-400);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mw-dot 1.4s linear infinite;
+}
+@keyframes mw-dot {
+  0%, 100% { transform: scale(0.35); opacity: 0.16; }
+  50% { transform: scale(1.25); opacity: 0.9; }
 }
 
 /* ── the build block, inline in step 1.2 ──────────────── */

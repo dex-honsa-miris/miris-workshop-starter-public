@@ -5,6 +5,36 @@ import type { Track } from "./tracks";
 
 type Phase = "idle" | "image" | "review" | "model" | "done";
 
+const GRID = 9;
+const WAVE = 1.4;
+
+/* A dot grid rather than a shimmering block. Delay runs off (x + y), so the
+   crest travels the diagonal, and each dot carries the wave in both its scale
+   and its opacity. Negative delays start every dot mid-cycle, so the wave is
+   already moving on the first frame. */
+function DotWave() {
+  const step = 100 / GRID;
+  const dots = [];
+  for (let y = 0; y < GRID; y++) {
+    for (let x = 0; x < GRID; x++) {
+      dots.push(
+        <circle
+          key={`${x}-${y}`}
+          cx={(x + 0.5) * step}
+          cy={(y + 0.5) * step}
+          r={step / 5}
+          style={{ animationDelay: `${(-(x + y) / (GRID * 2 - 2)) * WAVE}s` }}
+        />,
+      );
+    }
+  }
+  return (
+    <svg className="mw-skel" viewBox="0 0 100 100" aria-hidden="true">
+      {dots}
+    </svg>
+  );
+}
+
 export default function Build({ track }: { track: Track }) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [prompt, setPrompt] = useState("");
@@ -127,38 +157,36 @@ export default function Build({ track }: { track: Track }) {
       {phase === "image" && (
         <>
           <span className="mw-tray-eb l12">Drawing</span>
-          <div className="mw-skel" />
+          <DotWave />
           <p className="mw-elapsed">{mmss}</p>
           <p className="mw-note">About a minute.</p>
         </>
       )}
 
-      {phase === "review" && !again && (
+      {phase === "review" && (
         <>
-          <span className="mw-tray-eb l12">Keep this one?</span>
+          <span className="mw-tray-eb l12">{again ? "Describe another" : "Keep this one?"}</span>
           <img src={image} alt="Generated concept" />
-          <p className="mw-note">Rerolls cost five cents. The next step costs $1.40, so choose here.</p>
-          <div className="mw-row">
-            <button className="btn btn-primary btn-sm" onClick={makeModel}>
-              Submit for 3D
-            </button>
-            <button className="btn btn-secondary btn-sm" onClick={() => setAgain(true)}>
-              Try again
-            </button>
-            <button className="btn btn-ghost btn-sm" onClick={() => setPhase("idle")}>
-              Cancel
-            </button>
-          </div>
-        </>
-      )}
-
-      {phase === "review" && again && (
-        <>
-          <span className="mw-tray-eb l12">Try again</span>
-          {promptField}
-          <button className="btn btn-ghost btn-sm" onClick={() => setAgain(false)}>
-            Cancel
-          </button>
+          {again ? (
+            <>
+              {promptField}
+              <button className="btn btn-ghost btn-sm" onClick={() => setAgain(false)}>
+                Cancel
+              </button>
+            </>
+          ) : (
+            <div className="mw-row">
+              <button className="btn btn-primary btn-sm" onClick={makeModel}>
+                Submit for 3D
+              </button>
+              <button className="btn btn-secondary btn-sm" onClick={() => setAgain(true)}>
+                Try again
+              </button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setPhase("idle")}>
+                Cancel
+              </button>
+            </div>
+          )}
         </>
       )}
 

@@ -6,7 +6,7 @@ import { readMarker, replaceMarker } from "./markers.mjs";
 import { readData, writeData } from "./store.mjs";
 import { MARKER_FOR, SNIPPETS } from "./snippets.mjs";
 import { IMAGE_MODEL, MODEL_3D } from "./config";
-import { trackById } from "./tracks";
+import { TRACKS } from "./tracks";
 
 /* Dev only, by construction: configureServer has no production counterpart, so
  * a built app has no endpoint to reach. */
@@ -171,7 +171,11 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
     case "image": {
       if (!falKey(mode)) return fail("FAL_KEY is not set in .env.local");
       const stored = await readData(MIRIS_DIR);
-      const track = trackById(stored.track);
+      /* Strict, unlike trackById: that falls back to TRACKS[0], which is summon,
+       * so an unset track quietly rendered every attendee a creature in the
+       * monster-taming style whichever door they had picked. */
+      const track = TRACKS.find((t) => t.id === stored.track);
+      if (!track) return fail("No track chosen yet. Pick one on the chooser first.");
       const out: any = await falRun(IMAGE_MODEL, {
         prompt: `${track.style}: ${body.prompt}`,
         image_size: "square_hd",
@@ -186,9 +190,19 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
 
     case "model": {
       if (!falKey(mode)) return fail("FAL_KEY is not set in .env.local");
+      const stored = await readData(MIRIS_DIR);
+      const track = TRACKS.find((t) => t.id === stored.track);
+      if (!track) return fail("No track chosen yet. Pick one on the chooser first.");
       const out: any = await falRun(
         MODEL_3D,
-        { image_url: body.imageUrl, texture_prompt: body.prompt ?? "", ...MESHY_INPUT },
+        {
+          image_url: body.imageUrl,
+          // Styled the same way the image was. The mesh takes its look from the
+          // image, but the texture pass reads this, and it was the one call in
+          // the workflow the track never reached.
+          texture_prompt: `${track.style}: ${body.prompt ?? ""}`,
+          ...MESHY_INPUT,
+        },
         MIRIS_DIR,
       );
       const url = out?.model_glb?.url;
