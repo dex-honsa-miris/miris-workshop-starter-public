@@ -160,7 +160,6 @@ a:hover { text-decoration: underline; }
 /* --sans and --mono are this file's own aliases, not kit tokens, and 34 rules
    below need them. */
 .mw-panel,
-.mw-overlay,
 .mw-tab,
 .mw-start,
 .mw-plate {
@@ -327,7 +326,7 @@ a:hover { text-decoration: underline; }
 }
 
 .mw-fields input,
-.mw-card textarea {
+.mw-build textarea {
   font: 400 13px/1.5 var(--mono);
   background: var(--mono-1000);
   color: var(--mono-200);
@@ -338,7 +337,7 @@ a:hover { text-decoration: underline; }
   box-sizing: border-box;
 }
 .mw-fields input:focus,
-.mw-card textarea:focus { border-color: var(--text-primary); }
+.mw-build textarea:focus { border-color: var(--text-primary); }
 
 /* The dice sits inside the field it fills. Bottom right, and the textarea gets
    padding on that side so a long third line cannot run under it. */
@@ -374,36 +373,30 @@ a:hover { text-decoration: underline; }
   color: var(--accent);
 }
 
-/* ── generator overlay ────────────────────────────────── */
+/* ── the build block, inline in step 1.2 ──────────────── */
 
-.mw-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(8, 9, 13, 0.86);
-  display: grid;
-  place-items: center;
-  z-index: 30;
-  padding: 24px;
+/* Was a modal. It is the step's own work, so it belongs in the step, and the
+   card around it already supplies the heading, the guidance and the accent. */
+.mw-build {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
 }
+/* The children carried their own top margins when this was a dialog, which the
+   gap now doubles. */
+.mw-build > .mw-note,
+.mw-build > .mw-elapsed,
+.mw-build > .mw-row,
+.mw-build > img { margin-top: 0; }
+.mw-build > .mw-elapsed { margin-bottom: 0; }
 
-.mw-card {
-  position: relative;
-  width: min(440px, 100%);
-  background: var(--mono-900);
-  border: 1px solid var(--mono-800);
-  border-top: 2px solid var(--accent);
-  border-radius: var(--radius-m);
-  padding: 26px 24px 22px;
-  font: 400 14px/1.55 var(--sans);
-  color: var(--mono-200);
-}
-
-.mw-card h3 {
+.mw-build h3 {
   margin: 0 0 4px;
   font: 500 16px/1.3 var(--sans);
   color: var(--mono-000);
 }
-.mw-card .mw-step {
+.mw-build .mw-step {
   font: 500 10px/1 var(--mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -411,21 +404,10 @@ a:hover { text-decoration: underline; }
   display: block;
   margin-bottom: 10px;
 }
-.mw-card img { width: 100%; border-radius: var(--radius-s); display: block; margin: 12px 0; }
-.mw-card .mw-dim { opacity: 0.3; }
-.mw-card .mw-row { justify-content: flex-start; margin-top: 14px; }
+.mw-build img { width: 100%; border-radius: var(--radius-s); display: block; margin: 12px 0; }
+.mw-build .mw-dim { opacity: 0.3; }
+.mw-build .mw-row { justify-content: flex-start; margin-top: 14px; }
 
-.mw-x {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  background: none;
-  border: 0;
-  color: var(--mono-600);
-  font-size: 20px;
-  cursor: pointer;
-}
-.mw-x:hover { color: var(--mono-200); }
 
 .mw-note { color: var(--mono-400); font-size: 13px; margin: 10px 0 0; }
 .mw-elapsed {
@@ -655,7 +637,6 @@ a:hover { text-decoration: underline; }
 
 /* One focus language for the panel. Neutral, never the accent. */
 .mw-panel :focus-visible,
-.mw-overlay :focus-visible,
 .mw-start :focus-visible,
 .mw-tab:focus-visible {
   outline: 2px solid var(--mono-400);

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { flushSync } from "react-dom";
-import Panel from "./Panel";
 import { STEPS, type Sub } from "./curriculum";
 import { nextSub, stepOfSub } from "./progress";
 import Rail from "./Rail";
@@ -42,7 +41,6 @@ async function readApi(res: Response): Promise<ApiResult> {
 
 export default function MirisGuide() {
   const [open, setOpen] = useState(true);
-  const [panel, setPanel] = useState(false);
   const [data, setData] = useState<any>({ step: "1.1" });
   const [busy, setBusy] = useState("");
   const [note, setNote] = useState("");
@@ -205,7 +203,6 @@ export default function MirisGuide() {
   const actions: StepActions = {
     fill,
     clear,
-    openPanel: () => setPanel(true),
     saveField,
     done,
     backToProgress: () => setSelected(null),
@@ -223,7 +220,6 @@ export default function MirisGuide() {
 
   return (
     <>
-      {panel && <Panel track={track} onClose={() => setPanel(false)} />}
       <aside className="mw-panel" style={trackVars}>
         <header className="mw-head">
           <b className="b14">Spatial streaming</b>

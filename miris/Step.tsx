@@ -1,13 +1,13 @@
 import { useSyncExternalStore } from "react";
 import type { Step, Sub } from "./curriculum";
 import type { Track } from "./tracks";
+import Build from "./Build";
 import { detect, getPath, subscribePath } from "./htmlInCanvas";
 import { nextSub, subState } from "./progress";
 
 export interface StepActions {
   fill: (snippetId: string, num: string) => void | Promise<void>;
   clear: (snippetId: string) => void | Promise<void>;
-  openPanel: () => void;
   saveField: (field: "uuid" | "viewerKey", value: string) => void | Promise<void>;
   /** Verifies the substep actually happened, then moves the progress pointer
    *  if it did, or reports what is missing if it did not. */
@@ -124,11 +124,7 @@ export default function StepPane({
               </a>
             )}
 
-            {sub.panel && (
-              <button className="btn btn-primary btn-sm" onClick={actions.openPanel}>
-                Describe your {track.noun}
-              </button>
-            )}
+            {sub.panel && <Build track={track} />}
 
             {sub.fill && (
               <div className="mw-row">

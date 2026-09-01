@@ -51,7 +51,7 @@ export const STEPS: Step[] = [
         num: "1.2",
         title: "Describe your thing",
         body:
-          "Open the panel and write a prompt. One subject, centered, on a plain backdrop. Splats carry what normal materials fight with: fur, membranes, gilt, patina, worn stone. Ask for those. GPT Image 2 takes about a minute, so reroll deliberately rather than often: this is the last cheap step before the four minute one.",
+          "Write a prompt below, or press the dice for one. One subject, centered, on a plain backdrop. Splats carry what normal materials fight with: fur, membranes, gilt, patina, worn stone. Ask for those. GPT Image 2 takes about a minute, so reroll deliberately rather than often: this is the last cheap step before the four minute one.",
         panel: true,
         check: "image",
       },
@@ -59,7 +59,7 @@ export const STEPS: Step[] = [
         num: "1.3",
         title: "Make your Miris account",
         body:
-          "Do this while the 3D model generates, because that takes four to six minutes. Sign up at app.miris.com, then upload the .glb the panel gives you. Processing takes a few more minutes. You need two things from the portal afterwards: the asset uuid and a viewer key.",
+          "Do this while the 3D model generates, because that takes four to six minutes. Sign up at app.miris.com, then upload the .glb step 1.2 gives you. Processing takes a few more minutes. You need two things from the portal afterwards: the asset uuid and a viewer key.",
         link: { href: PORTAL_URL, label: "Open Miris" },
       },
     ],
