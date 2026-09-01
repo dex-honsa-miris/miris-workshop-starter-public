@@ -8,9 +8,7 @@ import Stream from "../miris/Stream";
 import { bootEngine } from "../miris/engine";
 import { DEMO_UUID, VIEWER_KEY } from "../miris/config";
 
-/* This is your file. Everything between a pair of miris: comments is yours to
- * change, and the sidebar writes there. The engine plumbing lives in miris/ so
- * this stays readable. */
+// Your file. The sidebar writes between the miris: comments.
 export default function Stage() {
   const [data, setData] = useState<any>(null);
   const [boot, setBoot] = useState<{ scene: any; backend: any } | null>(null);

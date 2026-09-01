@@ -1,11 +1,6 @@
 import { Component, type ReactNode } from "react";
 
-/* Keeps a broken stage from taking the guide with it.
- *
- * Vite's overlay already covers syntax errors. This is for the runtime kind:
- * without a boundary React unmounts the whole root, so the panel holding the
- * instructions for fixing the problem disappears at the exact moment it is
- * needed. A class is the only way to catch that; there is no hook equivalent. */
+// Without this, a runtime error in the stage unmounts the guide too.
 export default class StageBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
 

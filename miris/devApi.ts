@@ -8,14 +8,8 @@ import { MARKER_FOR, SNIPPETS } from "./snippets.mjs";
 import { IMAGE_MODEL, MODEL_3D } from "./config";
 import { trackById } from "./tracks";
 
-/* The workshop API. Writes files and spends a fal key, which are
- * development-only powers.
- *
- * Under Next this was a route handler that had to check NODE_ENV at runtime,
- * because commenting out the guide did not remove the route and attendees
- * publish this app at step 5.3. As Vite dev middleware the guarantee is
- * structural instead: configureServer never runs in a production build, so
- * there is no endpoint to reach. */
+/* Dev only, by construction: configureServer has no production counterpart, so
+ * a built app has no endpoint to reach. */
 
 const ROOT = process.cwd();
 const MIRIS_DIR = join(ROOT, "miris");
