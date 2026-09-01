@@ -126,7 +126,7 @@ export default function Panel({ track, onClose }: { track: Track; onClose: () =>
         {phase === "model" && (
           <>
             <span className="mw-step">{track.label} · building</span>
-            <h3>About four minutes</h3>
+            <h3>Four to six minutes</h3>
             <p className="mw-elapsed">{mmss}</p>
             <div className="mw-stages">
               <div data-on>fal queued the job</div>

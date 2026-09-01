@@ -46,7 +46,7 @@ export const STEPS: Step[] = [
         num: "1.3",
         title: "Make your Miris account",
         body:
-          "Do this while the 3D model generates, because that takes about four minutes. Sign up at app.miris.com, then upload the .glb the panel gives you. Processing takes a few more minutes. You need two things from the console afterwards: the asset uuid and a viewer key.",
+          "Do this while the 3D model generates, because that takes four to six minutes. Sign up at app.miris.com, then upload the .glb the panel gives you. Processing takes a few more minutes. You need two things from the console afterwards: the asset uuid and a viewer key.",
       },
     ],
   },
@@ -109,7 +109,7 @@ export const STEPS: Step[] = [
         num: "3.2",
         title: "Sit it properly on the plinth",
         body:
-          "Your own asset will probably float or look small, and that is worth understanding rather than working around. The SDK reports a bounding box that is the octree cell holding your asset, not the asset itself, so its floor is not where your model starts. Open miris/config.ts and add an entry to FIT_OVERRIDES keyed by your uuid. Raise scale until it fills the plinth, then adjust floor until it sits on the rim. Negative floor values push it up.",
+          "Read this now and apply it at step 4.3, once your own asset is streaming: it will probably float, and that is worth understanding rather than working around. The SDK reports a bounding box that is the octree cell holding your asset, not the asset itself, so its floor is not where your model starts. Open miris/config.ts and add an entry to FIT_OVERRIDES keyed by your uuid, then adjust floor until it sits on the rim. Negative floor values push it up. Leave scale alone unless it also looks wrong: the automatic fit already sizes the asset to the plinth.",
         code: 'FIT_OVERRIDES["your-uuid"] = { scale: 0.44, floor: -1.017 };',
       },
       {
@@ -129,7 +129,7 @@ export const STEPS: Step[] = [
         num: "4.1",
         title: "Upload your model",
         body:
-          "In the Miris console, upload the .glb you downloaded and wait for it to finish processing. When it is ready, copy two values: the asset uuid from the asset page, and a viewer key from your account settings. The viewer key is what lets a browser read your asset without logging anyone in.",
+          "You started this at step 1.3. Back in the Miris console, check your upload has finished processing, then copy two values: the asset uuid from the asset page, and a viewer key from your account settings. The viewer key is what lets a browser read your asset without logging anyone in.",
       },
       {
         num: "4.2",
@@ -157,7 +157,7 @@ export const STEPS: Step[] = [
         num: "5.1",
         title: "Let an agent write the label",
         body:
-          "Open miris/skills/curator.md, copy the whole thing, and paste it into Bolt's chat. It reads your prompt out of miris/data.json and writes a name, a description and a few attributes back into the same file. Then press the button below to put that card on the stage.",
+          "Open miris/skills/curator.md, copy the whole thing, and paste it into your coding agent's chat, which in Bolt is the panel on the left. It reads your prompt out of miris/data.json and writes a name, a description and a few attributes back into the same file. Then press the button below to put that card on the stage.",
         fill: "card",
         explain:
           "The agent only touches one field of one JSON file, deliberately. You have something working and about to be published, and this is the wrong moment for an agent to be editing your scene code. It is also the right kind of job for a model: writing copy in a register, rather than a mechanical edit you could do faster yourself.",
@@ -173,7 +173,7 @@ export const STEPS: Step[] = [
         num: "5.3",
         title: "Publish and share",
         body:
-          "Press Deploy in bolt and wait for your link. Send it to someone. What they load is not a model file, it is your asset streaming to them at whatever detail their screen and connection justify.",
+          "Deploy it and wait for your link, with Deploy in Bolt or your own host. Send it to someone. What they load is not a model file, it is your asset streaming to them at whatever detail their screen and connection justify.",
       },
     ],
   },

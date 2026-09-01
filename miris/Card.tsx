@@ -12,7 +12,7 @@ export default function Card({ card }: { card: Partial<CardData> }) {
   // immediately before the attendee publishes.
   const attributes = Array.isArray(card?.attributes) ? card.attributes : [];
   return (
-    <Html position={[1.5, 1.15, 0]} transform distanceFactor={4} occlude={false}>
+    <Html position={[-1.15, 1.2, 0]} transform distanceFactor={1.35} occlude={false}>
       <div className="mw-plate">
         <strong>{card?.name ?? "Untitled"}</strong>
         <p>{card?.description ?? ""}</p>

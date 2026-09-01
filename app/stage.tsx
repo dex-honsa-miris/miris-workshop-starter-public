@@ -14,17 +14,24 @@ import { DEMO_UUID, FIT_OVERRIDES, MAX_DIM, PEDESTAL_TOP, VIEWER_KEY } from "../
 // cleanup is worse: it runs while R3F still holds the children and the stream is
 // mid-update, and the engine fails three assertions (Scene.cpp:27 and :141,
 // AquaApi.cpp:374). Reusing one engine avoids both.
-let engine: Promise<{ scene: any; backend: any }> | null = null;
+// Held on globalThis, not in a module variable. Fast Refresh re-evaluates this
+// module on every edit, which resets a module-level variable and defeats the
+// memo, so each edit built a second MirisScene and left the first one
+// registered with the engine, still streaming. globalThis survives the
+// re-evaluation, so the boot really does happen once per page load.
+declare global {
+  var __mirisEngine: Promise<{ scene: any; backend: any }> | undefined;
+}
 
 function bootEngine(viewerKey: string) {
-  engine ??= (async () => {
+  globalThis.__mirisEngine ??= (async () => {
     const scene = new (MirisScene as any)({ viewerKey });
     await scene.ready;
     const backend = scene.miris.backend ?? (await scene.miris.initializeBackend());
     (globalThis as any).__scene = scene;
     return { scene, backend };
   })();
-  return engine;
+  return globalThis.__mirisEngine;
 }
 
 function Frame({ backend }: { backend: any }) {
