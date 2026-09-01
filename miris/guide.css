@@ -141,27 +141,6 @@
   cursor: pointer;
 }
 .mw-bar button:hover { color: var(--mono-200); }
-.mw-runsheet { margin-top: 22px; }
-.mw-runsheet > b {
-  display: block;
-  font: 500 10px/1 var(--mono);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--mono-600);
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--mono-800);
-}
-.mw-runsheet div {
-  display: flex;
-  gap: 10px;
-  align-items: baseline;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--mono-800);
-  font-size: 13px;
-  color: var(--mono-400);
-}
-.mw-runsheet code { font: 400 11px/1 var(--mono); color: var(--mono-700); }
-.mw-runsheet span { margin-left: auto; font: 400 11px/1 var(--mono); color: var(--mono-700); }
 
 /* ── steps ────────────────────────────────────────────── */
 
@@ -184,8 +163,6 @@
   text-transform: uppercase;
   color: var(--mono-600);
 }
-.mw-scroll h2 em { font-style: normal; color: var(--mono-400); }
-.mw-scroll h2 .mw-mins { margin-left: auto; color: var(--mono-700); }
 
 
 .mw-lod {
@@ -533,7 +510,6 @@
   color: var(--mono-600);
 }
 .mw-start > footer code { color: var(--mono-700); }
-.mw-start > footer em { font-style: normal; color: var(--mono-400); }
 
 /* One orchestrated load: rails draw down, then the type arrives. */
 @keyframes mw-draw { from { transform: scaleY(0); } to { transform: scaleY(1); } }
@@ -617,7 +593,6 @@
 
 /* ── the focused pane ───────────────────────────────────────── */
 
-.mw-pane-time { color: var(--text-tertiary); }
 .mw-pane-title { color: var(--text-primary); margin: 8px 0 var(--space-s); }
 
 .mw-line {

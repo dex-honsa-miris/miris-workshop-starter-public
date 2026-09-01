@@ -24,7 +24,6 @@ export interface Sub {
 export interface Step {
   num: string;
   title: string;
-  time: string;
   subs: Sub[];
 }
 
@@ -32,7 +31,6 @@ export const STEPS: Step[] = [
   {
     num: "01",
     title: "Set up",
-    time: "20 min",
     subs: [
       {
         num: "1.1",
@@ -61,7 +59,6 @@ export const STEPS: Step[] = [
   {
     num: "02",
     title: "Build the stage",
-    time: "25 min",
     subs: [
       {
         num: "2.1",
@@ -95,7 +92,6 @@ export const STEPS: Step[] = [
   {
     num: "03",
     title: "Make it yours",
-    time: "15 min",
     subs: [
       {
         num: "3.1",
@@ -115,7 +111,6 @@ export const STEPS: Step[] = [
   {
     num: "04",
     title: "Go live",
-    time: "25 min",
     subs: [
       {
         num: "4.1",
@@ -153,7 +148,6 @@ export const STEPS: Step[] = [
   {
     num: "05",
     title: "Ship it",
-    time: "15 min",
     subs: [
       {
         num: "5.1",

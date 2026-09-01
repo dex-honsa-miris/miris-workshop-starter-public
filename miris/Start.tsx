@@ -20,8 +20,8 @@ export default function Start({
       <div className="mw-ask">
         <h1>What are you making?</h1>
         <p>
-          Two hours, five steps. You describe one thing, watch it get built, then publish it streaming to anyone with
-          the link.
+          Five steps. You describe one thing, watch it get built, then publish it streaming to anyone with the
+          link.
         </p>
       </div>
 
@@ -73,7 +73,7 @@ export default function Start({
       <footer>
         {STEPS.map((step) => (
           <span key={step.num}>
-            <code>{step.num}</code> {step.title} <em>{step.time.replace(" min", "")}</em>
+            <code>{step.num}</code> {step.title}
           </span>
         ))}
       </footer>

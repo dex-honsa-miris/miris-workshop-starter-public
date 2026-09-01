@@ -41,7 +41,6 @@ export default function StepPane({
 
   return (
     <div className="mw-pane">
-      <p className="l12 mw-pane-time">{step.time}</p>
       <h2 className="t20 mw-pane-title">{step.title}</h2>
 
       {step.subs.map((sub: Sub) => {
