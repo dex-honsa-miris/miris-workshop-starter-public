@@ -17,8 +17,28 @@ import "./guide.css";
 const NOT_DEV =
   "The workshop API is not running. It only exists under npm run dev, not in a built preview.";
 
-const isJson = (res: Response) =>
-  (res.headers.get("content-type") ?? "").includes("json");
+/* One place that turns a Response into either data or a sentence a human can
+ * act on. Both the initial load and every post go through it, because the
+ * failure that mattered was an unguarded res.json(): WebKit rejects it with
+ * "The string did not match the expected pattern", which tells an attendee
+ * nothing at all. */
+type ApiResult = { ok: boolean; data: any; problem?: string };
+
+async function readApi(res: Response): Promise<ApiResult> {
+  const type = res.headers.get("content-type") ?? "";
+  if (!type.includes("json")) return { ok: false, data: {}, problem: NOT_DEV };
+
+  let data: any;
+  try {
+    data = await res.json();
+  } catch {
+    // JSON content type but an unparseable or empty body. Nothing the dev
+    // server does looks like this, so treat it as the API not being there.
+    return { ok: false, data: {}, problem: `${NOT_DEV} (empty reply, status ${res.status})` };
+  }
+  if (!res.ok) return { ok: false, data, problem: data.error ?? `The workshop API returned ${res.status}.` };
+  return { ok: true, data };
+}
 
 export default function MirisGuide() {
   const [open, setOpen] = useState(true);
@@ -32,14 +52,13 @@ export default function MirisGuide() {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch("/api/miris");
-      const json = await res.json();
+      const r = await readApi(await fetch("/api/miris"));
       // A 500 body is still valid JSON, so without this check the guide would
       // quietly render an error object as its state.
-      if (!res.ok) return setNote(json.error ?? `could not read data.json (${res.status})`);
-      setData(json);
+      if (!r.ok) return setNote(r.problem!);
+      setData(r.data);
     } catch (e) {
-      setNote(`could not reach the workshop API: ${(e as Error).message}`);
+      setNote(`Could not reach the workshop API: ${(e as Error).message}`);
     }
   }, []);
 
@@ -53,16 +72,15 @@ export default function MirisGuide() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!isJson(res)) return { ok: false, json: {}, jsonResponse: false };
-    return { ok: res.ok, json: await res.json(), jsonResponse: true };
+    return readApi(res);
   };
 
   const fill = async (snippetId: string, num: string) => {
     setBusy(num);
     setNote("");
     try {
-      const { ok, json } = await post({ action: "fill", snippetId });
-      if (!ok) return setNote(json.error);
+      const r = await post({ action: "fill", snippetId });
+      if (!r.ok) return setNote(r.problem!);
       setNote("Written into app/stage.tsx");
       await post({ action: "save", patch: { step: num } });
       await load();
@@ -78,8 +96,8 @@ export default function MirisGuide() {
   const clear = async (snippetId: string) => {
     try {
       const marker = MARKER_FOR[snippetId] ?? "scene";
-      const { ok, json } = await post({ action: "reset", marker });
-      setNote(ok ? `Cleared the ${marker} block. Re-fill the last step to bring it back.` : json.error);
+      const r = await post({ action: "reset", marker });
+      setNote(r.ok ? `Cleared the ${marker} block. Re-fill the last step to bring it back.` : r.problem!);
     } catch (e) {
       setNote(`Could not clear the block: ${(e as Error).message}`);
     }
@@ -101,16 +119,14 @@ export default function MirisGuide() {
     // panel and the panel does not exist yet.
     setNote(id ? "Setting up your track" : "Going back to the chooser");
 
-    const { ok, json, jsonResponse } = await post({ action: "save", patch: { track: id } });
-    if (!jsonResponse) return setNote(NOT_DEV);
-    if (!ok) return setNote(json.error ?? "Could not save your track.");
+    const saved = await post({ action: "save", patch: { track: id } });
+    if (!saved.ok) return setNote(saved.problem!);
 
     let next: any;
     try {
-      const res = await fetch("/api/miris");
-      if (!isJson(res)) return setNote(NOT_DEV);
-      if (!res.ok) return setNote(`Could not read data.json (${res.status}).`);
-      next = await res.json();
+      const r = await readApi(await fetch("/api/miris"));
+      if (!r.ok) return setNote(r.problem!);
+      next = r.data;
     } catch (e) {
       return setNote(`Could not reach the workshop API: ${(e as Error).message}`);
     }
@@ -141,8 +157,8 @@ export default function MirisGuide() {
   // view it would pin an attendee to step 01 for the whole workshop.
   const advance = async (toSubNum: string) => {
     setNote("");
-    const { ok, json } = await post({ action: "save", patch: { step: toSubNum } });
-    if (!ok) return setNote(json.error);
+    const r = await post({ action: "save", patch: { step: toSubNum } });
+    if (!r.ok) return setNote(r.problem!);
     setSelected(null);
     await load();
   };
