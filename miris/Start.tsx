@@ -20,7 +20,7 @@ export default function Start({
       <div className="mw-ask">
         <h1>What are you making?</h1>
         <p>
-          Five steps. You describe one thing, watch it get built, then publish it streaming to anyone with the
+          Five steps. Describe what you want, watch it get built, then publish it streaming to anyone with the
           link.
         </p>
       </div>

@@ -63,6 +63,8 @@ function RenderPathBadge() {
   );
 }
 
+const withNoun = (text: string, noun: string) => text.replaceAll("{noun}", noun);
+
 export default function StepPane({
   step,
   currentSubNum,
@@ -89,7 +91,7 @@ export default function StepPane({
           return (
             <div key={sub.num} className="mw-line" data-state={state}>
               <span className="l12 k">{sub.num}</span>
-              <span className="c14 ttl">{sub.title}</span>
+              <span className="c14 ttl">{withNoun(sub.title, track.noun)}</span>
               {state === "done" && (
                 <span className="tick" aria-hidden="true">
                   &#10003;
@@ -108,8 +110,8 @@ export default function StepPane({
               </span>
             </div>
 
-            <h3 className="mw-now-title">{sub.title}</h3>
-            <p className="c14">{sub.body}</p>
+            <h3 className="mw-now-title">{withNoun(sub.title, track.noun)}</h3>
+            <p className="c14">{withNoun(sub.body, track.noun)}</p>
             {sub.renderPath && <RenderPathBadge />}
             {sub.code && <pre className="k14">{sub.code}</pre>}
 
@@ -182,7 +184,7 @@ export default function StepPane({
 
             {upNext && (
               <button
-                className="btn btn-primary btn-sm mw-next"
+                className="btn btn-secondary btn-sm mw-next"
                 disabled={busy === sub.num}
                 onClick={() => actions.done(sub)}
               >

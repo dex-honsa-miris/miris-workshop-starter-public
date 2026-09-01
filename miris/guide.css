@@ -115,6 +115,12 @@ a:hover { text-decoration: underline; }
 }
 .btn:hover, .btn:focus, .btn:active { text-decoration: none; }
 .btn:focus-visible { outline: 2px solid var(--mono-400); outline-offset: 2px; }
+/* The kit's own components.css had no disabled state; the guide needs one,
+   because Generate is disabled until there is a prompt and Done is disabled
+   while its check runs. */
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn:disabled:hover { background: var(--mono-000); border-color: var(--border-strong); filter: none; }
+.btn-secondary:disabled:hover { background: transparent; }
 
 /* A white fill on a dark page is locally a light surface, so the label takes
    one weight more and a tighter track to hold the same optical weight. */
@@ -304,19 +310,6 @@ a:hover { text-decoration: underline; }
 
 .mw-row { display: flex; gap: 8px; align-items: center; margin: 2px 0 10px; flex-wrap: wrap; }
 
-.mw-go {
-  font: 500 12px/1 var(--sans);
-  border-radius: 2px;
-  padding: 10px 14px;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
-  border: 1px solid transparent;
-  background: var(--accent);
-  color: var(--mono-1000);
-}
-.mw-go:hover { filter: brightness(1.12); }
-.mw-go:disabled { opacity: 0.45; cursor: default; filter: none; }
 
 .mw-fields { display: grid; gap: 10px; margin: 2px 0 12px; }
 .mw-fields label {
@@ -480,11 +473,20 @@ a:hover { text-decoration: underline; }
   inset: 0;
   z-index: 40;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
   background: var(--mono-1000);
   color: var(--mono-200);
   font: 400 14px/1.55 var(--sans);
 }
+/* Placed explicitly, because the note is conditional. Left to document order,
+   an absent note shifted every row up and handed the doors' 1fr to whatever
+   landed in it: the doors collapsed to content height and the artwork
+   overflowed across the text. Row 3 sizes to 0 when there is no note. */
+.mw-start > header { grid-row: 1; }
+.mw-start .mw-ask { grid-row: 2; }
+.mw-start .mw-start-note { grid-row: 3; }
+.mw-start .mw-doors { grid-row: 4; }
+.mw-start > footer { grid-row: 5; }
 
 .mw-start > header {
   display: flex;

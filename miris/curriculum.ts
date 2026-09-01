@@ -2,6 +2,8 @@ import { FAL_KEYS_URL, PORTAL_URL } from "./config";
 
 export interface Sub {
   num: string;
+  /** {noun} is replaced with the track's own word: creature, product,
+   *  artifact. The same substitution runs over `body`. */
   title: string;
   body: string;
   code?: string;
@@ -49,9 +51,9 @@ export const STEPS: Step[] = [
       },
       {
         num: "1.2",
-        title: "Describe your thing",
+        title: "Describe your {noun}",
         body:
-          "Write a prompt below, or press the dice for one. One subject, centered, on a plain backdrop. Splats carry what normal materials fight with: fur, membranes, gilt, patina, worn stone. Ask for those. GPT Image 2 takes about a minute, so reroll deliberately rather than often: this is the last cheap step before the four minute one.",
+          "One subject, centered, on a plain backdrop. Or press the dice.",
         panel: true,
         check: "image",
       },

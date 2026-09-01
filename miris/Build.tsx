@@ -114,13 +114,13 @@ export default function Build({ track }: { track: Track }) {
               </svg>
             </button>
           </div>
-          <button className="mw-go" disabled={phase === "image" || !prompt.trim()} onClick={makeImage}>
+          <button className="btn btn-primary btn-sm" disabled={phase === "image" || !prompt.trim()} onClick={makeImage}>
             {phase === "image" ? "Drawing" : "Generate"}
           </button>
           {phase === "image" && (
             <>
               <p className="mw-elapsed">{mmss}</p>
-              <p className="mw-note">About a minute. GPT Image 2 reasons about the prompt before it draws.</p>
+              <p className="mw-note">About a minute.</p>
             </>
           )}
         </>
@@ -130,11 +130,12 @@ export default function Build({ track }: { track: Track }) {
         <>
           <h3>Keep this one?</h3>
           <img src={image} alt="Generated concept" />
-          <p className="mw-note">Rerolls cost about five cents and a minute. The next step costs about $1.40 and takes
-            minutes, so choose here rather than there.</p>
+          <p className="mw-note">Rerolls cost five cents. The next step costs $1.40, so choose here.</p>
           <div className="mw-row">
-            <button onClick={makeImage}>Reroll</button>
-            <button className="mw-go" onClick={makeModel}>
+            <button className="btn btn-ghost btn-sm" onClick={makeImage}>
+              Reroll
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={makeModel}>
               Submit for 3D
             </button>
           </div>
@@ -156,7 +157,7 @@ export default function Build({ track }: { track: Track }) {
           <p className="mw-note">
             Use the time: make your Miris account now, because you need it two steps from here.
           </p>
-          <a className="mw-go" href={PORTAL_URL} target="_blank" rel="noopener">
+          <a className="btn btn-secondary btn-sm mw-goto" href={PORTAL_URL} target="_blank" rel="noopener">
             Open the Miris portal
           </a>
           <p className="mw-note">
@@ -170,7 +171,7 @@ export default function Build({ track }: { track: Track }) {
           <span className="mw-step">Ready</span>
           <h3>Your {track.noun} is built</h3>
           <img src={image} alt="Your concept" />
-          <a className="mw-go" href={glb} download target="_blank" rel="noopener">
+          <a className="btn btn-primary btn-sm mw-goto" href={glb} download target="_blank" rel="noopener">
             Download .glb
           </a>
           <p className="mw-note">Upload this file in the Miris portal, then come back to step 4.</p>

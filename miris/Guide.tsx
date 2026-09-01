@@ -132,7 +132,13 @@ export default function MirisGuide() {
       return setNote(`Could not reach the workshop API: ${(e as Error).message}`);
     }
 
-    const commit = () => flushSync(() => setData(next));
+    // Clearing here, not before: every failure path above returns with its own
+    // note still showing.
+    const commit = () =>
+      flushSync(() => {
+        setNote("");
+        setData(next);
+      });
     const doc = document as Document & {
       startViewTransition?: (cb: () => void) => { finished: Promise<void> };
     };
