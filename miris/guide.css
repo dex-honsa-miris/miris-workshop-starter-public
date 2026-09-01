@@ -340,6 +340,33 @@ a:hover { text-decoration: underline; }
 .mw-fields input:focus,
 .mw-card textarea:focus { border-color: var(--text-primary); }
 
+/* The dice sits inside the field it fills. Bottom right, and the textarea gets
+   padding on that side so a long third line cannot run under it. */
+.mw-prompt { position: relative; display: flex; }
+.mw-prompt textarea { padding-right: 38px; }
+
+.mw-dice {
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  color: var(--mono-600);
+  cursor: pointer;
+  transition: color var(--mo-color) var(--ease-micro),
+              border-color var(--mo-color) var(--ease-micro);
+}
+.mw-dice:hover { color: var(--mono-200); border-color: var(--mono-800); }
+.mw-dice:disabled { opacity: 0.4; cursor: default; }
+.mw-dice:active svg { transform: rotate(90deg); }
+.mw-dice svg { transition: transform var(--mo-close) var(--ease-close); }
+
 .mw-note-bar {
   border-top: 1px solid var(--mono-800);
   padding: 11px 20px calc(11px + env(safe-area-inset-bottom));

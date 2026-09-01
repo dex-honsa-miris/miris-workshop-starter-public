@@ -38,6 +38,12 @@ export interface Track {
   focalStrip: string;
   /** Placeholder for the prompt field. */
   hint: string;
+  /** Pool for the dice on the prompt field. Subject phrases only, in the same
+   *  register as `hint`: the API prepends `style`, so a prompt that names its
+   *  own lighting or backdrop fights the prefix. Weighted toward what splats
+   *  reconstruct well, which is the same list step 1.2 gives attendees: fur,
+   *  membrane, gilt, patina, worn stone. */
+  prompts: string[];
   /** Prepended to the prompt before it reaches fal. */
   style: string;
 }
@@ -56,6 +62,16 @@ export const TRACKS: Track[] = [
     focal: "14% 32%",
     focalStrip: "50% 20%",
     hint: "a moss-covered lantern beast with too many eyes",
+    prompts: [
+      "a bark-skinned forest guardian with antlers of braided root",
+      "a plated desert crawler with a sun-bleached shell and amber eyes",
+      "a tufted cave dweller with velvet fur and lantern-lit horns",
+      "a molten-veined stone hound with cracked obsidian hide",
+      "a frilled marsh strider with translucent membrane fins",
+      "a barnacled tide beast with coral spurs and a kelp mane",
+      "a feathered cliff runner with brass-ringed talons",
+      "a mushroom-capped burrower with spongy hide and glowing gills",
+    ],
     style: "a fantasy creature for a monster-taming game, matte painted-resin surfaces, chunky readable silhouette",
   },
   {
@@ -71,6 +87,16 @@ export const TRACKS: Track[] = [
     focal: "56% 46%",
     focalStrip: "50% 40%",
     hint: "a brushed-steel pour-over kettle with a walnut handle",
+    prompts: [
+      "a ribbed ceramic tumbler glazed in matte oxblood",
+      "a canvas messenger bag with bridle-leather straps and brass hardware",
+      "a knurled titanium fountain pen with a smoked resin cap",
+      "a cork-soled leather sandal with a hand-stitched welt",
+      "a hammered copper moka pot with a bakelite grip",
+      "a felted wool desk tray with saddle-stitched edges",
+      "a sandblasted glass carafe with a cherrywood stopper",
+      "a waxed-cotton field cap with antique brass eyelets",
+    ],
     style: "a crafted retail product, studio product photograph, accurate materials, soft even light",
   },
   {
@@ -86,6 +112,16 @@ export const TRACKS: Track[] = [
     focal: "50% 26%",
     focalStrip: "50% 10%",
     hint: "a bronze astrolabe engraved with wave patterns",
+    prompts: [
+      "a soapstone burial mask with inlaid shell eyes",
+      "a gilded reliquary casket with worn enamel panels",
+      "a wrought-iron votive lamp furred with rust",
+      "a carved ivory seal ring yellowed with age",
+      "a lacquered wooden mask with flaking vermilion paint",
+      "a silver ceremonial ewer tarnished at the spout",
+      "a fired-clay oil lamp with a soot-blackened lip",
+      "a jade burial pendant threaded on braided cord",
+    ],
     style: "a museum artifact, aged surfaces, patina and wear, neutral backdrop, even light",
   },
 ];

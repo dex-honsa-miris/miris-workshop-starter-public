@@ -75,6 +75,14 @@ export default function Panel({ track, onClose }: { track: Track; onClose: () =>
     }
   };
 
+  // Excludes whatever is already in the box: a dice that hands back the same
+  // phrase reads as broken rather than random.
+  const roll = () => {
+    const pool = track.prompts.filter((p) => p !== prompt.trim());
+    setPrompt(pool[Math.floor(Math.random() * pool.length)] ?? track.prompts[0]);
+    setError("");
+  };
+
   const mmss = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
 
   const trackVars = { ["--track" as string]: track.accent } as React.CSSProperties;
@@ -94,12 +102,31 @@ export default function Panel({ track, onClose }: { track: Track; onClose: () =>
               One subject, centered, plain backdrop. Ask for what splats carry well: fur, membrane, gilt, patina, worn
               stone.
             </p>
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              rows={3}
-              placeholder={track.hint}
-            />
+            <div className="mw-prompt">
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                rows={3}
+                placeholder={track.hint}
+              />
+              <button
+                type="button"
+                className="mw-dice"
+                onClick={roll}
+                disabled={phase === "image"}
+                title={`Suggest a ${track.noun}`}
+                aria-label={`Suggest a ${track.noun}`}
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                  <rect x="3.5" y="3.5" width="17" height="17" rx="4" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                  <circle cx="8.5" cy="8.5" r="1.4" fill="currentColor" />
+                  <circle cx="15.5" cy="8.5" r="1.4" fill="currentColor" />
+                  <circle cx="12" cy="12" r="1.4" fill="currentColor" />
+                  <circle cx="8.5" cy="15.5" r="1.4" fill="currentColor" />
+                  <circle cx="15.5" cy="15.5" r="1.4" fill="currentColor" />
+                </svg>
+              </button>
+            </div>
             <button className="mw-go" disabled={phase === "image" || !prompt.trim()} onClick={makeImage}>
               {phase === "image" ? "Drawing" : "Generate"}
             </button>
