@@ -1,5 +1,164 @@
-/* Kit values come from public/kit, loaded in index.html. --sans and --mono are
-   this file's own aliases, not kit tokens, and 34 rules below need them. */
+/* ── from the Miris design kit ─────────────────────────────
+   The 35 tokens, 13 classes and three bare-element rules this guide uses, out
+   of the kit's 1111 lines. The kit was the reference for building these
+   components, not a dependency worth shipping in a starter attendees clone.
+   Dark ground only, so the kit's light theme is resolved away, and its
+   --tr-adj responsive letter-spacing step is folded into the values. */
+
+@font-face { font-family: "Geist"; src: url(/kit/assets/fonts/geist-300.woff2) format("woff2"); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "Geist"; src: url(/kit/assets/fonts/geist-400.woff2) format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Geist"; src: url(/kit/assets/fonts/geist-500.woff2) format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Geist"; src: url(/kit/assets/fonts/geist-600.woff2) format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Geist Mono"; src: url(/kit/assets/fonts/geistmono-400.woff2) format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Geist Mono"; src: url(/kit/assets/fonts/geistmono-500.woff2) format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+
+:root {
+  --mono-000: #ffffff;
+  --mono-200: #d6d4d4;
+  --mono-400: #9e9d9f;
+  --mono-500: #828386;
+  --mono-600: #6d6e71;
+  --mono-700: #535457;
+  --mono-800: #252526;
+  --mono-900: #111215;
+  --mono-1000: #08090d;
+
+  --bg: var(--mono-1000);
+  --surface: var(--mono-900);
+  --surface-raised: var(--mono-800);
+  --border: var(--mono-800);
+  --border-strong: var(--mono-700);
+  --text-primary: var(--mono-000);
+  --text-secondary: var(--mono-400);
+  --text-tertiary: var(--mono-500);
+  --accent: #35ddfe;
+  --link: #ba9cfb;
+
+  --radius-xs: 2px;
+  --radius-s: 4px;
+  --radius-m: 8px;
+  --space-s: 16px;
+  --space-m: 24px;
+
+  --fw-light: 300;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+
+  --mo-color: 120ms;
+  --mo-fade: 140ms;
+  --mo-stagger: 100ms;
+  --mo-close: 260ms;
+  --mo-reveal: 300ms;
+  --mo-travel: 500ms;
+  --ease-micro: ease;
+  --ease-fade: linear;
+  --ease-in: cubic-bezier(0.05, 0, 0, 1);
+  --ease-close: cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  background-image: url(/kit/assets/texture-speckle.png);
+  background-size: 204.8px;
+  color: var(--text-primary);
+  font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Links take Transistor-200, never the accent: the accent is reserved for
+   eyebrows, arrows and focus. Underline on hover, never at rest. */
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── type scale ───────────────────────────────────────────
+   Sans for prose, mono for the utility layer: step ids, meters, code. */
+
+.t32, .t20, .c16, .c14, .b14 { font-family: "Geist", ui-sans-serif, system-ui, sans-serif; margin: 0; }
+.l12, .k14 { font-family: "Geist Mono", ui-monospace, monospace; margin: 0; }
+
+.t32 { font-size: 32px; line-height: 32px; letter-spacing: -0.02em;  font-weight: var(--fw-medium); }
+.t20 { font-size: 20px; line-height: 20px; letter-spacing: -0.01em;  font-weight: var(--fw-medium); }
+.c16 { font-size: 16px; line-height: 24px; letter-spacing: 0;        font-weight: var(--fw-regular); }
+.c14 { font-size: 14px; line-height: 22px; letter-spacing: 0.01em;   font-weight: var(--fw-regular); }
+.b14 { font-size: 14px; line-height: 20px; letter-spacing: 0.005em;  font-weight: var(--fw-semibold); }
+.k14 { font-size: 14px; line-height: 20px; letter-spacing: 0;        font-weight: var(--fw-regular); }
+.l12 { font-size: 12px; line-height: 16px; letter-spacing: 0.08em;   font-weight: var(--fw-medium); text-transform: uppercase; }
+
+/* ── buttons ──────────────────────────────────────────────
+   Height drives the tier, so vertical padding is moot: 48px default, 32px for
+   btn-sm. Focus is a neutral 2px ring, never the accent. */
+
+.btn {
+  appearance: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--btn-h, 48px);
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: 0.005em;
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+  transition: color var(--mo-color) var(--ease-micro),
+              background-color var(--mo-fade) var(--ease-micro),
+              border-color var(--mo-color) var(--ease-micro);
+}
+.btn:hover, .btn:focus, .btn:active { text-decoration: none; }
+.btn:focus-visible { outline: 2px solid var(--mono-400); outline-offset: 2px; }
+
+/* A white fill on a dark page is locally a light surface, so the label takes
+   one weight more and a tighter track to hold the same optical weight. */
+.btn-primary {
+  background: var(--mono-000);
+  color: var(--mono-900);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+}
+.btn-primary:hover { background: #ff3500; color: #ffffff; }
+
+.btn-secondary { background: transparent; color: var(--text-primary); border-color: var(--border-strong); }
+.btn-secondary:hover { border-color: var(--text-primary); }
+
+.btn-ghost { background: transparent; color: var(--text-secondary); padding-left: 4px; padding-right: 4px; min-height: 0; }
+.btn-ghost:hover { color: var(--text-primary); }
+
+.btn-sm { --btn-h: 32px; font-size: 14px; line-height: 20px; }
+
+/* ── fields ───────────────────────────────────────────────── */
+
+.fld { display: flex; flex-direction: column; gap: 8px; }
+.fld label {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.fld input {
+  font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  height: 40px;
+  padding: 0 16px;
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-s);
+}
+.fld input:focus { outline: 2px solid var(--mono-400); outline-offset: -2px; }
+
+/* --sans and --mono are this file's own aliases, not kit tokens, and 34 rules
+   below need them. */
 .mw-panel,
 .mw-overlay,
 .mw-tab,
@@ -562,7 +721,7 @@
   font-weight: var(--fw-medium);
   color: var(--text-primary);
 }
-.mw-now p { max-width: var(--measure-body, 51ch); }
+.mw-now p { max-width: 51ch; }
 .mw-now pre + a,
 .mw-now pre + button,
 .mw-now pre + .mw-row,
