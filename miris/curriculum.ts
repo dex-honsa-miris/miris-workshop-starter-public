@@ -19,6 +19,8 @@ export interface Sub {
   panel?: boolean;
   /** Renders the uuid and viewer key fields. */
   fields?: boolean;
+  /** Renders the html-in-canvas path badge. */
+  renderPath?: boolean;
 }
 
 export interface Step {
@@ -160,13 +162,23 @@ export const STEPS: Step[] = [
       },
       {
         num: "5.2",
+        title: "Put the label in the scene",
+        body:
+          "The card you just made is a DOM element floating over the canvas. It looks right until your model moves in front of it, because it is not in the scene at all. Press the button and it becomes part of the render: your own HTML, drawn into the 3D scene as pixels.",
+        fill: "cardSurface",
+        renderPath: true,
+        explain:
+          "Chrome can now draw a live DOM element straight into a canvas, so the card keeps your CSS and updates when the text does. Where that is not available the same element is serialised into an SVG foreignObject and drawn as an image, which is the trick that has worked for a decade. Same card, same position, same geometry. The fallback loses your webfont, which is the visible difference between the two. One thing this example does not get: normally the drawn element stays selectable and readable by a screen reader, because the canvas showing it is the canvas holding it. This one goes through a texture into WebGL, so it is pixels by the time you see it.",
+      },
+      {
+        num: "5.3",
         title: "Remove the guide",
         body:
           "Open app/main.tsx and comment out the MirisGuide line. The panel disappears and your app stays exactly as you built it. The Miris styling stays too, because index.html loads it, not the guide.",
         code: "{/* <MirisGuide /> */}",
       },
       {
-        num: "5.3",
+        num: "5.4",
         title: "Publish and share",
         body:
           "Deploy it and wait for your link, with Deploy in Bolt or your own host. Send it to someone. What they load is not a model file, it is your asset streaming to them at whatever detail their screen and connection justify.",
