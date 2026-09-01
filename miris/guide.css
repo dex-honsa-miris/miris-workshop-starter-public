@@ -36,14 +36,6 @@
   color: var(--mono-000);
 }
 
-.mw-head .mw-of {
-  font: 400 11px/1 var(--mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-left: auto;
-}
-
 .mw-hide {
   background: none;
   border: 0;
@@ -70,54 +62,6 @@
   cursor: pointer;
 }
 .mw-tab:hover { border-color: var(--text-primary); color: var(--text-primary); }
-
-/* ── track chooser ────────────────────────────────────── */
-
-.mw-choose {
-  padding: 24px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.mw-choose > p {
-  margin: 0 0 6px;
-  color: var(--mono-400);
-  font-size: 13px;
-}
-
-.mw-track {
-  --a: var(--mono-200);
-  text-align: left;
-  background: var(--mono-1000);
-  border: 1px solid var(--mono-800);
-  border-left: 2px solid var(--a);
-  border-radius: var(--radius-s);
-  padding: 14px 16px;
-  cursor: pointer;
-  font: inherit;
-  color: var(--mono-200);
-  transition: border-color 120ms, background 120ms;
-}
-
-.mw-track:hover,
-.mw-track:focus-visible {
-  background: var(--mono-900);
-  border-color: var(--text-primary);
-}
-
-.mw-track b {
-  display: block;
-  font: 500 15px/1.3 var(--sans);
-  color: var(--mono-000);
-}
-
-.mw-track span {
-  display: block;
-  margin-top: 3px;
-  font-size: 13px;
-  color: var(--mono-400);
-}
 
 .mw-bar {
   display: flex;
@@ -177,13 +121,8 @@
   background: var(--mono-800);
   border-radius: var(--radius-xs);
 }
-/* The pips used to hang off .mw-sub[data-state]. The pane renders one current
-   substep, so the state is implicit: this IS the step in progress. */
 .mw-now .mw-lod i:nth-child(-n + 3) { background: var(--track); }
 .mw-now .mw-lod i:nth-child(3) { opacity: 0.45; }
-
-
-
 
 
 .mw-why {
@@ -207,8 +146,7 @@
 
 .mw-row { display: flex; gap: 8px; align-items: center; margin: 2px 0 10px; flex-wrap: wrap; }
 
-.mw-go,
-.mw-quiet {
+.mw-go {
   font: 500 12px/1 var(--sans);
   border-radius: 2px;
   padding: 10px 14px;
@@ -216,14 +154,11 @@
   text-decoration: none;
   display: inline-block;
   border: 1px solid transparent;
+  background: var(--accent);
+  color: var(--mono-1000);
 }
-
-.mw-go { background: var(--accent); color: var(--mono-1000); }
 .mw-go:hover { filter: brightness(1.12); }
 .mw-go:disabled { opacity: 0.45; cursor: default; filter: none; }
-
-.mw-quiet { background: transparent; color: var(--mono-400); border-color: var(--mono-800); }
-.mw-quiet:hover { color: var(--mono-200); border-color: var(--mono-700); }
 
 .mw-fields { display: grid; gap: 10px; margin: 2px 0 12px; }
 .mw-fields label {
@@ -950,18 +885,6 @@ html[data-vt="out"]::view-transition-old(chooser) { animation: none; }
 .mw-fault .l12 { color: var(--accent); }
 .mw-fault h1 { color: var(--text-primary); }
 .mw-fault p { color: var(--text-secondary); }
-
-.mw-fault-msg {
-  width: 100%;
-  margin: 0;
-  padding: 12px 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-s);
-  color: var(--text-primary);
-  overflow-x: auto;
-}
-.mw-fault-digest { color: var(--text-tertiary); }
 .mw-start-note {
   margin: 0;
   padding: 10px 32px;
