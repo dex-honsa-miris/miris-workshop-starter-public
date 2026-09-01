@@ -169,7 +169,7 @@ Forty people starting simultaneously on conference wifi is exactly this
 condition. Rehearse it under load.
 
 **Per-attendee Miris signup is untested at scale.** Signup, upload, processing,
-then finding a viewer key in a console none of them have seen. It is scheduled
+then finding a viewer key in a portal none of them have seen. It is scheduled
 inside the four minute model wait, which is the only reason it fits.
 
 **Everything after step 4 depends on their upload having processed.** Anyone

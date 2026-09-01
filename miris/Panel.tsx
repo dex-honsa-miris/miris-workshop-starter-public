@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CONSOLE_URL } from "./config";
+import { PORTAL_URL } from "./config";
 import type { Track } from "./tracks";
 
 type Phase = "idle" | "image" | "review" | "model" | "done";
@@ -138,8 +138,8 @@ export default function Panel({ track, onClose }: { track: Track; onClose: () =>
             <p className="mw-note">
               Use the time: make your Miris account now, because you need it two steps from here.
             </p>
-            <a className="mw-go" href={CONSOLE_URL} target="_blank" rel="noopener">
-              Open the Miris console
+            <a className="mw-go" href={PORTAL_URL} target="_blank" rel="noopener">
+              Open the Miris portal
             </a>
             <p className="mw-note">
               Safe to close this. Your result is saved, and reopening the panel brings it back.
@@ -155,7 +155,7 @@ export default function Panel({ track, onClose }: { track: Track; onClose: () =>
             <a className="mw-go" href={glb} download target="_blank" rel="noopener">
               Download .glb
             </a>
-            <p className="mw-note">Upload this file in the Miris console, then come back to step 4.</p>
+            <p className="mw-note">Upload this file in the Miris portal, then come back to step 4.</p>
           </>
         )}
 

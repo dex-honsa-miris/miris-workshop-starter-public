@@ -1,4 +1,4 @@
-import { CONSOLE_URL, FAL_KEYS_URL } from "./config";
+import { FAL_KEYS_URL, PORTAL_URL } from "./config";
 
 export interface Sub {
   num: string;
@@ -53,8 +53,8 @@ export const STEPS: Step[] = [
         num: "1.3",
         title: "Make your Miris account",
         body:
-          "Do this while the 3D model generates, because that takes four to six minutes. Sign up at app.miris.com, then upload the .glb the panel gives you. Processing takes a few more minutes. You need two things from the console afterwards: the asset uuid and a viewer key.",
-        link: { href: CONSOLE_URL, label: "Open Miris" },
+          "Do this while the 3D model generates, because that takes four to six minutes. Sign up at app.miris.com, then upload the .glb the panel gives you. Processing takes a few more minutes. You need two things from the portal afterwards: the asset uuid and a viewer key.",
+        link: { href: PORTAL_URL, label: "Open Miris" },
       },
     ],
   },
@@ -121,8 +121,8 @@ export const STEPS: Step[] = [
         num: "4.1",
         title: "Upload your model",
         body:
-          "You started this at step 1.3. Back in the Miris console, check your upload has finished processing, then copy two values: the asset uuid from the asset page, and a viewer key from your account settings. The viewer key is what lets a browser read your asset without logging anyone in.",
-        link: { href: CONSOLE_URL, label: "Open Miris" },
+          "You started this at step 1.3. Back in the Miris portal, check your upload has finished processing, then copy two values: the asset uuid from the asset page, and a viewer key from your account settings. The viewer key is what lets a browser read your asset without logging anyone in.",
+        link: { href: PORTAL_URL, label: "Open Miris" },
       },
       {
         num: "4.2",
