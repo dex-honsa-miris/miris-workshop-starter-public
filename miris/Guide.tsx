@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { flushSync } from "react-dom";
 import Panel from "./Panel";
-import { STEPS } from "./curriculum";
-import { stepOfSub } from "./progress";
+import { STEPS, type Sub } from "./curriculum";
+import { nextSub, stepOfSub } from "./progress";
 import Rail from "./Rail";
 import StepPane, { type StepActions } from "./Step";
 import { MARKER_FOR } from "./snippets.mjs";
@@ -49,6 +49,9 @@ export default function MirisGuide() {
   // View state, deliberately separate from data.step. data.step is how far the
   // attendee has actually got; `selected` is only which step the pane shows.
   const [selected, setSelected] = useState<string | null>(null);
+  // What the last Done click found wrong, keyed by substep so browsing the rail
+  // does not carry one step's complaint onto another.
+  const [problems, setProblems] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     try {
@@ -155,12 +158,37 @@ export default function MirisGuide() {
   // Only 5 of the 16 substeps carry a `fill`, and fill() was the sole writer of
   // data.step. With every substep on screen that was cosmetic; with one step in
   // view it would pin an attendee to step 01 for the whole workshop.
-  const advance = async (toSubNum: string) => {
-    setNote("");
+  const advance = async (toSubNum: string, carryNote = "") => {
+    setNote(carryNote);
     const r = await post({ action: "save", patch: { step: toSubNum } });
     if (!r.ok) return setNote(r.problem!);
     setSelected(null);
     await load();
+  };
+
+  // Done verifies before it advances. The check lives on the server because
+  // every one of them reads a file the browser cannot see.
+  const done = async (sub: Sub) => {
+    setBusy(sub.num);
+    setNote("");
+    const r = await post({ action: "check", check: sub.check ?? "" });
+    setBusy("");
+    if (!r.ok) return setNote(r.problem!);
+    if (!r.data.done) {
+      setProblems((p) => ({ ...p, [sub.num]: r.data.problem }));
+      // The card is long enough that the reason can land below the fold, and a
+      // Done button that looks like it did nothing is worse than a refusal.
+      requestAnimationFrame(() =>
+        document.querySelector(".mw-snag")?.scrollIntoView({ block: "nearest", behavior: "smooth" }),
+      );
+      return;
+    }
+    setProblems((p) => {
+      const { [sub.num]: _gone, ...rest } = p;
+      return rest;
+    });
+    const next = nextSub(sub.num);
+    if (next) await advance(next.num);
   };
 
   const saveField = async (field: "uuid" | "viewerKey", value: string) => {
@@ -179,7 +207,7 @@ export default function MirisGuide() {
     clear,
     openPanel: () => setPanel(true),
     saveField,
-    advance,
+    done,
     backToProgress: () => setSelected(null),
   };
 
@@ -235,6 +263,7 @@ export default function MirisGuide() {
               data={data}
               track={track}
               busy={busy}
+              problems={problems}
               actions={actions}
             />
           </div>

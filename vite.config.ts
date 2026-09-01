@@ -1,14 +1,12 @@
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { mirisDevApi } from "./miris/devApi";
 
 export default defineConfig(({ mode }) => {
-  // loadEnv rather than process.env: Vite reads .env.local for the client, but
-  // does not put it on process.env, and FAL_KEY must never reach the client.
-  const env = loadEnv(mode, process.cwd(), "");
-
   return {
-    plugins: [react(), mirisDevApi(env)],
+    // The dev API reads FAL_KEY itself, per request, so it never reaches the
+    // client and a key added mid-session needs no restart.
+    plugins: [react(), mirisDevApi(mode)],
     server: {
       port: 3000,
       // strictPort so the workshop's own instructions stay true: if 3000 is

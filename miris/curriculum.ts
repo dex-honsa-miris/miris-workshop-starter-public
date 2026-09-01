@@ -19,6 +19,10 @@ export interface Sub {
   panel?: boolean;
   /** Renders the uuid and viewer key fields. */
   fields?: boolean;
+  /** A check id from the CHECKS map in miris/devApi.ts. Done verifies it before
+   *  moving on. Steps whose work happens outside the project, signing up or
+   *  deploying, deliberately have none. */
+  check?: string;
   /** Renders the html-in-canvas path badge. */
   renderPath?: boolean;
 }
@@ -38,9 +42,10 @@ export const STEPS: Step[] = [
         num: "1.1",
         title: "Your fal key",
         body:
-          "Sign in at fal.ai, open Keys, create one, and paste it into a file called .env.local at the top level of this project. Create the file if it is not there. Then stop and restart the dev server: environment files are only read at boot.",
+          "Sign in at fal.ai, open Keys, create one, and paste it into a file called .env.local at the top level of this project. Create the file if it is not there. Save it, then press Done: the server reads the key on every request, so there is nothing to restart.",
         code: "FAL_KEY=your-key-here",
         link: { href: FAL_KEYS_URL, label: "Open fal keys" },
+        check: "falKey",
       },
       {
         num: "1.2",
@@ -48,6 +53,7 @@ export const STEPS: Step[] = [
         body:
           "Open the panel and write a prompt. One subject, centered, on a plain backdrop. Splats carry what normal materials fight with: fur, membranes, gilt, patina, worn stone. Ask for those. GPT Image 2 takes about a minute, so reroll deliberately rather than often: this is the last cheap step before the four minute one.",
         panel: true,
+        check: "image",
       },
       {
         num: "1.3",
@@ -70,6 +76,7 @@ export const STEPS: Step[] = [
         fill: "pedestal",
         explain:
           "Two meshes. A cylinder for the plinth, tapered slightly wider at the base, and a thin torus for the bright rim. The rim uses meshBasicMaterial, which ignores lighting entirely, so it reads as a crisp edge no matter what the environment does. Nothing here is a Miris idea yet: this is plain three.js through React Three Fiber.",
+        check: "pedestal",
       },
       {
         num: "2.2",
@@ -79,6 +86,7 @@ export const STEPS: Step[] = [
         fill: "environment",
         explain:
           "An HDR image lights the scene from every direction at once, which is what makes a surface look like it is in a real room rather than under a lamp. Note the intensity is 1.6, not the 0.6 a normal scene wants. This canvas renders in linear colour space, which darkens everything else, so the environment is pushed up to compensate.",
+        check: "environment",
       },
       {
         num: "2.3",
@@ -88,6 +96,7 @@ export const STEPS: Step[] = [
         fill: "stream",
         explain:
           "A stream is not a file you load, it is a subscription. What appears first is a coarse version of the whole asset, and it sharpens as more arrives, so there is never a moment where you wait on a download. The extend call at the top of app/stage.tsx is what buys you that: it registers MirisStream as a JSX tag, so the stream takes position and scale like any other three.js object and React Three Fiber draws it in the same pass as the pedestal. There is no viewer to embed and no render loop to hand over. The numbers are measured for the demo asset. Yours will need its own, at step 4.4.",
+        check: "stream",
       },
     ],
   },
@@ -127,6 +136,7 @@ export const STEPS: Step[] = [
         body:
           "Both are saved to miris/data.json, which is the one file that survives a refresh. Nothing else about your scene changes.",
         fields: true,
+        check: "uuid",
       },
       {
         num: "4.3",
@@ -159,6 +169,7 @@ export const STEPS: Step[] = [
         fill: "card",
         explain:
           "The agent only touches one field of one JSON file, deliberately. You have something working and about to be published, and this is the wrong moment for an agent to be editing your scene code. It is also the right kind of job for a model: writing copy in a register, rather than a mechanical edit you could do faster yourself.",
+        check: "card",
       },
       {
         num: "5.2",
@@ -169,6 +180,7 @@ export const STEPS: Step[] = [
         renderPath: true,
         explain:
           "Chrome can now draw a live DOM element straight into a canvas, so the card keeps your CSS and updates when the text does. Where that is not available the same element is serialised into an SVG foreignObject and drawn as an image, which is the trick that has worked for a decade. Same card, same position, same geometry. The fallback loses your webfont, which is the visible difference between the two. One thing this example does not get: normally the drawn element stays selectable and readable by a screen reader, because the canvas showing it is the canvas holding it. This one goes through a texture into WebGL, so it is pixels by the time you see it.",
+        check: "guideOff",
       },
       {
         num: "5.3",

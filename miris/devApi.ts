@@ -1,8 +1,8 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { Plugin } from "vite";
-import { replaceMarker } from "./markers.mjs";
+import { loadEnv, type Plugin } from "vite";
+import { readMarker, replaceMarker } from "./markers.mjs";
 import { readData, writeData } from "./store.mjs";
 import { MARKER_FOR, SNIPPETS } from "./snippets.mjs";
 import { IMAGE_MODEL, MODEL_3D } from "./config";
@@ -15,6 +15,7 @@ const ROOT = process.cwd();
 const MIRIS_DIR = join(ROOT, "miris");
 const STAGE = join(ROOT, "app", "stage.tsx");
 const TEMPLATE = join(MIRIS_DIR, "stage.template.tsx");
+const MAIN = join(ROOT, "app", "main.tsx");
 
 const MESHY_INPUT = {
   should_texture: true,
@@ -27,13 +28,79 @@ const MESHY_INPUT = {
   enable_safety_checker: true,
 };
 
+/* One check per step that has something verifiable on disk. Each returns null
+ * when the step is done, or the sentence the attendee needs to read. Steps that
+ * happen elsewhere entirely, signing up or deploying, have no entry: the Done
+ * button just moves them on rather than pretending to know. */
+const CHECKS: Record<string, (mode: string) => Promise<string | null>> = {
+  async falKey(mode) {
+    return falKey(mode)
+      ? null
+      : "No FAL_KEY yet. Create .env.local at the top level of the project, put your key in it, and save.";
+  },
+
+  async image() {
+    const { imageUrl } = await readData(MIRIS_DIR);
+    return imageUrl ? null : "No image yet. Open the panel and generate one.";
+  },
+
+  async pedestal() {
+    const block = readMarker(await readFile(STAGE, "utf8"), "scene");
+    return block.includes("cylinderGeometry")
+      ? null
+      : "The scene block in app/stage.tsx is still empty. Press Fill in app/stage.tsx.";
+  },
+
+  async environment() {
+    const block = readMarker(await readFile(STAGE, "utf8"), "scene");
+    return block.includes("Environment")
+      ? null
+      : "No Environment line in the scene block yet. Press Fill in app/stage.tsx.";
+  },
+
+  async stream() {
+    const block = readMarker(await readFile(STAGE, "utf8"), "scene");
+    return block.includes("mirisStream")
+      ? null
+      : "No mirisStream in the scene block yet. Press Fill in app/stage.tsx.";
+  },
+
+  async uuid() {
+    const { uuid } = await readData(MIRIS_DIR);
+    if (!uuid) return "No asset uuid saved yet. Paste it into the field above and click away from the box.";
+    // A uuid pasted with surrounding text streams nothing and reports nothing.
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid)
+      ? null
+      : `That uuid does not look like one: "${uuid}". Copy just the id from the asset page.`;
+  },
+
+  async card() {
+    const { card } = await readData(MIRIS_DIR);
+    if (!card || typeof card !== "object" || !(card as any).name) {
+      return "miris/data.json still has no card. Paste miris/skills/curator.md into your agent, then press the button.";
+    }
+    const block = readMarker(await readFile(STAGE, "utf8"), "card");
+    return block.includes("Card")
+      ? null
+      : "The card is written but not on the stage yet. Press Fill in app/stage.tsx.";
+  },
+
+  async guideOff() {
+    const source = await readFile(MAIN, "utf8");
+    const live = source
+      .split("\n")
+      .some((l) => l.includes("<MirisGuide") && !l.trimStart().startsWith("//") && !l.includes("{/*"));
+    return live ? "app/main.tsx still renders <MirisGuide />. Comment that line out and save." : null;
+  },
+};
+
 type Reply = { status: number; body: unknown };
 const ok = (body: unknown): Reply => ({ status: 200, body });
 const fail = (error: string, status = 400): Reply => ({ status, body: { error } });
 
-async function handle(action: string, body: any, falKey: string): Promise<Reply> {
+async function handle(action: string, body: any, mode: string): Promise<Reply> {
   const falHeaders = () => ({
-    Authorization: `Key ${falKey}`,
+    Authorization: `Key ${falKey(mode)}`,
     "Content-Type": "application/json",
   });
 
@@ -92,8 +159,17 @@ async function handle(action: string, body: any, falKey: string): Promise<Reply>
     case "save":
       return ok(await writeData(MIRIS_DIR, body.patch ?? {}));
 
+    case "check": {
+      const check = CHECKS[String(body.check ?? "")];
+      // No check for this step is not a failure: it means nothing on disk
+      // proves it, so the attendee's word is what we have.
+      if (!check) return ok({ done: true });
+      const problem = await check(mode);
+      return ok({ done: !problem, problem });
+    }
+
     case "image": {
-      if (!falKey) return fail("FAL_KEY is not set in .env.local");
+      if (!falKey(mode)) return fail("FAL_KEY is not set in .env.local");
       const stored = await readData(MIRIS_DIR);
       const track = trackById(stored.track);
       const out: any = await falRun(IMAGE_MODEL, {
@@ -109,7 +185,7 @@ async function handle(action: string, body: any, falKey: string): Promise<Reply>
     }
 
     case "model": {
-      if (!falKey) return fail("FAL_KEY is not set in .env.local");
+      if (!falKey(mode)) return fail("FAL_KEY is not set in .env.local");
       const out: any = await falRun(
         MODEL_3D,
         { image_url: body.imageUrl, texture_prompt: body.prompt ?? "", ...MESHY_INPUT },
@@ -140,7 +216,12 @@ const readBody = (req: IncomingMessage) =>
     req.on("error", reject);
   });
 
-export function mirisDevApi(env: Record<string, string>): Plugin {
+/* Read per request rather than capturing at config time. loadEnv is a plain
+ * file read, so an attendee who pastes their key into .env.local does not also
+ * have to restart the dev server for it to count. */
+const falKey = (mode: string) => loadEnv(mode, ROOT, "").FAL_KEY ?? "";
+
+export function mirisDevApi(mode: string): Plugin {
   return {
     name: "miris-dev-api",
     // Dev only, by construction. There is no production counterpart.
@@ -157,7 +238,7 @@ export function mirisDevApi(env: Record<string, string>): Plugin {
             } catch {
               return send(res, fail("body must be JSON"));
             }
-            return send(res, await handle(String(body.action ?? ""), body, env.FAL_KEY ?? ""));
+            return send(res, await handle(String(body.action ?? ""), body, mode));
           }
 
           next();

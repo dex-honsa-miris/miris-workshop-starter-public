@@ -769,6 +769,17 @@ a:hover { text-decoration: underline; }
 
 .mw-next { width: 100%; margin-top: var(--space-s); }
 
+/* What Done found wrong. Sits directly above the button that produced it, and
+   takes the accent rather than a red: nothing has broken, the step is not
+   finished yet. */
+.mw-snag {
+  margin: 10px 0 0;
+  padding: 9px 11px;
+  background: var(--mono-1000);
+  border-left: 2px solid var(--accent);
+  color: var(--mono-200);
+}
+
 /* Two channels, separate curves. Opacity is linear. 12px because this is an
    in-place swap, not the kit's 40px entrance. */
 @keyframes mw-pane-swap {

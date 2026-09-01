@@ -14,6 +14,15 @@ export function replaceMarker(source, marker, body) {
   return `${head}\n${body}\n${indent}${tail}`;
 }
 
+/** The attendee's own code for one marker, so a check reads their block rather
+ *  than the whole file and cannot be fooled by an import or a comment. */
+export function readMarker(source, marker) {
+  const a = source.indexOf(start(marker));
+  const b = source.indexOf(end(marker));
+  if (a === -1 || b === -1 || b < a) return "";
+  return source.slice(a + start(marker).length, b);
+}
+
 export function listMarkers(source) {
   return [...source.matchAll(/\{\/\* miris:([a-z-]+)-start \*\/\}/g)].map((m) => m[1]);
 }

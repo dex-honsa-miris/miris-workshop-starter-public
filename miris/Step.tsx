@@ -9,8 +9,9 @@ export interface StepActions {
   clear: (snippetId: string) => void | Promise<void>;
   openPanel: () => void;
   saveField: (field: "uuid" | "viewerKey", value: string) => void | Promise<void>;
-  /** Moves the persisted progress pointer. */
-  advance: (toSubNum: string) => void | Promise<void>;
+  /** Verifies the substep actually happened, then moves the progress pointer
+   *  if it did, or reports what is missing if it did not. */
+  done: (sub: Sub) => void | Promise<void>;
   /** Returns the pane to whichever step actually holds the pointer. */
   backToProgress: () => void;
 }
@@ -22,8 +23,10 @@ export interface StepPaneProps {
   currentSubNum: string;
   data: { uuid?: string; viewerKey?: string };
   track: Track;
-  /** Substep number currently being written, or "". */
+  /** Substep number currently being written or checked, or "". */
   busy: string;
+  /** What the last Done click found wrong, keyed by substep number. */
+  problems: Record<string, string>;
   actions: StepActions;
 }
 
@@ -66,6 +69,7 @@ export default function StepPane({
   data,
   track,
   busy,
+  problems,
   actions,
 }: StepPaneProps) {
   // Browsing ahead via the rail shows a step that holds no current substep. The
@@ -173,18 +177,25 @@ export default function StepPane({
                 {sub.explain}
               </p>
             )}
+
+            {problems[sub.num] && (
+              <p className="mw-snag c14" role="status">
+                {problems[sub.num]}
+              </p>
+            )}
+
+            {upNext && (
+              <button
+                className="btn btn-primary btn-sm mw-next"
+                disabled={busy === sub.num}
+                onClick={() => actions.done(sub)}
+              >
+                {busy === sub.num ? "Checking" : "Done"}
+              </button>
+            )}
           </article>
         );
       })}
-
-      {upNext && (
-        <button
-          className="btn btn-secondary btn-sm mw-next"
-          onClick={() => actions.advance(upNext.num)}
-        >
-          Next: {upNext.num} {upNext.title} &rarr;
-        </button>
-      )}
 
       {!isProgressStep && (
         <button className="btn btn-ghost btn-sm mw-next" onClick={actions.backToProgress}>
