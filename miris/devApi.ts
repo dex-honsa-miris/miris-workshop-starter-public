@@ -100,7 +100,7 @@ async function handle(action: string, body: any, falKey: string): Promise<Reply>
         prompt: `${track.style}: ${body.prompt}`,
         image_size: "square_hd",
         num_images: 1,
-        enable_safety_checker: true,
+        quality: "medium",
       });
       const url = out?.images?.[0]?.url;
       if (!url) return fail("fal returned no image", 502);

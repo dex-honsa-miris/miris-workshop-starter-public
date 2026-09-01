@@ -32,7 +32,7 @@ export default function Panel({ track, onClose }: { track: Track; onClose: () =>
   }, []);
 
   useEffect(() => {
-    if (phase !== "model") return;
+    if (phase !== "model" && phase !== "image") return;
     setElapsed(0);
     const t = setInterval(() => setElapsed((s) => s + 1), 1000);
     return () => clearInterval(t);
@@ -103,7 +103,12 @@ export default function Panel({ track, onClose }: { track: Track; onClose: () =>
             <button className="mw-go" disabled={phase === "image" || !prompt.trim()} onClick={makeImage}>
               {phase === "image" ? "Drawing" : "Generate"}
             </button>
-            {phase === "image" && <div className="mw-spinner" />}
+            {phase === "image" && (
+              <>
+                <p className="mw-elapsed">{mmss}</p>
+                <p className="mw-note">About a minute. GPT Image 2 reasons about the prompt before it draws.</p>
+              </>
+            )}
           </>
         )}
 
@@ -112,8 +117,8 @@ export default function Panel({ track, onClose }: { track: Track; onClose: () =>
             <span className="mw-step">{track.label} · step 1.2</span>
             <h3>Keep this one?</h3>
             <img src={image} alt="Generated concept" />
-            <p className="mw-note">Rerolls cost fractions of a cent. The next step costs about $1.40 and takes minutes,
-              so choose here rather than there.</p>
+            <p className="mw-note">Rerolls cost about five cents and a minute. The next step costs about $1.40 and takes
+              minutes, so choose here rather than there.</p>
             <div className="mw-row">
               <button onClick={makeImage}>Reroll</button>
               <button className="mw-go" onClick={makeModel}>

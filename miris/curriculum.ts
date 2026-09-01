@@ -46,7 +46,7 @@ export const STEPS: Step[] = [
         num: "1.2",
         title: "Describe your thing",
         body:
-          "Open the panel and write a prompt. One subject, centered, on a plain backdrop. Splats carry what normal materials fight with: fur, membranes, gilt, patina, worn stone. Ask for those. You will get an image in a few seconds, and you can reroll as many times as you like before committing to the slow step.",
+          "Open the panel and write a prompt. One subject, centered, on a plain backdrop. Splats carry what normal materials fight with: fur, membranes, gilt, patina, worn stone. Ask for those. GPT Image 2 takes about a minute, so reroll deliberately rather than often: this is the last cheap step before the four minute one.",
         panel: true,
       },
       {
