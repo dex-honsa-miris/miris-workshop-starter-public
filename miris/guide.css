@@ -659,6 +659,17 @@
   color: var(--text-primary);
 }
 .mw-now p { max-width: var(--measure-body, 51ch); }
+/* A code block sets its own top margin and deliberately no bottom one, so that
+   ending a card on it adds no trailing space. Anything that does follow it needs
+   the gap put back, or the two read as one control. */
+.mw-now pre + a,
+.mw-now pre + button,
+.mw-now pre + .mw-row,
+.mw-now pre + .fld,
+.mw-now pre + p {
+  margin-top: var(--space-s);
+}
+
 .mw-now pre {
   margin: 10px 0 0;
   background: var(--mono-900);
@@ -1034,6 +1045,5 @@ html[data-vt="out"]::view-transition-old(chooser) { animation: none; }
    this only needs the spacing an inline anchor does not get for free. */
 .mw-goto {
   display: inline-flex;
-  margin-top: 2px;
   text-decoration: none;
 }
