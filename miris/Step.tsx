@@ -4,7 +4,7 @@ import type { Track } from "./tracks";
 import { BuildInput, type BuildState } from "./Build";
 import { subName } from "./transition";
 import { detect, getPath, subscribePath } from "./htmlInCanvas";
-import { nextSub, subState } from "./progress";
+import { indexOfSub, nextSub, subState } from "./progress";
 
 export interface StepActions {
   fill: (snippetId: string, num: string) => void | Promise<void>;
@@ -13,6 +13,10 @@ export interface StepActions {
   /** Verifies the substep actually happened, then moves the progress pointer
    *  if it did, or reports what is missing if it did not. */
   done: (sub: Sub) => void | Promise<void>;
+  /** Opens a finished substep for reading, or returns to the pointer with "". */
+  view: (subNum: string) => void;
+  /** Moves the pointer back to a finished substep, to do it again. */
+  undo: (subNum: string) => void | Promise<void>;
   /** Returns the pane to whichever step actually holds the pointer. */
   backToProgress: () => void;
 }
@@ -30,6 +34,9 @@ export interface StepPaneProps {
   problems: Record<string, string>;
   /** Owned by Guide so the tray outlives step 1.2. */
   build: BuildState;
+  /** The substep whose card is open. Usually the progress pointer, but a
+   *  finished substep can be opened to re-read it. */
+  openSubNum: string;
   actions: StepActions;
 }
 
@@ -76,6 +83,7 @@ export default function StepPane({
   busy,
   problems,
   build,
+  openSubNum,
   actions,
 }: StepPaneProps) {
   // Browsing ahead via the rail shows a step that holds no current substep. The
@@ -83,6 +91,11 @@ export default function StepPane({
   // offering "next" here would name a substep from a different step entirely.
   const isProgressStep = step.subs.some((s) => s.num === currentSubNum);
   const upNext = isProgressStep ? nextSub(currentSubNum) : undefined;
+  // Reading a finished substep rather than standing on it. Only the most
+  // recently finished one can be undone: stepping back further would strand
+  // every substep between here and there as done-but-not-done.
+  const browsing = openSubNum !== currentSubNum;
+  const undoable = indexOfSub(openSubNum) === indexOfSub(currentSubNum) - 1;
 
   return (
     <div className="mw-pane">
@@ -91,13 +104,31 @@ export default function StepPane({
       {step.subs.map((sub: Sub) => {
         const state = subState(sub.num, currentSubNum);
 
-        if (state !== "here") {
+        if (sub.num !== openSubNum) {
+          // Finished substeps can be re-read; the pointer can be returned to.
+          // Substeps still ahead are not offered, since nothing has happened
+          // in them to look at.
+          const reachable = state === "done" || state === "here";
           return (
             <div
               key={sub.num}
               className="mw-line"
               data-state={state}
+              data-reachable={reachable || undefined}
               style={{ viewTransitionName: subName(sub.num) } as React.CSSProperties}
+              onClick={reachable ? () => actions.view(state === "here" ? "" : sub.num) : undefined}
+              role={reachable ? "button" : undefined}
+              tabIndex={reachable ? 0 : undefined}
+              onKeyDown={
+                reachable
+                  ? (e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        actions.view(state === "here" ? "" : sub.num);
+                      }
+                    }
+                  : undefined
+              }
             >
               <span className="l12 k">{sub.num}</span>
               <span className="c14 ttl">{withNoun(sub.title, track.noun)}</span>
@@ -195,14 +226,27 @@ export default function StepPane({
               </p>
             )}
 
-            {upNext && (
-              <button
-                className="btn btn-secondary btn-sm mw-next"
-                disabled={busy === sub.num}
-                onClick={() => actions.done(sub)}
-              >
-                {busy === sub.num ? "Checking" : "Done"}
-              </button>
+            {browsing ? (
+              <div className="mw-row mw-backrow">
+                {undoable && (
+                  <button className="btn btn-secondary btn-sm" onClick={() => actions.undo(sub.num)}>
+                    Undo this step
+                  </button>
+                )}
+                <button className="btn btn-ghost btn-sm" onClick={() => actions.view("")}>
+                  Back to {currentSubNum}
+                </button>
+              </div>
+            ) : (
+              upNext && (
+                <button
+                  className="btn btn-secondary btn-sm mw-next"
+                  disabled={busy === sub.num}
+                  onClick={() => actions.done(sub)}
+                >
+                  {busy === sub.num ? "Checking" : "Done"}
+                </button>
+              )
             )}
           </article>
         );

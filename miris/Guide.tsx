@@ -48,6 +48,9 @@ export default function MirisGuide() {
   // View state, deliberately separate from data.step. data.step is how far the
   // attendee has actually got; `selected` is only which step the pane shows.
   const [selected, setSelected] = useState<string | null>(null);
+  // A finished substep opened for reading. Separate from data.step, which is
+  // how far the attendee has actually got.
+  const [viewing, setViewing] = useState("");
   // What the last Done click found wrong, keyed by substep so browsing the rail
   // does not carry one step's complaint onto another.
   const [problems, setProblems] = useState<Record<string, string>>({});
@@ -202,7 +205,8 @@ export default function MirisGuide() {
     setNote("Saved. Reload the page to stream it.");
   };
 
-  const progressStep = stepOfSub(data.step ?? "1.1");
+  const openSubNum = viewing || (data.step ?? "1.1");
+  const progressStep = stepOfSub(openSubNum);
   const shownStep = selected
     ? STEPS.find((s) => s.num === selected) ?? progressStep
     : progressStep;
@@ -212,6 +216,13 @@ export default function MirisGuide() {
     clear,
     saveField,
     done,
+    view: (subNum: string) => transition(() => setViewing(subNum)),
+    // Undo is the pointer moving back, so the reopened substep becomes current
+    // again and its Done can re-verify the work.
+    undo: async (subNum: string) => {
+      setViewing("");
+      await advance(subNum);
+    },
     backToProgress: () => setSelected(null),
   };
 
@@ -258,7 +269,12 @@ export default function MirisGuide() {
           <Rail
             progressStepNum={progressStep.num}
             shownStepNum={shownStep.num}
-            onSelect={(num) => transition(() => setSelected(num))}
+            onSelect={(num) =>
+                transition(() => {
+                  setViewing("");
+                  setSelected(num);
+                })
+              }
           />
           <div className="mw-scroll">
             <StepPane
@@ -269,6 +285,7 @@ export default function MirisGuide() {
               busy={busy}
               problems={problems}
               build={build}
+              openSubNum={openSubNum}
               actions={actions}
             />
           </div>

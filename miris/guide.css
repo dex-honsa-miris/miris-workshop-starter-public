@@ -882,6 +882,21 @@ a:hover { text-decoration: underline; }
 }
 .mw-line[data-state="done"] .k { color: var(--mono-700); }
 
+/* Finished substeps reopen for reading, and the pointer can be returned to.
+   Substeps still ahead stay inert: nothing has happened in them to look at,
+   and offering them would read as permission to skip. */
+.mw-line[data-reachable] { cursor: pointer; }
+.mw-line[data-reachable]:hover .ttl { color: var(--mono-200); }
+.mw-line[data-reachable]:hover .k { color: var(--mono-400); }
+.mw-line[data-reachable]:hover .tick { color: var(--mono-400); }
+
+/* Collapsed only while something earlier is being read, so it has to say where
+   the attendee actually is. */
+.mw-line[data-state="here"] .k { color: var(--accent); }
+.mw-line[data-state="here"] .ttl { color: var(--mono-000); }
+
+.mw-backrow { margin: var(--space-s) 0 0; }
+
 /* 4px because it is nested inside the 8px panel. */
 .mw-now {
   background: var(--mono-1000);
