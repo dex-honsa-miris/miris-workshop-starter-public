@@ -118,9 +118,10 @@ a:hover { text-decoration: underline; }
 /* The kit's own components.css had no disabled state; the guide needs one,
    because Generate is disabled until there is a prompt and Done is disabled
    while its check runs. */
+/* Every hover is scoped :not(:disabled) rather than undone here. Undoing it
+   restored .btn-primary's fill but not its label, so a disabled Generate went
+   white on white and the text vanished. */
 .btn:disabled { opacity: 0.45; cursor: default; }
-.btn:disabled:hover { background: var(--mono-000); border-color: var(--border-strong); filter: none; }
-.btn-secondary:disabled:hover { background: transparent; }
 
 /* A white fill on a dark page is locally a light surface, so the label takes
    one weight more and a tighter track to hold the same optical weight. */
@@ -130,13 +131,13 @@ a:hover { text-decoration: underline; }
   font-weight: 700;
   letter-spacing: -0.005em;
 }
-.btn-primary:hover { background: #ff3500; color: #ffffff; }
+.btn-primary:hover:not(:disabled) { background: #ff3500; color: #ffffff; }
 
 .btn-secondary { background: transparent; color: var(--text-primary); border-color: var(--border-strong); }
-.btn-secondary:hover { border-color: var(--text-primary); }
+.btn-secondary:hover:not(:disabled) { border-color: var(--text-primary); }
 
 .btn-ghost { background: transparent; color: var(--text-secondary); padding-left: 4px; padding-right: 4px; min-height: 0; }
-.btn-ghost:hover { color: var(--text-primary); }
+.btn-ghost:hover:not(:disabled) { color: var(--text-primary); }
 
 .btn-sm { --btn-h: 32px; font-size: 14px; line-height: 20px; }
 
@@ -359,7 +360,7 @@ a:hover { text-decoration: underline; }
   transition: color var(--mo-color) var(--ease-micro),
               border-color var(--mo-color) var(--ease-micro);
 }
-.mw-dice:hover { color: var(--mono-200); border-color: var(--mono-800); }
+.mw-dice:hover:not(:disabled) { color: var(--mono-200); border-color: var(--mono-800); }
 .mw-dice:disabled { opacity: 0.4; cursor: default; }
 .mw-dice:active svg { transform: rotate(90deg); }
 .mw-dice svg { transition: transform var(--mo-close) var(--ease-close); }
