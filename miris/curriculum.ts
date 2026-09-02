@@ -95,7 +95,7 @@ export const STEPS: Step[] = [
           "Add this last, under the Environment line. It streams our demo asset so you can see the thing working before yours is ready; yours goes in at step 4.",
         fill: "stream",
         explain:
-          "A stream is not a file you load, it is a subscription. What appears first is a coarse version of the whole asset, and it sharpens as more arrives, so there is never a moment where you wait on a download. The extend call at the top of app/stage.tsx is what buys you that: it registers MirisStream as a JSX tag, so the stream takes position and scale like any other three.js object and React Three Fiber draws it in the same pass as the pedestal. There is no viewer to embed and no render loop to hand over. The numbers are measured for the demo asset. Yours will need its own, at step 4.4.",
+          "A stream is not a file you load, it is a subscription. What appears first is a coarse version of the whole asset, and it sharpens as more arrives, so there is never a moment where you wait on a download. The extend call at the top of app/stage.tsx is what buys you that: it registers MirisStream as a JSX tag, so the stream takes position and scale like any other three.js object and React Three Fiber draws it in the same pass as the pedestal. There is no viewer to embed and no render loop to hand over. The args array is React Three Fiber convention, not ours: whatever it holds is passed to new MirisStream(...), which is why swapping the uuid later rebuilds the stream. The position and scale numbers are measured for the demo asset; yours will need its own, at step 4.4.",
         check: "stream",
       },
     ],
