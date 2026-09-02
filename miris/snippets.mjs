@@ -21,14 +21,30 @@ const STREAM = `      <mirisStream
 // pedestal, environment and stream share the `scene` marker, so each snippet
 // contains the ones before it. Writing them non-cumulatively would make step
 // 2.2 delete the pedestal that step 2.1 just added.
+const LABEL_HTML = `  // Painted by ctx.drawElementImage() in Chrome, an SVG foreignObject elsewhere.
+  const label = useHtmlTexture(
+    data?.card &&
+      \`<div class="mw-plate">
+        <strong>\${data.card.name}</strong>
+        <p>\${data.card.description}</p>
+        <ul>\${data.card.attributes.map((a) => \`<li>\${a}</li>\`).join("")}</ul>
+      </div>\`,
+  );`;
+
 export const SNIPPETS = {
   pedestal: PEDESTAL,
   environment: `${PEDESTAL}\n${ENVIRONMENT}`,
   stream: `${PEDESTAL}\n${ENVIRONMENT}\n${STREAM}`,
   card: `      {data.card ? <Card card={data.card} /> : null}`,
-  // Shares the `card` marker deliberately, so step 5.2 replaces step 5.1's
+  labelHtml: LABEL_HTML,
+  // Shares the `card` marker deliberately, so the plane replaces step 5.2's
   // overlay rather than adding a second card beside it.
-  cardSurface: `      {data.card ? <CardSurface card={data.card} /> : null}`,
+  labelMesh: `      {label.texture && (
+        <mesh position={[-1.15, 1.2, 0]}>
+          <planeGeometry args={[label.width, label.height]} />
+          <meshBasicMaterial map={label.texture} transparent toneMapped={false} />
+        </mesh>
+      )}`,
 };
 
 /* What each step actually adds. SNIPPETS is cumulative because the scene ones
@@ -40,7 +56,8 @@ export const PARTS = {
   environment: ENVIRONMENT,
   stream: STREAM,
   card: SNIPPETS.card,
-  cardSurface: SNIPPETS.cardSurface,
+  labelHtml: LABEL_HTML,
+  labelMesh: SNIPPETS.labelMesh,
 };
 
 /* Clearing a step puts the block back to the step before it, not to empty.
@@ -52,7 +69,8 @@ export const CLEARS_TO = {
   environment: "pedestal",
   stream: "environment",
   card: null,
-  cardSurface: "card",
+  labelHtml: null,
+  labelMesh: "card",
 };
 
 export const MARKER_FOR = {
@@ -60,5 +78,6 @@ export const MARKER_FOR = {
   environment: "scene",
   stream: "scene",
   card: "card",
-  cardSurface: "card",
+  labelHtml: "label",
+  labelMesh: "card",
 };

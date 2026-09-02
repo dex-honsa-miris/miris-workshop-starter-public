@@ -1360,6 +1360,23 @@ html[data-vt="out"]::view-transition-old(chooser) { animation: none; }
   text-decoration: none;
 }
 
+/* ── the capability line ──────────────────────────────────
+   Present from the first step when the native path is unavailable, so nobody
+   discovers at step 5 that a flag needed a relaunch. */
+.mw-capline {
+  margin: 0;
+  padding: 9px 20px;
+  border-bottom: 1px solid var(--mono-800);
+  color: var(--mono-400);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+.mw-capline code {
+  font: inherit;
+  color: var(--mono-200);
+  user-select: all;
+}
+
 /* ── html-in-canvas path badge ─────────────────────────── */
 /* Always present on step 5.2, including when the native path ran: silence
    would leave an attendee who did the flag setup wondering whether it took. */

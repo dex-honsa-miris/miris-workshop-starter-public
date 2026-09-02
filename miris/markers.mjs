@@ -1,5 +1,9 @@
-const start = (m) => `{/* miris:${m}-start */}`;
-const end = (m) => `{/* miris:${m}-end */}`;
+// The label marker lives in the function body, where a JSX comment is a syntax
+// error, so it takes plain // form. Everything inside the returned JSX keeps
+// the JSX comment form.
+const JS_MARKERS = new Set(["label"]);
+export const start = (m) => (JS_MARKERS.has(m) ? `// miris:${m}-start` : `{/* miris:${m}-start */}`);
+export const end = (m) => (JS_MARKERS.has(m) ? `// miris:${m}-end` : `{/* miris:${m}-end */}`);
 
 export function replaceMarker(source, marker, body) {
   const a = source.indexOf(start(marker));
@@ -23,6 +27,3 @@ export function readMarker(source, marker) {
   return source.slice(a + start(marker).length, b);
 }
 
-export function listMarkers(source) {
-  return [...source.matchAll(/\{\/\* miris:([a-z-]+)-start \*\/\}/g)].map((m) => m[1]);
-}

@@ -9,7 +9,7 @@ in WebContainer, which is where attendees run this, so the port is deliberate.
 `app/` is the attendee's. `stage.tsx` is the file they edit all session, and the
 sidebar writes into it between the `miris:` marker comments. It must stay
 byte-identical to `miris/stage.template.tsx`, which the reset action restores
-from. `main.tsx` they touch once, at step 5.2.
+from. `main.tsx` they touch once, at step 5.5.
 
 `miris/` is the workshop's machinery: the guide, curriculum copy, snippets, the
 dev API, config. Nothing in it needs editing to complete the workshop.

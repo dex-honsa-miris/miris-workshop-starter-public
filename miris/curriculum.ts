@@ -161,37 +161,48 @@ export const STEPS: Step[] = [
         num: "5.1",
         title: "Write the label",
         body:
-          "Press the button and a model on your fal key turns your prompt into a name, a description and a few attributes, saved to miris/data.json. Then add the line below to put that card on the stage.",
+          "Press the button and a model on your fal key turns your prompt into a name, a description and a few attributes, saved to miris/data.json.",
         label: true,
-        fill: "card",
-        explain:
-          "The model writes one field of one JSON file: copy in your track's register, which is the right kind of job for it. The card component then reads that field the same way the stream reads its uuid. Notice the label floats OVER the canvas rather than living in the scene, which is the problem the next step fixes.",
         check: "card",
       },
       {
         num: "5.2",
-        title: "Put the label in the scene",
+        title: "Float HTML over the canvas",
         body:
-          "The card you just made is a DOM element floating over the canvas. It looks right until your model moves in front of it, because it is not in the scene at all. Swap it for the line below and it becomes part of the render: your own HTML, drawn into the 3D scene as pixels.",
-        fill: "cardSurface",
-        renderPath: true,
+          "The obvious way to label a 3D thing: absolutely-position a DOM element over the canvas and move it with the camera. Add this to the miris:card block and orbit until your model passes in front of the card.",
+        fill: "card",
         explain:
-          "Chrome can now draw a live DOM element straight into a canvas, so the card keeps your CSS and updates when the text does. Where that is not available the same element is serialised into an SVG foreignObject and drawn as an image, which is the trick that has worked for a decade. Same card, same position, same geometry. The fallback loses your webfont, which is the visible difference between the two. One thing this example does not get: normally the drawn element stays selectable and readable by a screen reader, because the canvas showing it is the canvas holding it. This one goes through a texture into WebGL, so it is pixels by the time you see it.",
-        check: "cardSurface",
+          "drei's Html helper does the positioning: it projects a scene position into screen space every frame and moves a real DOM element to match. Notice what it cannot do: the card is OVER the canvas, not in it, so your model can never pass in front of the label, the label never reflects or fogs, and it vanishes from screenshots of the canvas. That is the ceiling of the overlay approach, and the next two steps go through it.",
+        check: "cardOverlay",
       },
       {
         num: "5.3",
-        title: "Remove the guide",
+        title: "Paint HTML into a canvas",
         body:
-          "Open app/main.tsx and comment out the MirisGuide line. The panel disappears and your app stays exactly as you built it. The Miris styling stays too, because index.html loads it, not the guide.",
-        code: "{/* <MirisGuide /> */}",
-        check: "guideOff",
+          "Now the real thing. This goes in the miris:label block near the top of app/stage.tsx, above the return: write your label as plain HTML, and useHtmlTexture hands back a texture.",
+        fill: "labelHtml",
+        explain:
+          "HTML-in-Canvas is the new browser capability this step exists to teach: ctx.drawElementImage() draws a laid-out DOM element straight into a 2D canvas, pixels and all. Chrome ships it behind chrome://flags/#canvas-draw-element. Everywhere else, the same markup is serialised into an SVG foreignObject and drawn as an image, which is the fallback the badge below reports. Either way the canvas becomes an ordinary three.js CanvasTexture, and that is the whole trick: anything HTML can lay out, the scene can wear.",
+        renderPath: true,
+        check: "labelHtml",
       },
       {
         num: "5.4",
-        title: "Publish and share",
+        title: "Put it on a plane",
         body:
-          "Deploy it and wait for your link, with Deploy in Bolt or your own host. Send it to someone. What they load is not a model file, it is your asset streaming to them at whatever detail their screen and connection justify.",
+          "Swap the overlay in the miris:card block for a mesh that wears the texture. Orbit again: this time your model passes in front of the label, because the label is geometry now.",
+        fill: "labelMesh",
+        explain:
+          "A plane with a meshBasicMaterial, nothing exotic. transparent honours the card's rounded corners, toneMapped keeps the text out of the ACES curve that grades the rest of the scene, and label.width and height arrive already converted from CSS pixels to scene units. This is the payoff of 5.3: your HTML is now a surface in the world, occluded, screenshotted and streamed like everything else.",
+        renderPath: true,
+        check: "labelMesh",
+      },
+      {
+        num: "5.5",
+        title: "Ship it",
+        body:
+          "The last step does two things, because the first one makes this panel disappear. Comment out the MirisGuide line in app/main.tsx: the guide goes, your app stays exactly as you built it, and the Miris styling stays too, since index.html loads it. Then press Deploy in Bolt, wait for your link, and send it to someone. What they load is not a model file, it is your asset streaming to them at whatever detail their screen and connection justify.",
+        code: "{/* <MirisGuide /> */}",
       },
     ],
   },

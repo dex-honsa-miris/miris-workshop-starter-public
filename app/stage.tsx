@@ -4,7 +4,7 @@ import { Environment, OrbitControls } from "@react-three/drei";
 import { MirisStream } from "@miris-inc/three";
 import { ACESFilmicToneMapping } from "three";
 import Card from "../miris/Card";
-import CardSurface from "../miris/CardSurface";
+import useHtmlTexture from "../miris/htmlTexture";
 
 // A Miris stream is now a scene node: <mirisStream args={[{ uuid, viewerKey }]} />
 extend({ MirisStream });
@@ -19,6 +19,12 @@ export default function Stage() {
       .then(setData)
       .catch(() => setData({}));
   }, []);
+
+  // miris:label-start
+  // Step 5.3 replaces this placeholder. It stays above the return because it
+  // calls a React hook, and hooks run on every render.
+  const label = useHtmlTexture(false);
+  // miris:label-end
 
   if (!data || !data.track) return null;
 
@@ -43,7 +49,7 @@ export default function Stage() {
       {/* miris:scene-end */}
 
       {/* miris:card-start */}
-      {/* Steps 5.1 and 5.2 go here. */}
+      {/* Steps 5.2 and 5.4 go here. */}
       {/* miris:card-end */}
 
       <OrbitControls makeDefault target={[0, 0.9, 0]} />

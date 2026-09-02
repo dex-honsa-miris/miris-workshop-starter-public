@@ -82,7 +82,7 @@ adds a stage list, because a spinner tells you nothing across minutes.
   sidebar writes between them. The `extend({ MirisStream })` at the top is what
   makes `<mirisStream>` an ordinary scene node; step 2.4 explains it.
 - `app/main.tsx` mounts the stage and the guide. Attendees edit it once, at
-  step 5.2, to remove the guide.
+  step 5.5, to remove the guide.
 - `miris/devApi.ts` is the only server code: it writes files, proxies
   fal, and owns `data.json`. The fal key never reaches the browser.
 - `miris/StageBoundary.tsx` keeps a runtime error in the stage from taking the
@@ -95,7 +95,7 @@ adds a stage list, because a spinner tells you nothing across minutes.
 
 ### Removing the guide
 
-Comment out `<MirisGuide />` in `app/main.tsx`. That is step 5.2, and it is
+Comment out `<MirisGuide />` in `app/main.tsx`. That is step 5.5, and it is
 the only line the guide adds to the app. Verified: the production build is clean
 with it commented out.
 
@@ -159,7 +159,7 @@ the scene still has children and fails three engine assertions.
 
 `/api/miris` exists only as Vite dev middleware, so a production build has no
 such endpoint at all, and
-returns 403. Attendees publish this app and share the link at step 5.3, and
+returns 403. Attendees publish this app and share the link at step 5.5, and
 commenting out the guide does not remove the route: without the gate, anyone
 with the link could spend their fal key or rewrite files. Verified against a
 production build.

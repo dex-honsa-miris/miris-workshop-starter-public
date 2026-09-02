@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import BuildTray, { useBuild } from "./Build";
+import { detect, getPath, subscribePath } from "./htmlInCanvas";
 import { STEPS, type Sub } from "./curriculum";
 import { transition } from "./transition";
 import { nextSub, stepOfSub } from "./progress";
@@ -39,6 +40,28 @@ async function readApi(res: Response): Promise<ApiResult> {
   return { ok: true, data };
 }
 
+/* Known from the first minute, not discovered at step 5: whether this browser
+ * can draw HTML into a canvas. Nothing is blocked either way, since the SVG
+ * fallback always renders, but a Chrome that could do the real thing deserves
+ * the tip while there is still time to flip the flag. */
+function CapabilityLine() {
+  const path = useSyncExternalStore(subscribePath, getPath, getPath);
+  if (path === "drawElement") return null;
+  const { flaggable } = detect();
+  return (
+    <p className="mw-capline l12">
+      {flaggable ? (
+        <>
+          Step 5 draws HTML into the canvas. Enable <code>chrome://flags/#canvas-draw-element</code> and
+          relaunch to do it natively; otherwise the SVG fallback runs.
+        </>
+      ) : (
+        <>Step 5 draws HTML into the canvas. This browser uses the SVG fallback, which still renders.</>
+      )}
+    </p>
+  );
+}
+
 export default function MirisGuide() {
   const [open, setOpen] = useState(true);
   const [data, setData] = useState<any>({ step: "1.1" });
@@ -53,6 +76,28 @@ export default function MirisGuide() {
   // What the last Done click found wrong, keyed by substep so browsing the rail
   // does not carry one step's complaint onto another.
   const [problems, setProblems] = useState<Record<string, string>>({});
+
+  // Every paste reloads the page, and losing your place in a long step list on
+  // each one adds up. Position is saved as it changes and restored on mount;
+  // sessionStorage, so a fresh tab still starts at the top.
+  const scrollKeeper = useCallback((el: HTMLDivElement | null) => {
+    if (!el) return;
+    try {
+      const saved = sessionStorage.getItem("mw-scroll");
+      if (saved) el.scrollTop = Number(saved);
+    } catch {
+      // Blocked storage costs the restore, not the scroller.
+    }
+    let raf = 0;
+    el.addEventListener("scroll", () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        try {
+          sessionStorage.setItem("mw-scroll", String(el.scrollTop));
+        } catch {}
+      });
+    });
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -285,6 +330,8 @@ export default function MirisGuide() {
           </button>
         </div>
 
+        <CapabilityLine />
+
         <div className="mw-split">
           <Rail
             progressStepNum={progressStep.num}
@@ -296,7 +343,7 @@ export default function MirisGuide() {
                 })
               }
           />
-          <div className="mw-scroll">
+          <div className="mw-scroll" ref={scrollKeeper}>
             <StepPane
               step={shownStep}
               currentSubNum={data.step ?? "1.1"}

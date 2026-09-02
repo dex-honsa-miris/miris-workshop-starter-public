@@ -2,7 +2,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { loadEnv, type Plugin } from "vite";
-import { readMarker, replaceMarker } from "./markers.mjs";
+import { end as markerEnd, readMarker, replaceMarker, start as markerStart } from "./markers.mjs";
 import { readData, writeData } from "./store.mjs";
 import { CLEARS_TO, MARKER_FOR, SNIPPETS } from "./snippets.mjs";
 import { DEMO_UUID, IMAGE_FRAMING, IMAGE_MODEL, LABEL_LLM, LABEL_MODEL, MODEL_3D, VIEWER_KEY } from "./config";
@@ -15,7 +15,6 @@ const ROOT = process.cwd();
 const MIRIS_DIR = join(ROOT, "miris");
 const STAGE = join(ROOT, "app", "stage.tsx");
 const TEMPLATE = join(MIRIS_DIR, "stage.template.tsx");
-const MAIN = join(ROOT, "app", "main.tsx");
 
 const MESHY_INPUT = {
   should_texture: true,
@@ -82,29 +81,34 @@ const CHECKS: Record<string, (mode: string) => Promise<string | null>> = {
 
   async card() {
     const { card } = await readData(MIRIS_DIR);
-    if (!card || typeof card !== "object" || !(card as any).name) {
-      return "miris/data.json still has no card. Press Write the label.";
-    }
-    const block = readMarker(await readFile(STAGE, "utf8"), "card");
-    return block.includes("Card")
+    return card && typeof card === "object" && (card as any).name
       ? null
-      : "The card is written but not on the stage yet. Add the line to the miris:card block, or let the step do it.";
+      : "miris/data.json still has no card. Press Write the label.";
   },
 
-  async cardSurface() {
+  async cardOverlay() {
     const block = readMarker(await readFile(STAGE, "utf8"), "card");
-    return block.includes("CardSurface")
+    return block.includes("<Card")
       ? null
-      : "The label is not drawn into the scene yet. Swap the line in the miris:card block, or let the step do it.";
+      : "The card is not over the canvas yet. Add the line to the miris:card block, or let the step do it.";
   },
 
-  async guideOff() {
-    const source = await readFile(MAIN, "utf8");
-    const live = source
-      .split("\n")
-      .some((l) => l.includes("<MirisGuide") && !l.trimStart().startsWith("//") && !l.includes("{/*"));
-    return live ? "app/main.tsx still renders <MirisGuide />. Comment that line out and save." : null;
+  async labelHtml() {
+    const block = readMarker(await readFile(STAGE, "utf8"), "label");
+    return block.includes("useHtmlTexture")
+      ? null
+      : "No useHtmlTexture call in the miris:label block yet. It goes above the return, or let the step do it.";
   },
+
+  async labelMesh() {
+    const block = readMarker(await readFile(STAGE, "utf8"), "card");
+    if (!block.includes("planeGeometry"))
+      return "No plane in the miris:card block yet. Swap the overlay for the mesh, or let the step do it.";
+    return block.includes("label.texture")
+      ? null
+      : "The plane is there but nothing maps the label texture onto it.";
+  },
+
 };
 
 /* The register that used to live in miris/skills/curator.md, when writing the
@@ -192,8 +196,10 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
         body_ = SNIPPETS[back as keyof typeof SNIPPETS];
       } else {
         const template = await readFile(TEMPLATE, "utf8");
-        const open = `{/* miris:${marker}-start */}`;
-        const close = `{/* miris:${marker}-end */}`;
+        // From markers.mjs, never rebuilt here: the label marker is a //-style
+        // comment, and a hardcoded JSX form made clearing it fail as unknown.
+        const open = markerStart(marker);
+        const close = markerEnd(marker);
         const a = template.indexOf(open);
         const b = template.indexOf(close);
         if (a === -1 || b === -1) return fail(`unknown marker: ${marker}`);
