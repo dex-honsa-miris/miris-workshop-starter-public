@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import type { Step, Sub } from "./curriculum";
 import type { Track } from "./tracks";
-import Build from "./Build";
+import { BuildInput, type BuildState } from "./Build";
 import { subName } from "./transition";
 import { detect, getPath, subscribePath } from "./htmlInCanvas";
 import { nextSub, subState } from "./progress";
@@ -28,6 +28,8 @@ export interface StepPaneProps {
   busy: string;
   /** What the last Done click found wrong, keyed by substep number. */
   problems: Record<string, string>;
+  /** Owned by Guide so the tray outlives step 1.2. */
+  build: BuildState;
   actions: StepActions;
 }
 
@@ -73,6 +75,7 @@ export default function StepPane({
   track,
   busy,
   problems,
+  build,
   actions,
 }: StepPaneProps) {
   // Browsing ahead via the rail shows a step that holds no current substep. The
@@ -136,7 +139,7 @@ export default function StepPane({
               </a>
             )}
 
-            {sub.panel && <Build track={track} />}
+            {sub.panel && <BuildInput build={build} />}
 
             {sub.fill && (
               <div className="mw-row">

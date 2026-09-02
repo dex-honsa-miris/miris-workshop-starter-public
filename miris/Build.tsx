@@ -36,19 +36,22 @@ function DotWave() {
   );
 }
 
-export default function Build({ track }: { track: Track }) {
+/* The state lives above the steps, in Guide. It used to live inside step 1.2's
+ * card, which unmounted the moment anyone advanced: step 1.3 tells attendees to
+ * make their Miris account while the model builds, so the four minute job lost
+ * its entire UI at exactly the point the curriculum sends them away from it. */
+export function useBuild(track: Track) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [prompt, setPrompt] = useState("");
   const [image, setImage] = useState("");
   const [glb, setGlb] = useState("");
   const [error, setError] = useState("");
   const [elapsed, setElapsed] = useState(0);
-  // Try again swaps the tray's own body for the prompt field, rather than
-  // sending the attendee back to the card behind it.
   const [again, setAgain] = useState(false);
+  const [small, setSmall] = useState(false);
 
-  // Both URLs are already on disk, written by the dev API. Without this,
-  // leaving step 1.2 loses a $1.40 result that is sitting in data.json.
+  // Both URLs are already on disk, written by the dev API. Without this, a
+  // reload loses a $1.40 result that is sitting in data.json.
   useEffect(() => {
     fetch("/api/miris")
       .then((r) => r.json())
@@ -92,6 +95,8 @@ export default function Build({ track }: { track: Track }) {
       const { url } = await call("image", { prompt });
       setImage(url);
       setPhase("review");
+      // A result that wants a decision opens itself, however it was left.
+      setSmall(false);
     } catch (e) {
       setError((e as Error).message);
       setPhase("idle");
@@ -105,6 +110,7 @@ export default function Build({ track }: { track: Track }) {
       const { url } = await call("model", { imageUrl: image, prompt });
       setGlb(url);
       setPhase("done");
+      setSmall(false);
     } catch (e) {
       setError((e as Error).message);
       setPhase("review");
@@ -119,9 +125,41 @@ export default function Build({ track }: { track: Track }) {
     setError("");
   };
 
-  const mmss = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
+  return {
+    track,
+    phase,
+    prompt,
+    setPrompt,
+    image,
+    glb,
+    error,
+    elapsed,
+    again,
+    setAgain,
+    small,
+    setSmall,
+    makeImage,
+    makeModel,
+    roll,
+    reset: () => setPhase("idle"),
+  };
+}
 
-  const promptField = (
+export type BuildState = ReturnType<typeof useBuild>;
+
+const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+/** What the minimized bar says, and whether it should look busy. */
+const status = (phase: Phase): { label: string; busy: boolean } => {
+  if (phase === "image") return { label: "Drawing", busy: true };
+  if (phase === "review") return { label: "Ready to review", busy: false };
+  if (phase === "model") return { label: "Building the mesh", busy: true };
+  return { label: "Model ready", busy: false };
+};
+
+function PromptField({ build }: { build: BuildState }) {
+  const { track, prompt, setPrompt, roll, makeImage } = build;
+  return (
     <>
       <div className="mw-prompt">
         <textarea
@@ -152,15 +190,59 @@ export default function Build({ track }: { track: Track }) {
       </button>
     </>
   );
+}
 
-  const tray = (
+/** Step 1.2's card. Only the field: everything the generation produces goes to
+ *  the tray, which outlives the step. */
+export function BuildInput({ build }: { build: BuildState }) {
+  return (
+    <div className="mw-build">
+      {build.phase === "idle" ? (
+        <PromptField build={build} />
+      ) : (
+        <p className="mw-note">Working in the tray, to the left.</p>
+      )}
+      {build.error && <p className="mw-error">{build.error}</p>}
+    </div>
+  );
+}
+
+export default function BuildTray({ build }: { build: BuildState }) {
+  const { track, phase, image, glb, error, elapsed, again, setAgain, small, setSmall, makeModel, reset } = build;
+  if (phase === "idle") return null;
+
+  const { label, busy } = status(phase);
+  const clock = phase === "image" || phase === "model" ? mmss(elapsed) : null;
+
+  if (small) {
+    return createPortal(
+      <button className="mw-tray-min" onClick={() => setSmall(false)} aria-expanded="false">
+        <i className="mw-tray-dot" data-busy={busy || undefined} aria-hidden="true" />
+        <span className="l12">{label}</span>
+        {clock && <span className="mw-tray-clock">{clock}</span>}
+        <span className="mw-tray-chev" aria-hidden="true">
+          &#9662;
+        </span>
+      </button>,
+      document.body,
+    );
+  }
+
+  return createPortal(
     <aside className="mw-tray" role="dialog" aria-label={`Building your ${track.noun}`}>
+      <header className="mw-tray-head">
+        <i className="mw-tray-dot" data-busy={busy || undefined} aria-hidden="true" />
+        <span className="mw-tray-eb l12">{again ? "Describe another" : label}</span>
+        <button className="mw-tray-fold" onClick={() => setSmall(true)} aria-label="Minimize">
+          &#9652;
+        </button>
+      </header>
+
       {phase === "image" && (
         <>
-          <span className="mw-tray-eb l12">Drawing</span>
           <div className="mw-loading">
             <DotWave />
-            <p className="mw-elapsed">{mmss}</p>
+            <p className="mw-elapsed">{clock}</p>
           </div>
           <p className="mw-note">About a minute.</p>
         </>
@@ -168,11 +250,10 @@ export default function Build({ track }: { track: Track }) {
 
       {phase === "review" && (
         <>
-          <span className="mw-tray-eb l12">{again ? "Describe another" : "Keep this one?"}</span>
           <img src={image} alt="Generated concept" />
           {again ? (
             <>
-              {promptField}
+              <PromptField build={build} />
               <button className="btn btn-ghost btn-sm" onClick={() => setAgain(false)}>
                 Cancel
               </button>
@@ -185,7 +266,7 @@ export default function Build({ track }: { track: Track }) {
               <button className="btn btn-secondary btn-sm" onClick={() => setAgain(true)}>
                 Try again
               </button>
-              <button className="btn btn-ghost btn-sm" onClick={() => setPhase("idle")}>
+              <button className="btn btn-ghost btn-sm" onClick={reset}>
                 Cancel
               </button>
             </div>
@@ -195,26 +276,26 @@ export default function Build({ track }: { track: Track }) {
 
       {phase === "model" && (
         <>
-          <span className="mw-tray-eb l12">Building</span>
-          <p className="mw-elapsed">{mmss}</p>
+          <div className="mw-loading">
+            <DotWave />
+            <p className="mw-elapsed">{clock}</p>
+          </div>
           <div className="mw-stages">
             <div data-on>fal queued the job</div>
             <div data-on={elapsed > 8 || undefined}>reconstructing geometry</div>
             <div data-on={elapsed > 90 || undefined}>baking textures</div>
             <div data-on={elapsed > 200 || undefined}>packing the mesh</div>
           </div>
-          <img src={image} alt="Your concept" className="mw-dim" />
           <p className="mw-note">Four to six minutes. Make your Miris account while you wait.</p>
           <a className="btn btn-secondary btn-sm mw-goto" href={PORTAL_URL} target="_blank" rel="noopener">
             Open Miris &rarr;
           </a>
-          <p className="mw-note">Safe to leave this. The result is saved, and a reload brings it back.</p>
+          <p className="mw-note">Safe to minimize. The result is saved, and a reload brings it back.</p>
         </>
       )}
 
       {phase === "done" && (
         <>
-          <span className="mw-tray-eb l12">Ready</span>
           <img src={image} alt="Your concept" />
           <a className="btn btn-primary btn-sm mw-goto" href={glb} download target="_blank" rel="noopener">
             Download .glb
@@ -224,15 +305,7 @@ export default function Build({ track }: { track: Track }) {
       )}
 
       {error && <p className="mw-error">{error}</p>}
-    </aside>
-  );
-
-  return (
-    <>
-      <div className="mw-build">{phase === "idle" && promptField}</div>
-      {/* Portalled: the pane animates with a transform on every step change, and
-          a fixed element inside a transformed ancestor positions against it. */}
-      {phase !== "idle" && createPortal(tray, document.body)}
-    </>
+    </aside>,
+    document.body,
   );
 }

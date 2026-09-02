@@ -416,7 +416,69 @@ a:hover { text-decoration: underline; }
   }
 }
 
+/* ── the tray's header and its minimized state ────────────
+   Minimized rather than dismissed: the mesh runs for four to six minutes
+   across several steps, so the tray has to be leaveable without being lost.
+   Same right edge as the open tray, so expanding does not move it. */
+.mw-tray-min {
+  position: fixed;
+  top: calc(16px + env(safe-area-inset-top));
+  right: calc(min(408px, 100vw) + 16px);
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: var(--mono-900);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-m);
+  color: var(--mono-400);
+  font: 400 14px/1 var(--sans);
+  cursor: pointer;
+  animation: mw-tray-in var(--mo-reveal) var(--ease-in) both;
+}
+.mw-tray-min:hover { border-color: var(--mono-700); color: var(--mono-200); }
+.mw-tray-min .l12 { color: var(--mono-400); }
+.mw-tray-min:hover .l12 { color: var(--mono-200); }
+.mw-tray-clock { font: 400 12px/1 var(--mono); color: var(--mono-600); }
+.mw-tray-chev { font-size: 10px; color: var(--mono-600); }
+
+@media (max-width: 720px) {
+  .mw-tray-min { right: 16px; }
+}
+
+/* Steady while there is something to act on, breathing while fal is working.
+   Reuses the loader's curve so the two read as the same process. */
+.mw-tray-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--mono-600);
+}
+.mw-tray-dot[data-busy] {
+  background: var(--accent);
+  animation: mw-dot 3.2s ease-in-out infinite;
+}
+
+.mw-tray-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mw-tray-fold {
+  margin-left: auto;
+  background: none;
+  border: 0;
+  padding: 0 2px;
+  font: 400 11px/1 var(--sans);
+  color: var(--mono-600);
+  cursor: pointer;
+}
+.mw-tray-fold:hover { color: var(--mono-200); }
+
 .mw-tray-eb { color: var(--accent); }
+.mw-tray-head .mw-tray-eb { flex: none; }
 /* Same box as the skeleton it replaces, held from the first frame: without the
    aspect ratio the img mounts at zero height until its bytes arrive, and the
    reveal shoves everything below it. cover in case fal ever returns
