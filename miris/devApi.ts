@@ -262,6 +262,21 @@ export function mirisDevApi(mode: string): Plugin {
     name: "miris-dev-api",
     // Dev only, by construction. There is no production counterpart.
     apply: "serve",
+
+    /* Every Fill rewrites app/stage.tsx, and a Fast Refresh remount leaves the
+     * SDK's own scene objects behind: measured two SparkRenderers in one scene
+     * after a paste, which draws the splats twice with separate sort state and
+     * reads as the model smearing as the camera moves. The engine registers
+     * those objects and does not remove them on unmount, so the fix is not to
+     * remount. A reload is cheap here: every bit of state lives in data.json
+     * and the stage reads itself back off disk. */
+    handleHotUpdate({ file, server }) {
+      if (file === STAGE) {
+        server.hot.send({ type: "full-reload" });
+        return [];
+      }
+    },
+
     configureServer(server) {
       server.middlewares.use("/api/miris", async (req, res, next) => {
         try {
