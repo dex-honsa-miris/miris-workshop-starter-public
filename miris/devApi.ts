@@ -5,7 +5,7 @@ import { loadEnv, type Plugin } from "vite";
 import { readMarker, replaceMarker } from "./markers.mjs";
 import { readData, writeData } from "./store.mjs";
 import { CLEARS_TO, MARKER_FOR, SNIPPETS } from "./snippets.mjs";
-import { IMAGE_MODEL, MODEL_3D } from "./config";
+import { IMAGE_FRAMING, IMAGE_MODEL, MODEL_3D } from "./config";
 import { TRACKS } from "./tracks";
 
 /* Dev only, by construction: configureServer has no production counterpart, so
@@ -199,7 +199,7 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
       const track = TRACKS.find((t) => t.id === stored.track);
       if (!track) return fail("No track chosen yet. Pick one on the chooser first.");
       const out: any = await falRun(IMAGE_MODEL, {
-        prompt: `${track.style}: ${body.prompt}`,
+        prompt: `${track.style}: ${body.prompt}. ${IMAGE_FRAMING}`,
         image_size: "square_hd",
         num_images: 1,
         quality: "medium",
