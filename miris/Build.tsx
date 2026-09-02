@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import Chevron from "./Chevron";
 import { PORTAL_URL } from "./config";
 import type { Track } from "./tracks";
 
@@ -149,22 +150,6 @@ export type BuildState = ReturnType<typeof useBuild>;
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
-/** The tray folds up into the bar and the bar opens back down, so one chevron
- *  turned two ways carries both directions. */
-function Chevron({ up }: { up?: boolean }) {
-  return (
-    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-      <path
-        d={up ? "M4 10l4-4 4 4" : "M4 6l4 4 4-4"}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 /** What the minimized bar says, and whether it should look busy. */
 const status = (phase: Phase): { label: string; busy: boolean } => {

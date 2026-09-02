@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { Step, Sub } from "./curriculum";
 import type { Track } from "./tracks";
 import { BuildInput, type BuildState } from "./Build";
+import Chevron from "./Chevron";
 import Code from "./highlight";
 import { PARTS } from "./snippets.mjs";
 import { subName } from "./transition";
@@ -259,10 +260,13 @@ export default function StepPane({
             )}
 
             {sub.explain && (
-              <p className="mw-why">
-                <b className="l12">Why</b>
-                {sub.explain}
-              </p>
+              <details className="mw-why">
+                <summary className="l12">
+                  Why
+                  <Chevron />
+                </summary>
+                <p>{sub.explain}</p>
+              </details>
             )}
 
             {problems[sub.num] && (
