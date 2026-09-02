@@ -290,7 +290,7 @@ a:hover { text-decoration: underline; }
    rather than imposed. A details element rather than state: keyboard and
    find-in-page both work on it for free. */
 .mw-why {
-  margin: 0 0 4px;
+  margin: 0;
   padding: 10px 12px;
   background: var(--mono-1000);
   border-left: 2px solid var(--mono-700);
@@ -545,7 +545,6 @@ a:hover { text-decoration: underline; }
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 12px;
 }
 /* The children carried their own top margins when this was a dialog, which the
    gap now doubles. */
@@ -900,22 +899,33 @@ a:hover { text-decoration: underline; }
 .mw-line[data-state="here"] .k { color: var(--accent); }
 .mw-line[data-state="here"] .ttl { color: var(--mono-000); }
 
-.mw-backrow { margin: var(--space-s) 0 0; }
+.mw-backrow { margin: 4px 0 0; }
 
 /* 4px because it is nested inside the 8px panel. */
+/* One spacing model: a column with a gap, not per-neighbor margins. Three
+   rounds of "this button is too close to the text above it" came from sibling
+   rules that each knew about one pairing and missed the next one added. */
 .mw-now {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
   background: var(--mono-1000);
   border: 1px solid var(--border);
   border-radius: var(--radius-s);
   padding: var(--space-s);
   margin: 8px 0 10px;
 }
-.mw-now-eb { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+/* Content-width controls stay content-width under stretch; Done and the snag
+   keep the full row deliberately. */
+.mw-now > .btn { align-self: flex-start; }
+.mw-now > .mw-next { align-self: stretch; }
+.mw-now-eb { display: flex; align-items: center; gap: 8px; }
 .mw-now-eb .l12 { color: var(--accent); }
 .mw-now-eb .mw-lod { margin-left: auto; grid-auto-flow: column; grid-template-rows: none; height: 10px; }
 .mw-now-eb .mw-lod i { width: 3px; }
 .mw-now-title {
-  margin: 0 0 8px;
+  margin: 0;
   font-family: var(--sans);
   font-size: 18px;
   line-height: 24px;
@@ -923,19 +933,7 @@ a:hover { text-decoration: underline; }
   color: var(--text-primary);
 }
 .mw-now p { max-width: 51ch; }
-.mw-now pre + a,
-/* Not the copy control, which is positioned on the block rather than following
-   it. This selector is (0,1,2) and out-specifies .mw-copy, so excluding it here
-   is the fix; a margin on .mw-copy loses. */
-.mw-now pre + button:not(.mw-copy),
-.mw-now pre + .mw-row,
-.mw-now pre + details,
-.mw-now pre + p {
-  margin-top: var(--space-s);
-}
-
 .mw-now pre {
-  margin: 10px 0 0;
   background: var(--mono-900);
   border: 1px solid var(--border);
   border-radius: var(--radius-s);
@@ -980,16 +978,16 @@ a:hover { text-decoration: underline; }
 .mw-copy:hover { color: var(--mono-200); border-color: var(--mono-700); }
 
 /* Both are escape hatches from typing it yourself, so neither takes a fill. */
-.mw-autorow { margin: 10px 0 0; gap: 2px; }
+.mw-autorow { margin: 0; gap: 2px; }
 .mw-autorow .btn-ghost { padding-left: 0; padding-right: 8px; }
 
-.mw-next { width: 100%; margin-top: var(--space-s); }
+.mw-next { width: 100%; margin-top: 4px; }
 
 /* What Done found wrong. Sits directly above the button that produced it, and
    takes the accent rather than a red: nothing has broken, the step is not
    finished yet. */
 .mw-snag {
-  margin: 10px 0 0;
+  margin: 0;
   padding: 9px 11px;
   background: var(--mono-1000);
   border-left: 2px solid var(--accent);

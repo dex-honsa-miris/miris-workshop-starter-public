@@ -80,14 +80,14 @@ export const STEPS: Step[] = [
           "One line, and the whole scene changes. Add it under the pedestal, inside the same miris:scene block, and watch what happens to the plinth.",
         fill: "environment",
         explain:
-          "An HDR image lights the scene from every direction at once, which is what makes a surface look like it is in a real room rather than under a lamp. Note the intensity is 1.6, not the 0.6 a normal scene wants. This canvas renders in linear colour space, which darkens everything else, so the environment is pushed up to compensate.",
+          "An HDR image lights the scene from every direction at once, which is what makes a surface look like it is in a real room rather than under a lamp. It lights the pedestal, not the stream: splats arrive with their lighting baked in at capture, so the environment's whole job is making the furniture look like it belongs in the same room as the asset. The intensity is 1.6 rather than the 0.6 a normal scene wants, because this canvas renders in linear colour space, which darkens everything else.",
         check: "environment",
       },
       {
         num: "2.3",
         title: "Make your Miris account",
         body:
-          "You are one step from streaming, and streaming needs an account. Sign up at app.miris.com, then upload the .glb step 1.2 gives you. Do it now rather than later: the mesh is still building, and processing the upload takes a few minutes of its own. You need two things from the portal afterwards, at step 4: the asset uuid and a viewer key.",
+          "You are one step from streaming, and streaming needs an account. Sign up at app.miris.com now, while the mesh builds; when the tray says Model ready, download the .glb and upload it there. Processing takes a few minutes of its own, so the earlier it starts the better. You need two things from the portal afterwards, at step 4: the asset uuid and a viewer key.",
         link: { href: PORTAL_URL, label: "Open Miris" },
       },
       {
@@ -138,7 +138,7 @@ export const STEPS: Step[] = [
         num: "4.3",
         title: "Watch the swap",
         body:
-          "It already happened when you saved: your own asset is streaming onto the same pedestal, under the same lighting, through the same camera.",
+          "It already happened when you saved: your own asset is streaming onto the same pedestal, through the same camera, carrying its own light. Splats are baked at capture, so it arrives already lit.",
         explain:
           "Nothing about your scene changed except where the geometry comes from. The pedestal, the environment, the camera and the render loop are identical. That is the whole point of this workshop: streaming is a delivery change, not a rendering change. You did not load a file that happened to be big. You subscribed to something that arrives at whatever detail the view justifies.",
       },

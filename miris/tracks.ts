@@ -1,7 +1,7 @@
 export interface Track {
   id: string;
   label: string;
-  /** One line on the door: what you make, then what the agent adds. Two-part
+  /** One line on the door: what you make, then what the label adds. Two-part
    *  rhythm, sentence case, no em-dashes. Kept short because the chooser has to
    *  fit a 2/3-width preview pane at 720px tall. */
   blurb: string;
@@ -52,7 +52,7 @@ export const TRACKS: Track[] = [
   {
     id: "summon",
     label: "Summon",
-    blurb: "You make a creature. An agent gives it a rarity, two abilities and a line of lore.",
+    blurb: "You make a creature. It gets a name, an ability and a line of lore.",
     noun: "creature",
     accent: "#FF3500",
     image: "/tracks/summon.webp",
@@ -85,7 +85,7 @@ export const TRACKS: Track[] = [
   {
     id: "atelier",
     label: "Atelier",
-    blurb: "You make a product. An agent writes its materials and edition number.",
+    blurb: "You make a product. It gets its materials, a price and an edition.",
     noun: "product",
     accent: "#FF9500",
     image: "/tracks/atelier.webp",
@@ -118,7 +118,7 @@ export const TRACKS: Track[] = [
   {
     id: "reliquary",
     label: "Reliquary",
-    blurb: "You make an artifact. An agent gives it a date, a place and a provenance.",
+    blurb: "You make an artifact. It gets a date, a place and a provenance.",
     noun: "artifact",
     accent: "#00D5FF",
     image: "/tracks/reliquary.webp",
