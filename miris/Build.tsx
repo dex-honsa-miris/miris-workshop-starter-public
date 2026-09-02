@@ -37,7 +37,7 @@ function DotWave() {
 }
 
 /* The state lives above the steps, in Guide. It used to live inside step 1.2's
- * card, which unmounted the moment anyone advanced: step 1.3 tells attendees to
+ * card, which unmounted the moment anyone advanced: step 2.3 tells attendees to
  * make their Miris account while the model builds, so the four minute job lost
  * its entire UI at exactly the point the curriculum sends them away from it. */
 export function useBuild(track: Track) {

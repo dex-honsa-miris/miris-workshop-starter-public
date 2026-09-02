@@ -80,7 +80,7 @@ adds a stage list, because a spinner tells you nothing across minutes.
 
 - `app/stage.tsx` is the attendee's file. It ships with marker comments and the
   sidebar writes between them. The `extend({ MirisStream })` at the top is what
-  makes `<mirisStream>` an ordinary scene node; step 2.3 explains it.
+  makes `<mirisStream>` an ordinary scene node; step 2.4 explains it.
 - `app/main.tsx` mounts the stage and the guide. Attendees edit it once, at
   step 5.2, to remove the guide.
 - `miris/devApi.ts` is the only server code: it writes files, proxies

@@ -85,6 +85,13 @@ const CHECKS: Record<string, (mode: string) => Promise<string | null>> = {
       : "The card is written but not on the stage yet. Press Fill in app/stage.tsx.";
   },
 
+  async cardSurface() {
+    const block = readMarker(await readFile(STAGE, "utf8"), "card");
+    return block.includes("CardSurface")
+      ? null
+      : "The label is not drawn into the scene yet. Press Fill in app/stage.tsx.";
+  },
+
   async guideOff() {
     const source = await readFile(MAIN, "utf8");
     const live = source

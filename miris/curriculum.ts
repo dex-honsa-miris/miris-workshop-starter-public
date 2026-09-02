@@ -57,13 +57,6 @@ export const STEPS: Step[] = [
         panel: true,
         check: "image",
       },
-      {
-        num: "1.3",
-        title: "Make your Miris account",
-        body:
-          "Do this while the 3D model generates, because that takes four to six minutes. Sign up at app.miris.com, then upload the .glb step 1.2 gives you. Processing takes a few more minutes. You need two things from the portal afterwards: the asset uuid and a viewer key.",
-        link: { href: PORTAL_URL, label: "Open Miris" },
-      },
     ],
   },
   {
@@ -92,6 +85,13 @@ export const STEPS: Step[] = [
       },
       {
         num: "2.3",
+        title: "Make your Miris account",
+        body:
+          "You are one step from streaming, and streaming needs an account. Sign up at app.miris.com, then upload the .glb step 1.2 gives you. Do it now rather than later: the mesh is still building, and processing the upload takes a few minutes of its own. You need two things from the portal afterwards, at step 4: the asset uuid and a viewer key.",
+        link: { href: PORTAL_URL, label: "Open Miris" },
+      },
+      {
+        num: "2.4",
         title: "Your first stream",
         body:
           "This uses our demo asset so you can see it working before yours is ready. Yours goes in at step 4.",
@@ -129,7 +129,7 @@ export const STEPS: Step[] = [
         num: "4.1",
         title: "Upload your model",
         body:
-          "You started this at step 1.3. Back in the Miris portal, check your upload has finished processing, then copy two values: the asset uuid from the asset page, and a viewer key from your account settings. The viewer key is what lets a browser read your asset without logging anyone in.",
+          "You started this at step 2.3. Back in the Miris portal, check your upload has finished processing, then copy two values: the asset uuid from the asset page, and a viewer key from your account settings. The viewer key is what lets a browser read your asset without logging anyone in.",
         link: { href: PORTAL_URL, label: "Open Miris" },
       },
       {
@@ -182,7 +182,7 @@ export const STEPS: Step[] = [
         renderPath: true,
         explain:
           "Chrome can now draw a live DOM element straight into a canvas, so the card keeps your CSS and updates when the text does. Where that is not available the same element is serialised into an SVG foreignObject and drawn as an image, which is the trick that has worked for a decade. Same card, same position, same geometry. The fallback loses your webfont, which is the visible difference between the two. One thing this example does not get: normally the drawn element stays selectable and readable by a screen reader, because the canvas showing it is the canvas holding it. This one goes through a texture into WebGL, so it is pixels by the time you see it.",
-        check: "guideOff",
+        check: "cardSurface",
       },
       {
         num: "5.3",
@@ -190,6 +190,7 @@ export const STEPS: Step[] = [
         body:
           "Open app/main.tsx and comment out the MirisGuide line. The panel disappears and your app stays exactly as you built it. The Miris styling stays too, because index.html loads it, not the guide.",
         code: "{/* <MirisGuide /> */}",
+        check: "guideOff",
       },
       {
         num: "5.4",
