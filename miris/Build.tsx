@@ -149,6 +149,23 @@ export type BuildState = ReturnType<typeof useBuild>;
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
+/** The tray folds up into the bar and the bar opens back down, so one chevron
+ *  turned two ways carries both directions. */
+function Chevron({ up }: { up?: boolean }) {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <path
+        d={up ? "M4 10l4-4 4 4" : "M4 6l4 4 4-4"}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /** What the minimized bar says, and whether it should look busy. */
 const status = (phase: Phase): { label: string; busy: boolean } => {
   if (phase === "image") return { label: "Drawing", busy: true };
@@ -220,8 +237,8 @@ export default function BuildTray({ build }: { build: BuildState }) {
         <i className="mw-tray-dot" data-busy={busy || undefined} aria-hidden="true" />
         <span className="l12">{label}</span>
         {clock && <span className="mw-tray-clock">{clock}</span>}
-        <span className="mw-tray-chev" aria-hidden="true">
-          &#9662;
+        <span className="mw-tray-chev">
+          <Chevron />
         </span>
       </button>,
       document.body,
@@ -233,8 +250,8 @@ export default function BuildTray({ build }: { build: BuildState }) {
       <header className="mw-tray-head">
         <i className="mw-tray-dot" data-busy={busy || undefined} aria-hidden="true" />
         <span className="mw-tray-eb l12">{again ? "Describe another" : label}</span>
-        <button className="mw-tray-fold" onClick={() => setSmall(true)} aria-label="Minimize">
-          &#9652;
+        <button className="mw-tray-fold" onClick={() => setSmall(true)} aria-label="Minimize the tray">
+          <Chevron up />
         </button>
       </header>
 

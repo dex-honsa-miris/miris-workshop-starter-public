@@ -455,7 +455,8 @@ a:hover { text-decoration: underline; }
 .mw-tray-min .l12 { color: var(--mono-400); }
 .mw-tray-min:hover .l12 { color: var(--mono-200); }
 .mw-tray-clock { font: 400 12px/1 var(--mono); color: var(--mono-600); }
-.mw-tray-chev { font-size: 10px; color: var(--mono-600); }
+.mw-tray-chev { display: grid; place-items: center; color: var(--mono-600); }
+.mw-tray-min:hover .mw-tray-chev { color: var(--mono-200); }
 
 @media (max-width: 720px) {
   .mw-tray-min { right: 16px; }
@@ -480,16 +481,24 @@ a:hover { text-decoration: underline; }
   align-items: center;
   gap: 10px;
 }
+/* A 24px target, not a glyph: the character it used to draw was 11px of
+   sans-serif triangle and read as a speck. */
 .mw-tray-fold {
   margin-left: auto;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
   background: none;
-  border: 0;
-  padding: 0 2px;
-  font: 400 11px/1 var(--sans);
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
   color: var(--mono-600);
   cursor: pointer;
+  transition: color var(--mo-color) var(--ease-micro),
+              border-color var(--mo-color) var(--ease-micro);
 }
-.mw-tray-fold:hover { color: var(--mono-200); }
+.mw-tray-fold:hover { color: var(--mono-200); border-color: var(--mono-800); }
 
 .mw-tray-eb { color: var(--accent); }
 .mw-tray-head .mw-tray-eb { flex: none; }
@@ -952,6 +961,20 @@ a:hover { text-decoration: underline; }
   overflow-x: auto;
   color: var(--text-secondary);
 }
+
+/* ── snippet colouring ────────────────────────────────────
+   Two hues and the mono ramp, both already in the palette: the accent for
+   structure, the link violet for values. A code block is not the place to
+   introduce colours the rest of the guide does not have, and no italics,
+   because the kit ships none and the browser would synthesise them. */
+.tok-tag { color: var(--accent); }
+.tok-attr { color: var(--mono-200); }
+.tok-str,
+.tok-num { color: var(--link); }
+.tok-const { color: var(--mono-200); }
+.tok-word { color: var(--mono-400); }
+.tok-punct { color: var(--mono-600); }
+.tok-comment { color: var(--mono-700); }
 
 /* The snippet is the step's instruction now, not a decoration beside a button,
    so the copy control sits on it the way the dice sits in the prompt field. */

@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { Step, Sub } from "./curriculum";
 import type { Track } from "./tracks";
 import { BuildInput, type BuildState } from "./Build";
+import Code from "./highlight";
 import { PARTS } from "./snippets.mjs";
 import { subName } from "./transition";
 import { detect, getPath, subscribePath } from "./htmlInCanvas";
@@ -92,7 +93,9 @@ function Snippet({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <div className="mw-snip">
-      <pre className="k14">{code}</pre>
+      <pre className="k14">
+        <Code code={code} />
+      </pre>
       <button
         type="button"
         className="mw-copy l12"
@@ -195,7 +198,11 @@ export default function StepPane({
             <h3 className="mw-now-title">{withNoun(sub.title, track.noun)}</h3>
             <p className="c14">{withNoun(sub.body, track.noun)}</p>
             {sub.renderPath && <RenderPathBadge />}
-            {sub.code && <pre className="k14">{sub.code}</pre>}
+            {sub.code && (
+              <pre className="k14">
+                <Code code={sub.code} />
+              </pre>
+            )}
 
             {sub.link && (
               <a
