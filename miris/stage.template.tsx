@@ -10,7 +10,7 @@ import { DEMO_UUID, VIEWER_KEY } from "../miris/config";
 // A Miris stream is now a scene node: <mirisStream args={[{ uuid, viewerKey }]} />
 extend({ MirisStream });
 
-// Your file. The sidebar writes between the miris: comments.
+// Your file. Each step's code goes between the miris: comments below.
 export default function Stage() {
   const [data, setData] = useState<any>(null);
 
@@ -38,10 +38,15 @@ export default function Stage() {
       style={{ position: "fixed", inset: 0 }}
     >
       <hemisphereLight args={[0xffffff, 0x223044, 2.2]} />
+
       {/* miris:scene-start */}
+      {/* Steps 2.1, 2.2 and 2.4 go here, in that order. */}
       {/* miris:scene-end */}
+
       {/* miris:card-start */}
+      {/* Steps 5.1 and 5.2 go here. */}
       {/* miris:card-end */}
+
       <OrbitControls makeDefault target={[0, 0.9, 0]} />
     </Canvas>
   );

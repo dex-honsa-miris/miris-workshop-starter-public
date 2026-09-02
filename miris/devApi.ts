@@ -41,14 +41,14 @@ const CHECKS: Record<string, (mode: string) => Promise<string | null>> = {
 
   async image() {
     const { imageUrl } = await readData(MIRIS_DIR);
-    return imageUrl ? null : "No image yet. Open the panel and generate one.";
+    return imageUrl ? null : "No image yet. Write a prompt at step 1.2 and generate one.";
   },
 
   async pedestal() {
     const block = readMarker(await readFile(STAGE, "utf8"), "scene");
     return block.includes("cylinderGeometry")
       ? null
-      : "The scene block in app/stage.tsx is still empty. Paste the snippet between the miris:scene comments, or let the step do it.";
+      : "The scene block in app/stage.tsx has no pedestal in it yet. Paste the snippet between the miris:scene comments, or let the step do it.";
   },
 
   async environment() {
@@ -77,7 +77,7 @@ const CHECKS: Record<string, (mode: string) => Promise<string | null>> = {
   async card() {
     const { card } = await readData(MIRIS_DIR);
     if (!card || typeof card !== "object" || !(card as any).name) {
-      return "miris/data.json still has no card. Paste miris/skills/curator.md into your agent, then press the button.";
+      return "miris/data.json still has no card. Paste miris/skills/curator.md into your agent, then add the line below.";
     }
     const block = readMarker(await readFile(STAGE, "utf8"), "card");
     return block.includes("Card")
@@ -157,7 +157,11 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
       const a = template.indexOf(open);
       const b = template.indexOf(close);
       if (a === -1 || b === -1) return fail(`unknown marker: ${marker}`);
-      const blank = template.slice(a + open.length, b).trim();
+      // Leading newlines and all trailing space, but not the leading indent:
+      // the template's block carries the six columns that line its comment up
+      // with the JSX, and trim() restored it at column 0. With this, a Clear
+      // puts stage.tsx back byte-identical to the template.
+      const blank = template.slice(a + open.length, b).replace(/^\n+/, "").replace(/\s+$/, "");
       const source = await readFile(STAGE, "utf8");
       await writeFile(STAGE, replaceMarker(source, marker, blank));
       return ok({ ok: true, marker });
