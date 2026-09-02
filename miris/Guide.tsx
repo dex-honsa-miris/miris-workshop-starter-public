@@ -5,7 +5,6 @@ import { transition } from "./transition";
 import { nextSub, stepOfSub } from "./progress";
 import Rail from "./Rail";
 import StepPane, { type StepActions } from "./Step";
-import { MARKER_FOR } from "./snippets.mjs";
 import { trackById } from "./tracks";
 import Start from "./Start";
 import "./guide.css";
@@ -100,9 +99,13 @@ export default function MirisGuide() {
 
   const clear = async (snippetId: string) => {
     try {
-      const marker = MARKER_FOR[snippetId] ?? "scene";
-      const r = await post({ action: "reset", marker });
-      setNote(r.ok ? `Cleared the ${marker} block. Re-fill the last step to bring it back.` : r.problem!);
+      const r = await post({ action: "clear", snippetId });
+      if (!r.ok) return setNote(r.problem!);
+      setNote(
+        r.data.back
+          ? "Cleared this step. The steps before it are still in place."
+          : "Cleared the block.",
+      );
     } catch (e) {
       setNote(`Could not clear the block: ${(e as Error).message}`);
     }

@@ -4,7 +4,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { loadEnv, type Plugin } from "vite";
 import { readMarker, replaceMarker } from "./markers.mjs";
 import { readData, writeData } from "./store.mjs";
-import { MARKER_FOR, SNIPPETS } from "./snippets.mjs";
+import { CLEARS_TO, MARKER_FOR, SNIPPETS } from "./snippets.mjs";
 import { IMAGE_MODEL, MODEL_3D } from "./config";
 import { TRACKS } from "./tracks";
 
@@ -149,22 +149,33 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
       return ok({ ok: true, marker });
     }
 
-    case "reset": {
-      const marker = String(body.marker ?? "");
-      const template = await readFile(TEMPLATE, "utf8");
-      const open = `{/* miris:${marker}-start */}`;
-      const close = `{/* miris:${marker}-end */}`;
-      const a = template.indexOf(open);
-      const b = template.indexOf(close);
-      if (a === -1 || b === -1) return fail(`unknown marker: ${marker}`);
-      // Leading newlines and all trailing space, but not the leading indent:
-      // the template's block carries the six columns that line its comment up
-      // with the JSX, and trim() restored it at column 0. With this, a Clear
-      // puts stage.tsx back byte-identical to the template.
-      const blank = template.slice(a + open.length, b).replace(/^\n+/, "").replace(/\s+$/, "");
+    case "clear": {
+      const id = String(body.snippetId ?? "");
+      const marker = MARKER_FOR[id as keyof typeof MARKER_FOR];
+      if (!marker) return fail(`unknown snippet: ${id}`);
+
+      // One step back, not the whole marker.
+      const back = CLEARS_TO[id as keyof typeof CLEARS_TO];
+      let body_: string;
+      if (back) {
+        body_ = SNIPPETS[back as keyof typeof SNIPPETS];
+      } else {
+        const template = await readFile(TEMPLATE, "utf8");
+        const open = `{/* miris:${marker}-start */}`;
+        const close = `{/* miris:${marker}-end */}`;
+        const a = template.indexOf(open);
+        const b = template.indexOf(close);
+        if (a === -1 || b === -1) return fail(`unknown marker: ${marker}`);
+        // Leading newlines and all trailing space, but not the leading indent:
+        // the template's block carries the six columns that line its comment up
+        // with the JSX, and trim() restored it at column 0. With this, a Clear
+        // puts stage.tsx back byte-identical to the template.
+        body_ = template.slice(a + open.length, b).replace(/^\n+/, "").replace(/\s+$/, "");
+      }
+
       const source = await readFile(STAGE, "utf8");
-      await writeFile(STAGE, replaceMarker(source, marker, blank));
-      return ok({ ok: true, marker });
+      await writeFile(STAGE, replaceMarker(source, marker, body_));
+      return ok({ ok: true, marker, back: back ?? null });
     }
 
     case "save":
