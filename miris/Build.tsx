@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Chevron from "./Chevron";
 import { PORTAL_URL } from "./config";
@@ -174,13 +174,33 @@ export function useBuild(track: Track) {
     }
   };
 
-  // Excludes whatever is already in the box: a dice that hands back the same
-  // phrase reads as broken rather than random.
+  // A shuffle bag, not a fresh draw: uniform draws from a small pool ping-pong
+  // between the same few phrases, which reads as a broken dice. Dealing the
+  // whole deck before any repeat is what people mean by random.
+  const bag = useRef<string[]>([]);
   const roll = () => {
-    const pool = track.prompts.filter((p) => p !== prompt.trim());
-    setPrompt(pool[Math.floor(Math.random() * pool.length)] ?? track.prompts[0]);
+    if (bag.current.length === 0) {
+      const deck = [...track.prompts];
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      bag.current = deck;
+    }
+    let next = bag.current.pop()!;
+    // The reshuffle seam can deal the phrase already in the box twice running.
+    if (next === prompt.trim() && bag.current.length > 0) {
+      bag.current.unshift(next);
+      next = bag.current.pop()!;
+    }
+    setPrompt(next);
     setError("");
   };
+
+  // A different track is a different deck.
+  useEffect(() => {
+    bag.current = [];
+  }, [track.id]);
 
   return {
     track,
