@@ -204,7 +204,21 @@ a:hover { text-decoration: underline; }
   color: var(--mono-000);
 }
 
+/* Pushed right by the auto margin, with the close button beyond it: the corner
+   belongs to the control, not the mark. Sized off the cap height of the title
+   beside it, and dimmed, because it identifies the tool rather than competing
+   with the step in hand. */
+.mw-mark {
+  margin-left: auto;
+  height: 13px;
+  width: auto;
+  display: block;
+  opacity: 0.55;
+  align-self: center;
+}
+
 .mw-hide {
+  align-self: center;
   background: none;
   border: 0;
   color: var(--mono-600);
@@ -882,9 +896,9 @@ a:hover { text-decoration: underline; }
 }
 .mw-line[data-state="done"] .k { color: var(--mono-700); }
 
-/* Finished substeps reopen for reading, and the pointer can be returned to.
-   Substeps still ahead stay inert: nothing has happened in them to look at,
-   and offering them would read as permission to skip. */
+/* Every substep opens for reading, ahead ones included. The pointer does not
+   move by reading, so this is not a way to skip; it is how anyone works out
+   whether to push on or stop for coffee. */
 .mw-line[data-reachable] { cursor: pointer; }
 .mw-line[data-reachable]:hover .ttl { color: var(--mono-200); }
 .mw-line[data-reachable]:hover .k { color: var(--mono-400); }

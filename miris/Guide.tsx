@@ -242,6 +242,7 @@ export default function MirisGuide() {
       <aside className="mw-panel" style={trackVars}>
         <header className="mw-head">
           <b className="b14">Spatial streaming</b>
+          <img className="mw-mark" src="/kit/assets/miris-logo-white.svg" alt="Miris" />
           <button className="mw-hide" onClick={() => setOpen(false)} aria-label="Hide the guide">
             ×
           </button>

@@ -105,10 +105,10 @@ export default function StepPane({
         const state = subState(sub.num, currentSubNum);
 
         if (sub.num !== openSubNum) {
-          // Finished substeps can be re-read; the pointer can be returned to.
-          // Substeps still ahead are not offered, since nothing has happened
-          // in them to look at.
-          const reachable = state === "done" || state === "here";
+          // Every substep opens, ahead ones included: reading what is coming is
+          // how anyone decides whether to keep going now or take a break. The
+          // pointer does not move by reading, so this is not a way to skip.
+          const reachable = true;
           return (
             <div
               key={sub.num}
