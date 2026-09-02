@@ -132,7 +132,7 @@ export default function MirisGuide() {
     // creature prompt turned up under Atelier.
     const patch: Record<string, unknown> =
       id && id !== data.track
-        ? { track: id, prompt: "", imageUrl: "", falRequestId: "", glb: "", card: null }
+        ? { track: id, prompt: "", imageUrl: "", falRequestId: "", modelStartedAt: 0, glb: "", card: null }
         : { track: id };
     const saved = await post({ action: "save", patch });
     if (!saved.ok) return setNote(saved.problem!);

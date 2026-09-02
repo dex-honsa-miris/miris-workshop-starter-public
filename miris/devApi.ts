@@ -122,7 +122,7 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
 
     // Recorded before the wait, so a dev server killed mid-generation costs
     // nothing: the job is still findable on fal.
-    if (recordIn) await writeData(recordIn, { falRequestId: job.request_id ?? "" });
+    if (recordIn) await writeData(recordIn, { falRequestId: job.request_id ?? "", modelStartedAt: Date.now() });
 
     for (let i = 0; i < 300; i++) {
       await new Promise((r) => setTimeout(r, 5000));
@@ -215,20 +215,32 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
       const stored = await readData(MIRIS_DIR);
       const track = TRACKS.find((t) => t.id === stored.track);
       if (!track) return fail("No track chosen yet. Pick one on the chooser first.");
-      const out: any = await falRun(
-        MODEL_3D,
-        {
-          image_url: body.imageUrl,
-          // Styled the same way the image was. The mesh takes its look from the
-          // image, but the texture pass reads this, and it was the one call in
-          // the workflow the track never reached.
-          texture_prompt: `${track.style}: ${body.prompt ?? ""}`,
-          ...MESHY_INPUT,
-        },
-        MIRIS_DIR,
-      );
+      let out: any;
+      try {
+        out = await falRun(
+          MODEL_3D,
+          {
+            image_url: body.imageUrl,
+            // Styled the same way the image was. The mesh takes its look from
+            // the image, but the texture pass reads this, and it was the one
+            // call in the workflow the track never reached.
+            texture_prompt: `${track.style}: ${body.prompt ?? ""}`,
+            ...MESHY_INPUT,
+          },
+          MIRIS_DIR,
+        );
+      } catch (e) {
+        // The browser that asked may be gone: a Fill reloads the page, and the
+        // client resumes "building" off modelStartedAt. Clearing it is how a
+        // resumed client learns the job died rather than waiting forever.
+        await writeData(MIRIS_DIR, { modelStartedAt: 0 });
+        throw e;
+      }
       const url = out?.model_glb?.url;
-      if (!url) return fail("fal returned no mesh", 502);
+      if (!url) {
+        await writeData(MIRIS_DIR, { modelStartedAt: 0 });
+        return fail("fal returned no mesh", 502);
+      }
       await writeData(MIRIS_DIR, { glb: url });
       return ok({ url });
     }
@@ -258,20 +270,41 @@ const readBody = (req: IncomingMessage) =>
 const falKey = (mode: string) => loadEnv(mode, ROOT, "").FAL_KEY ?? "";
 
 export function mirisDevApi(mode: string): Plugin {
+  // Conservative until the first read: a wrong true costs one extra reload, a
+  // wrong false costs a doubled renderer.
+  // Line-anchored, because the file's own header comment says "<mirisStream"
+  // while describing it: a plain includes() saw a mounted stream in a blank
+  // template and reloaded on every paste.
+  const hasMountedStream = (source: string) => /^\s*<mirisStream\b/m.test(source);
+  let stageHadStream = true;
+  readFile(STAGE, "utf8")
+    .then((source) => {
+      stageHadStream = hasMountedStream(source);
+    })
+    .catch(() => {});
+
   return {
     name: "miris-dev-api",
     // Dev only, by construction. There is no production counterpart.
     apply: "serve",
 
-    /* Every Fill rewrites app/stage.tsx, and a Fast Refresh remount leaves the
-     * SDK's own scene objects behind: measured two SparkRenderers in one scene
-     * after a paste, which draws the splats twice with separate sort state and
-     * reads as the model smearing as the camera moves. The engine registers
-     * those objects and does not remove them on unmount, so the fix is not to
-     * remount. A reload is cheap here: every bit of state lives in data.json
-     * and the stage reads itself back off disk. */
-    handleHotUpdate({ file, server }) {
-      if (file === STAGE) {
+    /* Every Fill rewrites app/stage.tsx, and a Fast Refresh of a mounted
+     * <mirisStream> leaves the SDK's own scene objects behind: measured two
+     * SparkRenderers in one scene after a paste, which draws the splats twice
+     * with separate sort state and reads as the model smearing while the
+     * camera moves. The engine registers those objects and never removes
+     * them, so the fix is not to remount.
+     *
+     * Only when a stream was actually mounted, though. Before step 2.4 there
+     * is nothing to leak, and a reload there costs UI state for nothing: the
+     * first report against the always-reload version was a tray resetting
+     * when a 2.1 paste reloaded the page. Decided on what the file said
+     * BEFORE this write, because the old content is what is on screen. */
+    async handleHotUpdate({ file, server, read }) {
+      if (file !== STAGE) return;
+      const had = stageHadStream;
+      stageHadStream = hasMountedStream(await read());
+      if (had) {
         server.hot.send({ type: "full-reload" });
         return [];
       }

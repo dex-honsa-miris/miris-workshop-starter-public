@@ -6,6 +6,10 @@ import type { Track } from "./tracks";
 
 type Phase = "idle" | "image" | "review" | "model" | "done";
 
+// Past this, a recorded build start is stale rather than in flight: falRun
+// itself gives up at 25 minutes.
+const RESUME_WINDOW = 30 * 60_000;
+
 const GRID = 16;
 // Must match the mw-dot duration in guide.css: the delays are fractions of it.
 const WAVE = 3.2;
@@ -49,10 +53,30 @@ export function useBuild(track: Track) {
   const [error, setError] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [again, setAgain] = useState(false);
-  const [small, setSmall] = useState(false);
+  // Survives the reload a Fill triggers: a tray someone folded away should not
+  // spring back open because they pressed a paste button two steps later.
+  const [small, setSmall] = useState(() => {
+    try {
+      return sessionStorage.getItem("mw-tray-min") === "1";
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      sessionStorage.setItem("mw-tray-min", small ? "1" : "0");
+    } catch {
+      // Blocked storage costs the convenience, not the tray.
+    }
+  }, [small]);
+  // When the clock started, epoch ms. Comes back from data.json on a resume, so
+  // the elapsed readout and the stage list survive a reload mid-build.
+  const [startedAt, setStartedAt] = useState<number | null>(null);
 
-  // Both URLs are already on disk, written by the dev API. Without this, a
-  // reload loses a $1.40 result that is sitting in data.json.
+  // Everything durable is already on disk, written by the dev API. Without
+  // this, a reload loses a $1.40 result, and a reload MID-BUILD used to
+  // resurrect as "Keep this one?", inviting a second $1.40 submit while the
+  // first was still running server-side.
   useEffect(() => {
     fetch("/api/miris")
       .then((r) => r.json())
@@ -62,6 +86,10 @@ export function useBuild(track: Track) {
           setImage(d.imageUrl ?? "");
           setGlb(d.glb);
           setPhase("done");
+        } else if (d?.imageUrl && d?.falRequestId && d?.modelStartedAt && Date.now() - d.modelStartedAt < RESUME_WINDOW) {
+          setImage(d.imageUrl);
+          setStartedAt(d.modelStartedAt);
+          setPhase("model");
         } else if (d?.imageUrl) {
           setImage(d.imageUrl);
           setPhase("review");
@@ -72,8 +100,35 @@ export function useBuild(track: Track) {
 
   useEffect(() => {
     if (phase !== "model" && phase !== "image") return;
-    setElapsed(0);
-    const t = setInterval(() => setElapsed((s) => s + 1), 1000);
+    const base = phase === "model" && startedAt ? startedAt : Date.now();
+    const tick = () => setElapsed(Math.max(0, Math.floor((Date.now() - base) / 1000)));
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [phase, startedAt]);
+
+  // The POST that started the build dies with the page, but the dev server
+  // keeps polling fal and writes glb to disk when it lands. While the tray
+  // shows "building", watch the disk: it is the only path a resumed page has.
+  useEffect(() => {
+    if (phase !== "model") return;
+    const t = setInterval(async () => {
+      try {
+        const d = await (await fetch("/api/miris")).json();
+        if (d?.glb) {
+          setGlb(d.glb);
+          setImage(d.imageUrl ?? "");
+          setPhase("done");
+          setSmall(false);
+        } else if (!d?.modelStartedAt) {
+          // The server clears this when fal reports failure.
+          setError("The build failed on fal. Submit again.");
+          setPhase("review");
+        }
+      } catch {
+        // A dropped poll is not a failed build; the next one answers.
+      }
+    }, 5000);
     return () => clearInterval(t);
   }, [phase]);
 
@@ -106,6 +161,7 @@ export function useBuild(track: Track) {
 
   const makeModel = async () => {
     setError("");
+    setStartedAt(Date.now());
     setPhase("model");
     try {
       const { url } = await call("model", { imageUrl: image, prompt });

@@ -8,6 +8,9 @@ export const DEFAULT_DATA = {
   imageUrl: "",
   falRequestId: "",
   glb: "",
+  // Epoch ms while a mesh build is in flight, 0 otherwise. How a reloaded page
+  // knows to resume the building state instead of re-offering the review.
+  modelStartedAt: 0,
   uuid: "",
   viewerKey: "",
   card: null,
