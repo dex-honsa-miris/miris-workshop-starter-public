@@ -1,7 +1,9 @@
 import { useSyncExternalStore } from "react";
+import { useState } from "react";
 import type { Step, Sub } from "./curriculum";
 import type { Track } from "./tracks";
 import { BuildInput, type BuildState } from "./Build";
+import { PARTS } from "./snippets.mjs";
 import { subName } from "./transition";
 import { detect, getPath, subscribePath } from "./htmlInCanvas";
 import { indexOfSub, nextSub, subState } from "./progress";
@@ -74,6 +76,42 @@ function RenderPathBadge() {
 }
 
 const withNoun = (text: string, noun: string) => text.replaceAll("{noun}", noun);
+
+/* The snippets carry the indentation they need inside the marker block, which
+   is six columns of it. Kept for the file, dropped for a 408px panel. */
+const dedent = (code: string) => {
+  const lines = code.replace(/\n+$/, "").split("\n");
+  const indent = Math.min(
+    ...lines.filter((l) => l.trim()).map((l) => l.match(/^ */)![0].length),
+  );
+  return lines.map((l) => l.slice(indent)).join("\n");
+};
+
+/** The code the step adds, to be typed in rather than pressed for. */
+function Snippet({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="mw-snip">
+      <pre className="k14">{code}</pre>
+      <button
+        type="button"
+        className="mw-copy l12"
+        onClick={async () => {
+          try {
+            await navigator.clipboard.writeText(code);
+            setCopied(true);
+            window.setTimeout(() => setCopied(false), 1400);
+          } catch {
+            // Clipboard denied. The block is selectable, so this is a
+            // convenience failing, not the step.
+          }
+        }}
+      >
+        {copied ? "Copied" : "Copy"}
+      </button>
+    </div>
+  );
+}
 
 export default function StepPane({
   step,
@@ -173,21 +211,21 @@ export default function StepPane({
             {sub.panel && <BuildInput build={build} />}
 
             {sub.fill && (
-              <div className="mw-row">
-                <button
-                  className="btn btn-primary btn-sm"
-                  disabled={busy === sub.num}
-                  onClick={() => actions.fill(sub.fill!, sub.num)}
-                >
-                  {busy === sub.num ? "Writing" : "Fill in app/stage.tsx"}
-                </button>
-                <button
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => actions.clear(sub.fill!)}
-                >
-                  Clear block
-                </button>
-              </div>
+              <>
+                <Snippet code={dedent(PARTS[sub.fill as keyof typeof PARTS])} />
+                <div className="mw-row mw-autorow">
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    disabled={busy === sub.num}
+                    onClick={() => actions.fill(sub.fill!, sub.num)}
+                  >
+                    {busy === sub.num ? "Writing" : "Or paste it for me"}
+                  </button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => actions.clear(sub.fill!)}>
+                    Clear block
+                  </button>
+                </div>
+              </>
             )}
 
             {sub.fields && (

@@ -933,7 +933,10 @@ a:hover { text-decoration: underline; }
 }
 .mw-now p { max-width: 51ch; }
 .mw-now pre + a,
-.mw-now pre + button,
+/* Not the copy control, which is positioned on the block rather than following
+   it. This selector is (0,1,2) and out-specifies .mw-copy, so excluding it here
+   is the fix; a margin on .mw-copy loses. */
+.mw-now pre + button:not(.mw-copy),
 .mw-now pre + .mw-row,
 .mw-now pre + .fld,
 .mw-now pre + p {
@@ -949,6 +952,31 @@ a:hover { text-decoration: underline; }
   overflow-x: auto;
   color: var(--text-secondary);
 }
+
+/* The snippet is the step's instruction now, not a decoration beside a button,
+   so the copy control sits on it the way the dice sits in the prompt field. */
+.mw-snip { position: relative; }
+.mw-snip pre { padding-right: 58px; }
+
+.mw-copy {
+  position: absolute;
+  margin: 0;
+  /* 7px, not the block's 9px padding: a one-line snippet is 40px tall and this
+     control is 22, so anything lower overflows the bottom edge. */
+  top: 7px;
+  right: 7px;
+  padding: 3px 6px;
+  background: var(--mono-900);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  color: var(--mono-600);
+  cursor: pointer;
+}
+.mw-copy:hover { color: var(--mono-200); border-color: var(--mono-700); }
+
+/* Both are escape hatches from typing it yourself, so neither takes a fill. */
+.mw-autorow { margin: 10px 0 0; gap: 2px; }
+.mw-autorow .btn-ghost { padding-left: 0; padding-right: 8px; }
 
 .mw-next { width: 100%; margin-top: var(--space-s); }
 

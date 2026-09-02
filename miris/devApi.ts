@@ -48,21 +48,21 @@ const CHECKS: Record<string, (mode: string) => Promise<string | null>> = {
     const block = readMarker(await readFile(STAGE, "utf8"), "scene");
     return block.includes("cylinderGeometry")
       ? null
-      : "The scene block in app/stage.tsx is still empty. Press Fill in app/stage.tsx.";
+      : "The scene block in app/stage.tsx is still empty. Paste the snippet between the miris:scene comments, or let the step do it.";
   },
 
   async environment() {
     const block = readMarker(await readFile(STAGE, "utf8"), "scene");
     return block.includes("Environment")
       ? null
-      : "No Environment line in the scene block yet. Press Fill in app/stage.tsx.";
+      : "No Environment line in the scene block yet. Add it under the pedestal, or let the step do it.";
   },
 
   async stream() {
     const block = readMarker(await readFile(STAGE, "utf8"), "scene");
     return block.includes("mirisStream")
       ? null
-      : "No mirisStream in the scene block yet. Press Fill in app/stage.tsx.";
+      : "No mirisStream in the scene block yet. Add it under the Environment line, or let the step do it.";
   },
 
   async uuid() {
@@ -82,14 +82,14 @@ const CHECKS: Record<string, (mode: string) => Promise<string | null>> = {
     const block = readMarker(await readFile(STAGE, "utf8"), "card");
     return block.includes("Card")
       ? null
-      : "The card is written but not on the stage yet. Press Fill in app/stage.tsx.";
+      : "The card is written but not on the stage yet. Add the line to the miris:card block, or let the step do it.";
   },
 
   async cardSurface() {
     const block = readMarker(await readFile(STAGE, "utf8"), "card");
     return block.includes("CardSurface")
       ? null
-      : "The label is not drawn into the scene yet. Press Fill in app/stage.tsx.";
+      : "The label is not drawn into the scene yet. Swap the line in the miris:card block, or let the step do it.";
   },
 
   async guideOff() {

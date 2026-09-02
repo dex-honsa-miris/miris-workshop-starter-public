@@ -67,7 +67,7 @@ export const STEPS: Step[] = [
         num: "2.1",
         title: "The pedestal",
         body:
-          "Everything needs a floor and something to stand on it. Press the button, then open app/stage.tsx and find the block between the two miris:scene comments. That is where your code lands, and everything you write outside those comments is left alone.",
+          "Everything needs a floor and something to stand on it. Open app/stage.tsx, find the block between the two miris:scene comments, and put this inside it. Everything you write outside those comments is left alone.",
         fill: "pedestal",
         explain:
           "Two meshes. A cylinder for the plinth, tapered slightly wider at the base, and a thin torus for the bright rim. The rim uses meshBasicMaterial, which ignores lighting entirely, so it reads as a crisp edge no matter what the environment does. Nothing here is a Miris idea yet: this is plain three.js through React Three Fiber.",
@@ -77,7 +77,7 @@ export const STEPS: Step[] = [
         num: "2.2",
         title: "Sky and light",
         body:
-          "One line, and the whole scene changes. Press the button and look at the pedestal before and after.",
+          "One line, and the whole scene changes. Add it under the pedestal, inside the same miris:scene block, and watch what happens to the plinth.",
         fill: "environment",
         explain:
           "An HDR image lights the scene from every direction at once, which is what makes a surface look like it is in a real room rather than under a lamp. Note the intensity is 1.6, not the 0.6 a normal scene wants. This canvas renders in linear colour space, which darkens everything else, so the environment is pushed up to compensate.",
@@ -94,7 +94,7 @@ export const STEPS: Step[] = [
         num: "2.4",
         title: "Your first stream",
         body:
-          "This uses our demo asset so you can see it working before yours is ready. Yours goes in at step 4.",
+          "Add this last, under the Environment line. It streams our demo asset so you can see the thing working before yours is ready; yours goes in at step 4.",
         fill: "stream",
         explain:
           "A stream is not a file you load, it is a subscription. What appears first is a coarse version of the whole asset, and it sharpens as more arrives, so there is never a moment where you wait on a download. The extend call at the top of app/stage.tsx is what buys you that: it registers MirisStream as a JSX tag, so the stream takes position and scale like any other three.js object and React Three Fiber draws it in the same pass as the pedestal. There is no viewer to embed and no render loop to hand over. The numbers are measured for the demo asset. Yours will need its own, at step 4.4.",
@@ -167,7 +167,7 @@ export const STEPS: Step[] = [
         num: "5.1",
         title: "Let an agent write the label",
         body:
-          "Open miris/skills/curator.md, copy the whole thing, and paste it into your coding agent's chat, which in Bolt is the panel on the left. It reads your prompt out of miris/data.json and writes a name, a description and a few attributes back into the same file. Then press the button below to put that card on the stage.",
+          "Open miris/skills/curator.md, copy the whole thing, and paste it into your coding agent's chat, which in Bolt is the panel on the left. It reads your prompt out of miris/data.json and writes a name, a description and a few attributes back into the same file. Then add the line below to put that card on the stage.",
         fill: "card",
         explain:
           "The agent only touches one field of one JSON file, deliberately. You have something working and about to be published, and this is the wrong moment for an agent to be editing your scene code. It is also the right kind of job for a model: writing copy in a register, rather than a mechanical edit you could do faster yourself.",
@@ -177,7 +177,7 @@ export const STEPS: Step[] = [
         num: "5.2",
         title: "Put the label in the scene",
         body:
-          "The card you just made is a DOM element floating over the canvas. It looks right until your model moves in front of it, because it is not in the scene at all. Press the button and it becomes part of the render: your own HTML, drawn into the 3D scene as pixels.",
+          "The card you just made is a DOM element floating over the canvas. It looks right until your model moves in front of it, because it is not in the scene at all. Swap it for the line below and it becomes part of the render: your own HTML, drawn into the 3D scene as pixels.",
         fill: "cardSurface",
         renderPath: true,
         explain:

@@ -28,6 +28,18 @@ export const SNIPPETS = {
   cardSurface: `      {data.card ? <CardSurface card={data.card} /> : null}`,
 };
 
+/* What each step actually adds. SNIPPETS is cumulative because the scene ones
+   share a marker, so showing an attendee SNIPPETS.environment would show them
+   the pedestal they already have. The Fill button writes the cumulative block;
+   the card shows the part. */
+export const PARTS = {
+  pedestal: PEDESTAL,
+  environment: ENVIRONMENT,
+  stream: STREAM,
+  card: SNIPPETS.card,
+  cardSurface: SNIPPETS.cardSurface,
+};
+
 export const MARKER_FOR = {
   pedestal: "scene",
   environment: "scene",
