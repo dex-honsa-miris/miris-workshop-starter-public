@@ -5,7 +5,7 @@ import { loadEnv, type Plugin } from "vite";
 import { readMarker, replaceMarker } from "./markers.mjs";
 import { readData, writeData } from "./store.mjs";
 import { CLEARS_TO, MARKER_FOR, SNIPPETS } from "./snippets.mjs";
-import { IMAGE_FRAMING, IMAGE_MODEL, MODEL_3D } from "./config";
+import { DEMO_UUID, IMAGE_FRAMING, IMAGE_MODEL, MODEL_3D, VIEWER_KEY } from "./config";
 import { TRACKS } from "./tracks";
 
 /* Dev only, by construction: configureServer has no production counterpart, so
@@ -65,13 +65,19 @@ const CHECKS: Record<string, (mode: string) => Promise<string | null>> = {
       : "No mirisStream in the scene block yet. Add it under the Environment line, or let the step do it.";
   },
 
-  async uuid() {
-    const { uuid } = await readData(MIRIS_DIR);
-    if (!uuid) return "No asset uuid saved yet. Paste it into the field above and click away from the box.";
+  async streamUuid() {
+    const block = readMarker(await readFile(STAGE, "utf8"), "scene");
+    const uuid = block.match(/uuid:\s*"([^"]*)"/)?.[1];
+    if (!uuid) return "No uuid string in the mirisStream args yet. It went in at step 2.4.";
     // A uuid pasted with surrounding text streams nothing and reports nothing.
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid)
-      ? null
-      : `That uuid does not look like one: "${uuid}". Copy just the id from the asset page.`;
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid))
+      return `That uuid does not look like one: "${uuid}". Copy just the id from the asset page.`;
+    if (uuid === DEMO_UUID)
+      return "The stream still points at the demo asset. Replace the uuid string in app/stage.tsx with your asset id.";
+    const key = block.match(/viewerKey:\s*"([^"]*)"/)?.[1];
+    if (!key)
+      return "The viewerKey string is empty. Paste your key from the portal: the demo key cannot read your asset.";
+    return null;
   },
 
   async card() {

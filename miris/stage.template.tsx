@@ -5,7 +5,6 @@ import { MirisStream } from "@miris-inc/three";
 import { ACESFilmicToneMapping } from "three";
 import Card from "../miris/Card";
 import CardSurface from "../miris/CardSurface";
-import { DEMO_UUID, VIEWER_KEY } from "../miris/config";
 
 // A Miris stream is now a scene node: <mirisStream args={[{ uuid, viewerKey }]} />
 extend({ MirisStream });

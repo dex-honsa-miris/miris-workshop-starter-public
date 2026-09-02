@@ -179,8 +179,9 @@ then finding a viewer key in a portal none of them have seen. It is scheduled
 inside the four minute model wait, which is the only reason it fits.
 
 **Everything after step 4 depends on their upload having processed.** Anyone
-whose upload stalls can still finish on the demo asset by leaving the uuid field
-empty.
+whose upload stalls can still put their asset id into the mirisStream args at
+4.2 anyway: the check only reads the file, and the stream fills in on its own
+once processing finishes.
 
 **Laptops on battery drop to 30fps.** Chrome's Energy Saver caps rendering at
 30fps once the battery hits 20%, browser-wide, and a room without enough power

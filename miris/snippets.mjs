@@ -12,7 +12,10 @@ const ENVIRONMENT = `      <Environment files="/env/white-chapel.hdr" environmen
 const STREAM = `      <mirisStream
         position={[0.043, 0.64, 0.221]}
         scale={0.138}
-        args={[{ uuid: data.uuid || DEMO_UUID, viewerKey: data.viewerKey || VIEWER_KEY }]}
+        args={[{
+          uuid: "2b21e89f-ef5d-4175-bbdf-03e8649bcb76",
+          viewerKey: "4YIGMPUj5-fL8n0jkp1kQpJktss_UaBDMW9jwJb08f4",
+        }]}
       />`;
 
 // pedestal, environment and stream share the `scene` marker, so each snippet

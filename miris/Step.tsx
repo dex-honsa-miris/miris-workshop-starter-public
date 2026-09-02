@@ -13,7 +13,6 @@ import { indexOfSub, nextSub, subState } from "./progress";
 export interface StepActions {
   fill: (snippetId: string, num: string) => void | Promise<void>;
   clear: (snippetId: string) => void | Promise<void>;
-  saveField: (field: "uuid" | "viewerKey", value: string) => void | Promise<void>;
   /** Verifies the substep actually happened, then moves the progress pointer
    *  if it did, or reports what is missing if it did not. */
   done: (sub: Sub) => void | Promise<void>;
@@ -236,28 +235,6 @@ export default function StepPane({
               </>
             )}
 
-            {sub.fields && (
-              <div className="fld mw-fields">
-                <label>
-                  Asset uuid
-                  <input
-                    key={`uuid-${data.uuid ?? ""}`}
-                    defaultValue={data.uuid ?? ""}
-                    placeholder="2b21e89f-ef5d-4175-bbdf-03e8649bcb76"
-                    onBlur={(e) => actions.saveField("uuid", e.target.value.trim())}
-                  />
-                </label>
-                <label>
-                  Viewer key
-                  <input
-                    key={`key-${data.viewerKey ?? ""}`}
-                    defaultValue={data.viewerKey ?? ""}
-                    placeholder="leave empty to use the demo key"
-                    onBlur={(e) => actions.saveField("viewerKey", e.target.value.trim())}
-                  />
-                </label>
-              </div>
-            )}
 
             {sub.explain && (
               <details className="mw-why">

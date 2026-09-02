@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import BuildTray, { useBuild } from "./Build";
 import { STEPS, type Sub } from "./curriculum";
 import { transition } from "./transition";
@@ -50,7 +50,6 @@ export default function MirisGuide() {
   // A finished substep opened for reading. Separate from data.step, which is
   // how far the attendee has actually got.
   const [viewing, setViewing] = useState("");
-  const pendingSaves = useRef<Promise<unknown>>(Promise.resolve());
   // What the last Done click found wrong, keyed by substep so browsing the rail
   // does not carry one step's complaint onto another.
   const [problems, setProblems] = useState<Record<string, string>>({});
@@ -184,10 +183,6 @@ export default function MirisGuide() {
     setBusy(sub.num);
     setNote("");
     try {
-      // Clicking Done blurs a field, and that blur is what saves it. On a slow
-      // connection the check would read the disk before the save landed and
-      // refuse for a value the attendee can see they just typed.
-      await pendingSaves.current;
       const r = await post({ action: "check", check: sub.check ?? "" });
       if (!r.ok) return setNote(r.problem!);
       if (!r.data.done) {
@@ -205,10 +200,6 @@ export default function MirisGuide() {
       });
       const next = nextSub(sub.num);
       if (next) await advance(next.num);
-      // The stage reads data.json once, at boot, so a new uuid streams nothing
-      // until the page restarts. Without this, "Watch the swap" arrives with no
-      // swap and a note nobody reads. Everything durable survives the reload.
-      if (sub.fields) window.location.reload();
     } catch (e) {
       setNote(`Could not check the step: ${(e as Error).message}`);
     } finally {
@@ -217,22 +208,6 @@ export default function MirisGuide() {
     }
   };
 
-  const saveField = (field: "uuid" | "viewerKey", value: string) => {
-    // Chained so done() can wait for every save in flight, and checked: a save
-    // that failed used to report "Saved." anyway.
-    const run = (async () => {
-      try {
-        const r = await post({ action: "save", patch: { [field]: value } });
-        if (!r.ok) return setNote(r.problem!);
-        await load();
-        setNote("Saved.");
-      } catch (e) {
-        setNote(`Could not save: ${(e as Error).message}`);
-      }
-    })();
-    pendingSaves.current = pendingSaves.current.then(() => run);
-    return run;
-  };
 
   const openSubNum = viewing || (data.step ?? "1.1");
   const progressStep = stepOfSub(openSubNum);
@@ -243,7 +218,6 @@ export default function MirisGuide() {
   const actions: StepActions = {
     fill,
     clear,
-    saveField,
     done,
     view: (subNum: string) => transition(() => setViewing(subNum)),
     // Undo is the pointer moving back, so the reopened substep becomes current

@@ -141,28 +141,6 @@ a:hover { text-decoration: underline; }
 
 .btn-sm { --btn-h: 32px; font-size: 14px; line-height: 20px; }
 
-/* ── fields ───────────────────────────────────────────────── */
-
-.fld { display: flex; flex-direction: column; gap: 8px; }
-.fld label {
-  font-family: "Geist Mono", ui-monospace, monospace;
-  font-size: 14px;
-  line-height: 20px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-.fld input {
-  font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  height: 40px;
-  padding: 0 16px;
-  background: var(--surface-raised);
-  color: var(--text-primary);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-s);
-}
-.fld input:focus { outline: 2px solid var(--mono-400); outline-offset: -2px; }
 
 /* --sans and --mono are this file's own aliases, not kit tokens, and 34 rules
    below need them. */
@@ -342,14 +320,6 @@ a:hover { text-decoration: underline; }
 .mw-row { display: flex; gap: 8px; align-items: center; margin: 2px 0 10px; flex-wrap: wrap; }
 
 
-.mw-fields { display: grid; gap: 10px; margin: 2px 0 12px; }
-.mw-fields label {
-  display: grid;
-  gap: 5px;
-  color: var(--mono-600);
-}
-
-.mw-fields input,
 .mw-build textarea,
 .mw-tray textarea {
   font: 400 13px/1.5 var(--mono);
@@ -361,7 +331,6 @@ a:hover { text-decoration: underline; }
   width: 100%;
   box-sizing: border-box;
 }
-.mw-fields input:focus,
 .mw-build textarea:focus,
 .mw-tray textarea:focus { border-color: var(--text-primary); }
 
@@ -960,7 +929,6 @@ a:hover { text-decoration: underline; }
    is the fix; a margin on .mw-copy loses. */
 .mw-now pre + button:not(.mw-copy),
 .mw-now pre + .mw-row,
-.mw-now pre + .fld,
 .mw-now pre + details,
 .mw-now pre + p {
   margin-top: var(--space-s);

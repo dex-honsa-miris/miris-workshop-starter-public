@@ -19,8 +19,6 @@ export interface Sub {
   link?: { href: string; label: string };
   /** Renders the fal panel opener. */
   panel?: boolean;
-  /** Renders the uuid and viewer key fields. */
-  fields?: boolean;
   /** A check id from the CHECKS map in miris/devApi.ts. Done verifies it before
    *  moving on. Steps whose work happens outside the project, signing up or
    *  deploying, deliberately have none. */
@@ -128,17 +126,17 @@ export const STEPS: Step[] = [
       },
       {
         num: "4.2",
-        title: "Paste them in",
+        title: "Point the stream at your asset",
         body:
-          "Both are saved to miris/data.json, which is the one file that survives a refresh. Nothing else about your scene changes.",
-        fields: true,
-        check: "uuid",
+          "Open app/stage.tsx and find the mirisStream you added at step 2.4. Replace the uuid string with your asset id, and the viewerKey string with your key from the portal. Save, and the page reloads streaming your asset. This is the whole integration: one component, two strings.",
+        code: 'args={[{\n  uuid: "your-asset-id",\n  viewerKey: "your-viewer-key",\n}]}',
+        check: "streamUuid",
       },
       {
         num: "4.3",
         title: "Watch the swap",
         body:
-          "Your own asset is now streaming onto the same pedestal, under the same lighting, through the same camera.",
+          "It already happened when you saved: your own asset is streaming onto the same pedestal, under the same lighting, through the same camera.",
         explain:
           "Nothing about your scene changed except where the geometry comes from. The pedestal, the environment, the camera and the render loop are identical. That is the whole point of this workshop: streaming is a delivery change, not a rendering change. You did not load a file that happened to be big. You subscribed to something that arrives at whatever detail the view justifies.",
       },
