@@ -190,10 +190,10 @@ export const STEPS: Step[] = [
         num: "5.4",
         title: "Put it on a plane",
         body:
-          "Swap the overlay in the miris:card block for a mesh that wears the texture. Orbit again: this time your model passes in front of the label, because the label is geometry now.",
+          "Swap the overlay in the miris:card block for a plane that wears the texture, inside a Billboard so it turns to face you. Orbit again: your model now passes in front of the label, because the label is geometry.",
         fill: "labelMesh",
         explain:
-          "A plane with a meshBasicMaterial, nothing exotic. transparent honours the card's rounded corners, toneMapped keeps the text out of the ACES curve that grades the rest of the scene, and label.width and height arrive already converted from CSS pixels to scene units. This is the payoff of 5.3: your HTML is now a surface in the world, occluded, screenshotted and streamed like everything else.",
+          "A plane with a meshBasicMaterial, nothing exotic. Billboard turns it to the camera every frame, the way every game nameplate works: without it, a plane is invisible edge-on and gone entirely from behind, because single-sided geometry culls its back face. transparent honours the rounded corners, toneMapped keeps the text out of the ACES curve, and label.width and height arrive already in scene units. Your HTML is now a surface in the world: occluded, screenshotted and streamed like everything else.",
         renderPath: true,
         check: "labelMesh",
       },

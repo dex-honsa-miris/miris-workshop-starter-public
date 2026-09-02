@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Canvas, extend } from "@react-three/fiber";
-import { Environment, OrbitControls } from "@react-three/drei";
+import { Billboard, Environment, OrbitControls } from "@react-three/drei";
 import { MirisStream } from "@miris-inc/three";
 import { ACESFilmicToneMapping } from "three";
 import Card from "../miris/Card";

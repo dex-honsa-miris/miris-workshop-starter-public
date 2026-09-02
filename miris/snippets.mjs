@@ -40,10 +40,12 @@ export const SNIPPETS = {
   // Shares the `card` marker deliberately, so the plane replaces step 5.2's
   // overlay rather than adding a second card beside it.
   labelMesh: `      {label.texture && (
-        <mesh position={[-1.15, 1.2, 0]}>
-          <planeGeometry args={[label.width, label.height]} />
-          <meshBasicMaterial map={label.texture} transparent toneMapped={false} />
-        </mesh>
+        <Billboard position={[-1.15, 1.2, 0]}>
+          <mesh>
+            <planeGeometry args={[label.width, label.height]} />
+            <meshBasicMaterial map={label.texture} transparent toneMapped={false} />
+          </mesh>
+        </Billboard>
       )}`,
 };
 
