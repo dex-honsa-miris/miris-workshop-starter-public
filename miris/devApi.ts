@@ -5,7 +5,7 @@ import { loadEnv, type Plugin } from "vite";
 import { readMarker, replaceMarker } from "./markers.mjs";
 import { readData, writeData } from "./store.mjs";
 import { CLEARS_TO, MARKER_FOR, SNIPPETS } from "./snippets.mjs";
-import { DEMO_UUID, IMAGE_FRAMING, IMAGE_MODEL, MODEL_3D, VIEWER_KEY } from "./config";
+import { DEMO_UUID, IMAGE_FRAMING, IMAGE_MODEL, LABEL_LLM, LABEL_MODEL, MODEL_3D, VIEWER_KEY } from "./config";
 import { TRACKS } from "./tracks";
 
 /* Dev only, by construction: configureServer has no production counterpart, so
@@ -83,7 +83,7 @@ const CHECKS: Record<string, (mode: string) => Promise<string | null>> = {
   async card() {
     const { card } = await readData(MIRIS_DIR);
     if (!card || typeof card !== "object" || !(card as any).name) {
-      return "miris/data.json still has no card. Paste miris/skills/curator.md into your agent, then add the line below.";
+      return "miris/data.json still has no card. Press Write the label.";
     }
     const block = readMarker(await readFile(STAGE, "utf8"), "card");
     return block.includes("Card")
@@ -105,6 +105,31 @@ const CHECKS: Record<string, (mode: string) => Promise<string | null>> = {
       .some((l) => l.includes("<MirisGuide") && !l.trimStart().startsWith("//") && !l.includes("{/*"));
     return live ? "app/main.tsx still renders <MirisGuide />. Comment that line out and save." : null;
   },
+};
+
+/* The register that used to live in miris/skills/curator.md, when writing the
+ * label meant pasting that file into a coding agent. Same rules, smaller
+ * ceremony: one button, one model call on the attendee's own fal key. */
+const CURATOR =
+  "You write the label for a single object in a collection. " +
+  "Reply with ONLY a JSON object, no code fences, no commentary: " +
+  '{"name": "two or three words", "description": "one sentence, under twenty words", "attributes": ["three or four short phrases"]}. ' +
+  "Match the object rather than a house style: a creature gets an epithet, an ability and a line of lore; " +
+  "a product gets materials, a price and an edition; an artifact gets a date, a place and a provenance. " +
+  "Write as though the object has always existed. Never mention that it was generated, never use the word digital, " +
+  'do not hedge with "appears to be", and use no em dashes.';
+
+const parseCard = (raw: unknown) => {
+  if (typeof raw !== "string") return null;
+  // Models fence JSON out of habit however firmly they are told not to.
+  const text = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  try {
+    const c = JSON.parse(text);
+    if (typeof c?.name !== "string" || typeof c?.description !== "string" || !Array.isArray(c?.attributes)) return null;
+    return { name: c.name, description: c.description, attributes: c.attributes.map(String).slice(0, 4) };
+  } catch {
+    return null;
+  }
 };
 
 type Reply = { status: number; body: unknown };
@@ -194,6 +219,24 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
       if (!check) return ok({ done: true });
       const problem = await check(mode);
       return ok({ done: !problem, problem });
+    }
+
+    case "label": {
+      if (!falKey(mode)) return fail("FAL_KEY is not set in .env.local");
+      const stored = await readData(MIRIS_DIR);
+      const track = TRACKS.find((t) => t.id === stored.track);
+      if (!track) return fail("No track chosen yet. Pick one on the chooser first.");
+      if (!stored.prompt) return fail("No prompt to write from. Step 1.2 is where it comes from.");
+      const out: any = await falRun(LABEL_MODEL, {
+        model: LABEL_LLM,
+        system_prompt: CURATOR,
+        prompt: `The object: ${stored.prompt}. Its kind: ${track.noun}.`,
+        temperature: 0.9,
+      });
+      const card = parseCard(out?.output);
+      if (!card) return fail("The model wrote something that is not a card. Press the button again.", 502);
+      await writeData(MIRIS_DIR, { card });
+      return ok({ card });
     }
 
     case "image": {

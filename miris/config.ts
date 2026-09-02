@@ -11,6 +11,8 @@ export const IMAGE_FRAMING =
   "No text, no labels, no color palette swatches, no scale-reference silhouettes or human figures, " +
   "no alternate views or thumbnails, no props. A single clean reference render, not a concept sheet.";
 export const MODEL_3D = "meshy/v7/image-to-3d";
+export const LABEL_MODEL = "openrouter/router";
+export const LABEL_LLM = "google/gemini-2.5-flash";
 export const PORTAL_URL = "https://app.miris.com";
 export const FAL_KEYS_URL = "https://fal.ai/dashboard/keys";
 

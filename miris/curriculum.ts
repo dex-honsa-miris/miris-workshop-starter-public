@@ -19,6 +19,8 @@ export interface Sub {
   link?: { href: string; label: string };
   /** Renders the fal panel opener. */
   panel?: boolean;
+  /** Renders the Write the label button. */
+  label?: boolean;
   /** A check id from the CHECKS map in miris/devApi.ts. Done verifies it before
    *  moving on. Steps whose work happens outside the project, signing up or
    *  deploying, deliberately have none. */
@@ -157,12 +159,13 @@ export const STEPS: Step[] = [
     subs: [
       {
         num: "5.1",
-        title: "Let an agent write the label",
+        title: "Write the label",
         body:
-          "Open miris/skills/curator.md, copy the whole thing, and paste it into your coding agent's chat, which in Bolt is the panel on the left. It reads your prompt out of miris/data.json and writes a name, a description and a few attributes back into the same file. Then add the line below to put that card on the stage.",
+          "Press the button and a model on your fal key turns your prompt into a name, a description and a few attributes, saved to miris/data.json. Then add the line below to put that card on the stage.",
+        label: true,
         fill: "card",
         explain:
-          "The agent only touches one field of one JSON file, deliberately. You have something working and about to be published, and this is the wrong moment for an agent to be editing your scene code. It is also the right kind of job for a model: writing copy in a register, rather than a mechanical edit you could do faster yourself.",
+          "The model writes one field of one JSON file: copy in your track's register, which is the right kind of job for it. The card component then reads that field the same way the stream reads its uuid. Notice the label floats OVER the canvas rather than living in the scene, which is the problem the next step fixes.",
         check: "card",
       },
       {

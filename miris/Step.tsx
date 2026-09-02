@@ -13,6 +13,8 @@ import { indexOfSub, nextSub, subState } from "./progress";
 export interface StepActions {
   fill: (snippetId: string, num: string) => void | Promise<void>;
   clear: (snippetId: string) => void | Promise<void>;
+  /** Asks a model on the attendee's fal key to write the card. */
+  writeLabel: (num: string) => void | Promise<void>;
   /** Verifies the substep actually happened, then moves the progress pointer
    *  if it did, or reports what is missing if it did not. */
   done: (sub: Sub) => void | Promise<void>;
@@ -216,6 +218,16 @@ export default function StepPane({
             )}
 
             {sub.panel && <BuildInput build={build} />}
+
+            {sub.label && (
+              <button
+                className="btn btn-primary btn-sm"
+                disabled={busy === sub.num}
+                onClick={() => actions.writeLabel(sub.num)}
+              >
+                {busy === sub.num ? "Writing" : "Write the label"}
+              </button>
+            )}
 
             {sub.fill && (
               <>
