@@ -270,41 +270,23 @@ const readBody = (req: IncomingMessage) =>
 const falKey = (mode: string) => loadEnv(mode, ROOT, "").FAL_KEY ?? "";
 
 export function mirisDevApi(mode: string): Plugin {
-  // Conservative until the first read: a wrong true costs one extra reload, a
-  // wrong false costs a doubled renderer.
-  // Line-anchored, because the file's own header comment says "<mirisStream"
-  // while describing it: a plain includes() saw a mounted stream in a blank
-  // template and reloaded on every paste.
-  const hasMountedStream = (source: string) => /^\s*<mirisStream\b/m.test(source);
-  let stageHadStream = true;
-  readFile(STAGE, "utf8")
-    .then((source) => {
-      stageHadStream = hasMountedStream(source);
-    })
-    .catch(() => {});
-
   return {
     name: "miris-dev-api",
     // Dev only, by construction. There is no production counterpart.
     apply: "serve",
 
-    /* Every Fill rewrites app/stage.tsx, and a Fast Refresh of a mounted
-     * <mirisStream> leaves the SDK's own scene objects behind: measured two
-     * SparkRenderers in one scene after a paste, which draws the splats twice
-     * with separate sort state and reads as the model smearing while the
-     * camera moves. The engine registers those objects and never removes
-     * them, so the fix is not to remount.
-     *
-     * Only when a stream was actually mounted, though. Before step 2.4 there
-     * is nothing to leak, and a reload there costs UI state for nothing: the
-     * first report against the always-reload version was a tray resetting
-     * when a 2.1 paste reloaded the page. Decided on what the file said
-     * BEFORE this write, because the old content is what is on screen. */
-    async handleHotUpdate({ file, server, read }) {
-      if (file !== STAGE) return;
-      const had = stageHadStream;
-      stageHadStream = hasMountedStream(await read());
-      if (had) {
+    /* Every change to app/stage.tsx reloads the page. Unconditionally, after
+     * two rounds of being cleverer than this: a Fast Refresh of a mounted
+     * <mirisStream> leaves the SDK's own scene objects behind (measured two
+     * SparkRenderers in one scene, splats drawn twice, the model smearing as
+     * the camera moves), and scoping the reload to "only when a stream was
+     * mounted" still ghosted in Bolt on the stream's FIRST mount, through an
+     * HMR path localhost never reproduced. A fresh boot is the only state
+     * this SDK provably cannot double. The reload is cheap because everything
+     * durable lives in data.json: the tray, its fold state, and an in-flight
+     * mesh build all resume. */
+    handleHotUpdate({ file, server }) {
+      if (file === STAGE) {
         server.hot.send({ type: "full-reload" });
         return [];
       }

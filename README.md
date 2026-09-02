@@ -133,7 +133,7 @@ whatever is inside it, so a box-derived scale always renders content small, and
 the box floor is nowhere near where the content starts. Measured content floor
 is -1.017 here; on `0.0.8-dc2d7ec` the same asset measured -1.24.
 
-**If the SDK pin changes, re-measure.** Step 3.2 turns this into a lesson rather
+**If the SDK pin changes, re-measure.** Step 4.4 turns this into a lesson rather
 than hiding it: attendees nudge two numbers and watch their asset sit down.
 
 ### Renderer settings that are not style choices

@@ -110,14 +110,8 @@ export const STEPS: Step[] = [
         num: "3.1",
         title: "Move the camera",
         body:
-          "No button for this one. Open app/stage.tsx and find the camera prop on Canvas. position is [x, y, z] in world units, and the pedestal top is at y 0.5, so [0, 1.5, 3.4] is roughly eye level and a little back. Try [0, 0.8, 2.2] for a low hero angle, or raise fov from 40 to 60 and watch the perspective stretch. Save and the page updates as you type.",
+          "No button for this one. Open app/stage.tsx and find the camera prop on Canvas. position is [x, y, z] in world units, and the pedestal top is at y 0.5, so [0, 1.5, 3.4] is roughly eye level and a little back. Try [0, 0.8, 2.2] for a low hero angle, or raise fov from 40 to 60 and watch the perspective stretch. Save and the page reloads with your change; your progress is kept.",
         code: "camera={{ position: [0, 1.5, 3.4], fov: 40 }}",
-      },
-      {
-        num: "3.2",
-        title: "Light it your way",
-        body:
-          "Change environmentIntensity in the Environment line. Below 1.0 gets moody and the rim starts to dominate. Above 2.5 blows out the highlights. You can also drop in your own .hdr: put it in public/env/ and change the filename. Polyhaven has thousands, free.",
       },
     ],
   },
@@ -152,7 +146,7 @@ export const STEPS: Step[] = [
         num: "4.4",
         title: "Sit it on the plinth",
         body:
-          "Yours will not land where the demo asset did. Open app/stage.tsx and edit the position and scale on mirisStream until it sits on the rim. Change scale first, then the middle number of position to drop it onto the surface, then the outer two to centre it. The pedestal top is at y 0.5. Save and the page updates as you type.",
+          "Yours will not land where the demo asset did. Open app/stage.tsx and edit the position and scale on mirisStream until it sits on the rim. Change scale first, then the middle number of position to drop it onto the surface, then the outer two to centre it. The pedestal top is at y 0.5. Save and the page reloads with your change; your progress is kept.",
         code: "position={[0.043, 0.64, 0.221]} scale={0.138}",
         explain:
           "You are doing this by eye because there is nothing better to compute it from. The SDK will report a bounding box, but it describes the octree cell holding your asset rather than the asset itself, so its floor is not where your model starts. Three numbers you can see the effect of beat a fit that is right for some assets and quietly wrong for others.",
