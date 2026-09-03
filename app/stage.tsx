@@ -5,6 +5,7 @@ import { MirisStream } from "@miris-inc/three";
 import { ACESFilmicToneMapping } from "three";
 import Card from "../miris/Card";
 import useHtmlTexture from "../miris/htmlTexture";
+import { StageSkeleton } from "../miris/Skeleton";
 
 // A Miris stream is now a scene node: <mirisStream args={[{ uuid, viewerKey }]} />
 extend({ MirisStream });
@@ -21,12 +22,18 @@ export default function Stage() {
   }, []);
 
   // miris:label-start
-  // Step 5.3 replaces this placeholder. It stays above the return because it
-  // calls a React hook, and hooks run on every render.
-  const label = useHtmlTexture(false);
+  // Painted by ctx.drawElementImage() in Chrome, an SVG foreignObject elsewhere.
+  const label = useHtmlTexture(
+    data?.card &&
+      `<div class="mw-plate">
+        <strong>${data.card.name}</strong>
+        <p>${data.card.description}</p>
+        <ul>${data.card.attributes.map((a) => `<li>${a}</li>`).join("")}</ul>
+      </div>`,
+  );
   // miris:label-end
 
-  if (!data || !data.track) return null;
+  if (!data || !data.track) return <StageSkeleton />;
 
   return (
     <Canvas
@@ -54,10 +61,25 @@ export default function Stage() {
         <meshBasicMaterial color={0xe8e9ed} />
       </mesh>
       <Environment files="/env/white-chapel.hdr" environmentIntensity={1.6} />
+      <mirisStream
+        position={[0.043, 0.64, 0.221]}
+        scale={0.138}
+        args={[{
+          uuid: "2b21e89f-ef5d-4175-bbdf-03e8649bcb76",
+          viewerKey: "4YIGMPUj5-fL8n0jkp1kQpJktss_UaBDMW9jwJb08f4",
+        }]}
+      />
       {/* miris:scene-end */}
 
       {/* miris:card-start */}
-      {/* Steps 5.2 and 5.4 go here. */}
+      {label.texture && (
+        <Billboard position={[-1.15, 1.2, 0]}>
+          <mesh>
+            <planeGeometry args={[label.width, label.height]} />
+            <meshBasicMaterial map={label.texture} transparent toneMapped={false} />
+          </mesh>
+        </Billboard>
+      )}
       {/* miris:card-end */}
 
       <OrbitControls makeDefault target={[0, 0.9, 0]} />

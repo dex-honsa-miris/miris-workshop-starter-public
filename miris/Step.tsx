@@ -62,6 +62,15 @@ function RenderPathBadge() {
     );
   }
 
+  if (path === "failed") {
+    return (
+      <p className="mw-path" data-failed>
+        Neither path could draw the label, so nothing is on the plane. The
+        browser console has the reason.
+      </p>
+    );
+  }
+
   return (
     <p className="mw-path">
       Fallback path, in system-ui rather than Geist.{" "}

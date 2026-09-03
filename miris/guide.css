@@ -1397,3 +1397,67 @@ html[data-vt="out"]::view-transition-old(chooser) { animation: none; }
   color: var(--mono-200);
   word-break: break-all;
 }
+
+/* ── loading skeletons ─────────────────────────────────── */
+/* One breath for the whole app. The dot wave in .mw-skel owns the rhythm and
+   the dim range; these bars borrow both so the panel and the build tray do not
+   pulse at each other. Opacity is set statically and the keyframe only
+   modulates it, because the reduced-motion rule above kills animation outright
+   and anything relying on a keyframe for its visibility would be stranded. */
+@keyframes mw-breath {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.mw-skel-line,
+.mw-skel-tick,
+.mw-skel-bar::before {
+  background: var(--mono-800);
+  border-radius: var(--radius-xs);
+  opacity: 0.75;
+  animation: mw-breath 3.2s ease-in-out infinite;
+}
+
+/* The strip is empty here, so its flex box would collapse to its padding and
+   the rail would ride 11px too high. */
+.mw-skel-bar::before {
+  content: "";
+  display: block;
+  width: 96px;
+  height: 11px;
+}
+
+.mw-skel-rail { gap: 14px; padding-top: calc(var(--space-s) + 9px); }
+.mw-skel-tick {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  align-self: center;
+}
+
+.mw-skel-card { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.mw-skel-line { height: 9px; }
+.mw-skel-title { height: 15px; margin-bottom: 4px; }
+
+/* Behind the canvas, not over it: this is only ever seen before <Canvas>
+   mounts. The stream's own coarse-to-sharp arrival is never covered. */
+.mw-stage-skel {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+}
+
+/* Staggered so the panel reads as one column filling in rather than five bars
+   blinking in lockstep. Negative delays start each mid-cycle, as the dot wave
+   does, so the breath is already moving on the first frame. */
+.mw-skel-card .mw-skel-line:nth-child(2) { animation-delay: -0.4s; }
+.mw-skel-card .mw-skel-line:nth-child(3) { animation-delay: -0.8s; }
+.mw-skel-card .mw-skel-line:nth-child(4) { animation-delay: -1.2s; }
+.mw-skel-card .mw-skel-line:nth-child(5) { animation-delay: -1.6s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mw-skel-line,
+  .mw-skel-tick,
+  .mw-skel-bar::before { animation: none; opacity: 0.75; }
+}
+.mw-path[data-failed] { color: var(--mono-200); border-color: var(--mono-700); }

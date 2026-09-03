@@ -8,6 +8,7 @@ import Rail from "./Rail";
 import StepPane, { type StepActions } from "./Step";
 import { trackById } from "./tracks";
 import Start from "./Start";
+import { PanelSkeleton } from "./Skeleton";
 import "./guide.css";
 
 /* The workshop API is Vite dev middleware, so a build has no counterpart for it.
@@ -46,7 +47,7 @@ async function readApi(res: Response): Promise<ApiResult> {
  * the tip while there is still time to flip the flag. */
 function CapabilityLine() {
   const path = useSyncExternalStore(subscribePath, getPath, getPath);
-  if (path === "drawElement") return null;
+  if (path === "drawElement" || path === "failed") return null;
   const { flaggable } = detect();
   return (
     <p className="mw-capline l12">
@@ -65,6 +66,10 @@ function CapabilityLine() {
 export default function MirisGuide() {
   const [open, setOpen] = useState(true);
   const [data, setData] = useState<any>({ step: "1.1" });
+  /* Separate from `data` because the seed above has no track, which is
+     indistinguishable from "no track chosen yet". Without this the chooser
+     flashed full-bleed on every reload before the panel arrived. */
+  const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState("");
   const [note, setNote] = useState("");
   // View state, deliberately separate from data.step. data.step is how far the
@@ -108,6 +113,11 @@ export default function MirisGuide() {
       setData(r.data);
     } catch (e) {
       setNote(`Could not reach the workshop API: ${(e as Error).message}`);
+    } finally {
+      // Resolves on failure too. load() swallows its errors into `note`, so
+      // without the finally a dead API parks an attendee on the skeleton
+      // forever, which is worse than the flash this replaces.
+      setLoaded(true);
     }
   }, []);
 
@@ -290,6 +300,7 @@ export default function MirisGuide() {
     backToProgress: () => setSelected(null),
   };
 
+  if (!loaded) return <PanelSkeleton />;
   if (!data.track) return <Start onChoose={chooseTrack} note={note} />;
 
   if (!open) {

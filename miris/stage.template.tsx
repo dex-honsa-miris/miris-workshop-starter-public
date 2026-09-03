@@ -5,6 +5,7 @@ import { MirisStream } from "@miris-inc/three";
 import { ACESFilmicToneMapping } from "three";
 import Card from "../miris/Card";
 import useHtmlTexture from "../miris/htmlTexture";
+import { StageSkeleton } from "../miris/Skeleton";
 
 // A Miris stream is now a scene node: <mirisStream args={[{ uuid, viewerKey }]} />
 extend({ MirisStream });
@@ -26,7 +27,7 @@ export default function Stage() {
   const label = useHtmlTexture(false);
   // miris:label-end
 
-  if (!data || !data.track) return null;
+  if (!data || !data.track) return <StageSkeleton />;
 
   return (
     <Canvas

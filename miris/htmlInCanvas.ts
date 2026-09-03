@@ -9,7 +9,7 @@
  * WICG explainer. The flag is a dedicated one, not the general
  * #enable-experimental-web-platform-features that most write-ups name. */
 
-export type RenderPath = "drawElement" | "foreignObject";
+export type RenderPath = "drawElement" | "foreignObject" | "failed";
 
 export interface Capability {
   path: RenderPath;
@@ -141,8 +141,16 @@ async function drawViaForeignObject(
     `</foreignObject></svg>`;
 
   const img = new Image();
-  img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-  await img.decode();
+  // load/error, not img.decode(). Chrome rejects decode() with an
+  // EncodingError for an SVG carrying a foreignObject, while the very same
+  // image fires load and draws perfectly. Awaiting decode() therefore threw on
+  // every browser that takes this path, which is every browser without the
+  // flag, and the card silently never appeared.
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error("the label SVG could not be loaded"));
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  });
   ctx.drawImage(img, 0, 0, w, h);
 }
 
@@ -154,6 +162,23 @@ async function drawViaForeignObject(
  *  instead. The fallback has no such rule and takes `el` from anywhere, as long
  *  as it has been laid out. */
 export async function paintElement(
+  el: HTMLElement,
+  target: HTMLCanvasElement,
+  accent: string,
+): Promise<RenderPath> {
+  try {
+    return await paintInto(el, target, accent);
+  } catch (e) {
+    // Every failure reports, including the layout guard below, which throws
+    // before either backend runs. Without this the store kept whatever
+    // detect() seeded, so a total failure still read as "drawing your live DOM"
+    // on the badge while the plane was blank.
+    report("failed");
+    throw e;
+  }
+}
+
+async function paintInto(
   el: HTMLElement,
   target: HTMLCanvasElement,
   accent: string,

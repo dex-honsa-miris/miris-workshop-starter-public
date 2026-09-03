@@ -68,21 +68,18 @@ export default function useHtmlTexture(html: string | false | null | undefined):
       getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() ||
       ACCENT_FALLBACK;
 
-    // Two frames: one for layout, one for the paint snapshot the native path
-    // needs to exist before it can be drawn from.
-    const id = requestAnimationFrame(() =>
-      requestAnimationFrame(async () => {
-        if (!alive) return;
-        const el = host.firstElementChild as HTMLElement | null;
-        if (!el) return;
-        try {
-          await paintElement(el, target, accent);
-        } catch {
-          // Neither path could draw. Stay empty rather than showing a broken
-          // texture; the step's badge says which path was attempted.
-          return;
-        }
-        if (!alive) return;
+    const draw = async () => {
+      if (!alive) return;
+      const el = host.firstElementChild as HTMLElement | null;
+      if (!el) return;
+      try {
+        await paintElement(el, target, accent);
+      } catch {
+        // Neither path could draw. Stay empty rather than showing a broken
+        // texture; the step's badge reports the failure.
+        return;
+      }
+      if (!alive) return;
         const texture = new CanvasTexture(target);
         // Deliberate pass-through, not a mistake to "correct" to sRGB: the
         // stage's <Canvas linear> means nothing re-encodes after sampling, so
@@ -97,11 +94,29 @@ export default function useHtmlTexture(html: string | false | null | undefined):
             height: el.offsetHeight * UNITS_PER_PX,
           };
         });
-      }),
-    );
+    };
+
+    /* The native path needs a recorded paint before it can be drawn from, and
+       the canvas fires `paint` to say one exists. Waiting two frames instead
+       was a guess, and a wrong one: it threw "No cached paint record for
+       element" and fell through to the fallback. The event is also how a later
+       restyle repaints, so it stays subscribed rather than firing once.
+       The fallback lays out in a plain div, which has no such event, so it
+       keeps the two-frame wait: one for layout, one to be safe. */
+    let id = 0;
+    const onPaint = () => void draw();
+    if (target === host) {
+      host.addEventListener("paint", onPaint);
+      // Some builds record the first paint before a listener can attach, and
+      // then never fire again. One nudge on the next frame covers that.
+      id = requestAnimationFrame(() => void draw());
+    } else {
+      id = requestAnimationFrame(() => requestAnimationFrame(() => void draw()));
+    }
 
     return () => {
       alive = false;
+      host.removeEventListener("paint", onPaint);
       cancelAnimationFrame(id);
       made?.dispose();
       host.remove();
