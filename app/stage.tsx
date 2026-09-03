@@ -45,7 +45,15 @@ export default function Stage() {
       <hemisphereLight args={[0xffffff, 0x223044, 2.2]} />
 
       {/* miris:scene-start */}
-      {/* Steps 2.1, 2.2 and 2.4 go here, in that order. */}
+      <mesh position={[0, 0.25, 0]}>
+        <cylinderGeometry args={[0.9, 1.0, 0.5, 48]} />
+        <meshStandardMaterial color={0x111215} roughness={0.55} metalness={0.5} />
+      </mesh>
+      <mesh position={[0, 0.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.9, 0.015, 12, 64]} />
+        <meshBasicMaterial color={0xe8e9ed} />
+      </mesh>
+      <Environment files="/env/white-chapel.hdr" environmentIntensity={1.6} />
       {/* miris:scene-end */}
 
       {/* miris:card-start */}
