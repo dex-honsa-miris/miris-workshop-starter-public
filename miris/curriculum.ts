@@ -1,5 +1,3 @@
-import { FAL_KEYS_URL, PORTAL_URL } from "./config";
-
 export interface Sub {
   num: string;
   /** {noun} is replaced with the track's own word: creature, product,
