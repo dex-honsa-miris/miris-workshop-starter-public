@@ -3,7 +3,7 @@ import { join } from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { loadEnv, type Plugin } from "vite";
 import { end as markerEnd, readMarker, replaceMarker, start as markerStart } from "./markers.mjs";
-import { readData, writeData } from "./store.mjs";
+import { PIECE_IDS, readData, writeData, writePiece } from "./store.mjs";
 import { CLEARS_TO, MARKER_FOR, SNIPPETS } from "./snippets.mjs";
 import { DEMO_UUID, IMAGE_FRAMING, IMAGE_MODEL, LABEL_LLM, LABEL_MODEL, MODEL_3D, VIEWER_KEY } from "./config";
 import { TRACKS } from "./tracks";
@@ -146,7 +146,11 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
     "Content-Type": "application/json",
   });
 
-  async function falRun(model: string, input: unknown, recordIn?: string) {
+  async function falRun(
+    model: string,
+    input: unknown,
+    record?: (patch: object) => Promise<unknown>,
+  ) {
     const submit = await fetch(`https://queue.fal.run/${model}`, {
       method: "POST",
       headers: falHeaders(),
@@ -156,8 +160,10 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
     const job = await submit.json();
 
     // Recorded before the wait, so a dev server killed mid-generation costs
-    // nothing: the job is still findable on fal.
-    if (recordIn) await writeData(recordIn, { falRequestId: job.request_id ?? "", modelStartedAt: Date.now() });
+    // nothing: the job is still findable on fal. A callback rather than a
+    // directory, because three pieces build at once and each must record
+    // against its own slot.
+    if (record) await record({ falRequestId: job.request_id ?? "", modelStartedAt: Date.now() });
 
     for (let i = 0; i < 300; i++) {
       await new Promise((r) => setTimeout(r, 5000));
@@ -218,6 +224,12 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
     case "save":
       return ok(await writeData(MIRIS_DIR, body.patch ?? {}));
 
+    case "piece": {
+      const id = String(body.id ?? "");
+      if (!PIECE_IDS.includes(id)) return fail(`unknown piece: ${id || "(none)"}`);
+      return ok(await writePiece(MIRIS_DIR, id, body.patch ?? {}));
+    }
+
     case "check": {
       const check = CHECKS[String(body.check ?? "")];
       // No check for this step is not a failure: it means nothing on disk
@@ -232,16 +244,18 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
       const stored = await readData(MIRIS_DIR);
       const track = TRACKS.find((t) => t.id === stored.track);
       if (!track) return fail("No track chosen yet. Pick one on the chooser first.");
-      if (!stored.prompt) return fail("No prompt to write from. Step 1.2 is where it comes from.");
+      const pieceId = String(body.id ?? "01");
+      const piece = stored.pieces.find((p) => p.id === pieceId);
+      if (!piece?.prompt) return fail("No prompt to write from. Step 1.2 is where it comes from.");
       const out: any = await falRun(LABEL_MODEL, {
         model: LABEL_LLM,
         system_prompt: CURATOR,
-        prompt: `The object: ${stored.prompt}. Its kind: ${track.noun}.`,
+        prompt: `The object: ${piece.prompt}. Its kind: ${track.noun}.`,
         temperature: 0.9,
       });
       const card = parseCard(out?.output);
       if (!card) return fail("The model wrote something that is not a card. Press the button again.", 502);
-      await writeData(MIRIS_DIR, { card });
+      await writePiece(MIRIS_DIR, pieceId, { card });
       return ok({ card });
     }
 
@@ -253,6 +267,7 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
        * monster-taming style whichever door they had picked. */
       const track = TRACKS.find((t) => t.id === stored.track);
       if (!track) return fail("No track chosen yet. Pick one on the chooser first.");
+      const pieceId = String(body.id ?? "01");
       const out: any = await falRun(IMAGE_MODEL, {
         prompt: `${track.style}: ${body.prompt}. ${IMAGE_FRAMING}`,
         image_size: "square_hd",
@@ -261,7 +276,7 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
       });
       const url = out?.images?.[0]?.url;
       if (!url) return fail("fal returned no image", 502);
-      await writeData(MIRIS_DIR, { prompt: body.prompt, imageUrl: url });
+      await writePiece(MIRIS_DIR, pieceId, { prompt: body.prompt, imageUrl: url });
       return ok({ url });
     }
 
@@ -270,6 +285,7 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
       const stored = await readData(MIRIS_DIR);
       const track = TRACKS.find((t) => t.id === stored.track);
       if (!track) return fail("No track chosen yet. Pick one on the chooser first.");
+      const pieceId = String(body.id ?? "01");
       let out: any;
       try {
         out = await falRun(
@@ -282,21 +298,21 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
             texture_prompt: `${track.style}: ${body.prompt ?? ""}`,
             ...MESHY_INPUT,
           },
-          MIRIS_DIR,
+          (patch) => writePiece(MIRIS_DIR, pieceId, patch),
         );
       } catch (e) {
         // The browser that asked may be gone: a Fill reloads the page, and the
         // client resumes "building" off modelStartedAt. Clearing it is how a
         // resumed client learns the job died rather than waiting forever.
-        await writeData(MIRIS_DIR, { modelStartedAt: 0 });
+        await writePiece(MIRIS_DIR, pieceId, { modelStartedAt: 0 });
         throw e;
       }
       const url = out?.model_glb?.url;
       if (!url) {
-        await writeData(MIRIS_DIR, { modelStartedAt: 0 });
+        await writePiece(MIRIS_DIR, pieceId, { modelStartedAt: 0 });
         return fail("fal returned no mesh", 502);
       }
-      await writeData(MIRIS_DIR, { glb: url });
+      await writePiece(MIRIS_DIR, pieceId, { glb: url });
       return ok({ url });
     }
 
