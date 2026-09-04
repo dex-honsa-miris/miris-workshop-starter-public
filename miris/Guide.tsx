@@ -319,7 +319,6 @@ export default function MirisGuide() {
     clear,
     writeLabel,
     done,
-    advance,
     view: (subNum: string) => transition(() => setViewing(subNum)),
     // Undo is the pointer moving back, so the reopened substep becomes current
     // again and its Done can re-verify the work.
