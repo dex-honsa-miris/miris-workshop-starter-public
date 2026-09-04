@@ -150,13 +150,16 @@ export function usePieceBuild(pieceId: string, data: Doc) {
     if (!piece) return;
     const cleared =
       !piece.prompt && !piece.imageUrl && !piece.glb && !piece.falRequestId && !piece.modelStartedAt;
-    // Also excluded: "image". The prompt is only persisted once the image
-    // lands, so the slot on disk is legitimately empty for the whole minute
-    // the generation is running. Without this, the 5s poll (or any load()
-    // from advance/fill/writeLabel) read that normal, temporary emptiness as
-    // a clear, wiped the field mid-generation, and the attendee retyped and
-    // pressed Generate again for a second billed image.
-    if (!cleared || phase === "idle" || phase === "image") return;
+    /* `cleared` reads DISK, and disk lags local state by up to one poll. So an
+       empty slot means "the track was reset" only when this hook is also
+       holding nothing. Right after a generation resolves, phase is already
+       "review" and `image` is set here while the poll has not yet returned the
+       written piece: without the pending check below, that window read as a
+       clear and wiped a result the attendee had just paid for. It cost a
+       second billed image every time, because the tray vanished and the field
+       went back to its placeholder, which reads exactly like a failure. */
+    const pending = Boolean(image) || Boolean(glb) || phase !== "idle";
+    if (!cleared || pending) return;
     setPhase("idle");
     setPrompt("");
     setImage("");
