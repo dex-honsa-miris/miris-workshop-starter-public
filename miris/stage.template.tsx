@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
 import { Canvas, extend } from "@react-three/fiber";
-import { Billboard, Environment, OrbitControls } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
 import { MirisStream } from "@miris-inc/three";
-import { ACESFilmicToneMapping } from "three";
-import Card from "../miris/Card";
 import useHtmlTexture from "../miris/htmlTexture";
 import { StageSkeleton } from "../miris/Skeleton";
 
 // A Miris stream is now a scene node: <mirisStream args={[{ uuid, viewerKey }]} />
 extend({ MirisStream });
 
-// Your file. Each step's code goes between the miris: comments below.
+// Your file. The sidebar writes between the miris: comments.
 export default function Stage() {
   const [data, setData] = useState<any>(null);
 
@@ -21,9 +19,14 @@ export default function Stage() {
       .catch(() => setData({}));
   }, []);
 
+  // miris:stops-start
+  // Step 3.1 replaces this. It stays above the return because the rail reads it.
+  const STOPS: Array<{ id: string; pos: [number, number, number]; look: [number, number, number] }> = [];
+  // miris:stops-end
+
   // miris:label-start
-  // Step 5.3 replaces this placeholder. It stays above the return because it
-  // calls a React hook, and hooks run on every render.
+  // Step 6.3 replaces this. It stays above the return because it calls a React
+  // hook, and hooks run on every render.
   const label = useHtmlTexture(false);
   // miris:label-end
 
@@ -33,27 +36,39 @@ export default function Stage() {
     <Canvas
       linear
       dpr={[1, 1.5]}
-      gl={{
-        alpha: true,
-        antialias: false,
-        powerPreference: "high-performance",
-        toneMapping: ACESFilmicToneMapping,
-        toneMappingExposure: 1.1,
-      }}
-      camera={{ position: [0, 1.5, 3.4], fov: 40 }}
+      gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
+      camera={{ position: [0, 1.6, 4], fov: 50 }}
       style={{ position: "fixed", inset: 0 }}
     >
-      <hemisphereLight args={[0xffffff, 0x223044, 2.2]} />
+      {/* miris:quality-start */}
+      {/* Step 2.4 goes here. */}
+      {/* miris:quality-end */}
 
-      {/* miris:scene-start */}
-      {/* Steps 2.1, 2.2 and 2.4 go here, in that order. */}
-      {/* miris:scene-end */}
+      {/* miris:room-start */}
+      {/* Step 2.1 goes here. */}
+      {/* miris:room-end */}
+
+      {/* miris:materials-start */}
+      {/* Step 2.2 goes here. */}
+      {/* miris:materials-end */}
+
+      {/* miris:lights-start */}
+      {/* Step 2.3 goes here. */}
+      {/* miris:lights-end */}
+
+      {/* miris:rail-start */}
+      {/* Step 3.2 goes here. */}
+      {/* miris:rail-end */}
+
+      {/* miris:catalog-start */}
+      {/* Steps 4.2 and 4.3 go here. */}
+      {/* miris:catalog-end */}
 
       {/* miris:card-start */}
-      {/* Steps 5.2 and 5.4 go here. */}
+      {/* Steps 6.2 and 6.4 go here. */}
       {/* miris:card-end */}
 
-      <OrbitControls makeDefault target={[0, 0.9, 0]} />
+      <OrbitControls makeDefault target={[0, 1.2, 0]} />
     </Canvas>
   );
 }

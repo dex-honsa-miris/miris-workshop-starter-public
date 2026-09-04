@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
 import { Canvas, extend } from "@react-three/fiber";
-import { Billboard, Environment, OrbitControls } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
 import { MirisStream } from "@miris-inc/three";
-import { ACESFilmicToneMapping } from "three";
-import Card from "../miris/Card";
 import useHtmlTexture from "../miris/htmlTexture";
 import { StageSkeleton } from "../miris/Skeleton";
 
 // A Miris stream is now a scene node: <mirisStream args={[{ uuid, viewerKey }]} />
 extend({ MirisStream });
 
-// Your file. Each step's code goes between the miris: comments below.
+// Your file. The sidebar writes between the miris: comments.
 export default function Stage() {
   const [data, setData] = useState<any>(null);
 
@@ -21,16 +19,15 @@ export default function Stage() {
       .catch(() => setData({}));
   }, []);
 
+  // miris:stops-start
+  // Step 3.1 replaces this. It stays above the return because the rail reads it.
+  const STOPS: Array<{ id: string; pos: [number, number, number]; look: [number, number, number] }> = [];
+  // miris:stops-end
+
   // miris:label-start
-  // Painted by ctx.drawElementImage() in Chrome, an SVG foreignObject elsewhere.
-  const label = useHtmlTexture(
-    data?.card &&
-      `<div class="mw-plate">
-        <strong>${data.card.name}</strong>
-        <p>${data.card.description}</p>
-        <ul>${data.card.attributes.map((a) => `<li>${a}</li>`).join("")}</ul>
-      </div>`,
-  );
+  // Step 6.3 replaces this. It stays above the return because it calls a React
+  // hook, and hooks run on every render.
+  const label = useHtmlTexture(false);
   // miris:label-end
 
   if (!data || !data.track) return <StageSkeleton />;
@@ -39,50 +36,39 @@ export default function Stage() {
     <Canvas
       linear
       dpr={[1, 1.5]}
-      gl={{
-        alpha: true,
-        antialias: false,
-        powerPreference: "high-performance",
-        toneMapping: ACESFilmicToneMapping,
-        toneMappingExposure: 1.1,
-      }}
-      camera={{ position: [0, 1.5, 3.4], fov: 40 }}
+      gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
+      camera={{ position: [0, 1.6, 4], fov: 50 }}
       style={{ position: "fixed", inset: 0 }}
     >
-      <hemisphereLight args={[0xffffff, 0x223044, 2.2]} />
+      {/* miris:quality-start */}
+      {/* Step 2.4 goes here. */}
+      {/* miris:quality-end */}
 
-      {/* miris:scene-start */}
-      <mesh position={[0, 0.25, 0]}>
-        <cylinderGeometry args={[0.9, 1.0, 0.5, 48]} />
-        <meshStandardMaterial color={0x111215} roughness={0.55} metalness={0.5} />
-      </mesh>
-      <mesh position={[0, 0.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.9, 0.015, 12, 64]} />
-        <meshBasicMaterial color={0xe8e9ed} />
-      </mesh>
-      <Environment files="/env/white-chapel.hdr" environmentIntensity={1.6} />
-      <mirisStream
-        position={[0.043, 0.64, 0.221]}
-        scale={0.138}
-        args={[{
-          uuid: "2b21e89f-ef5d-4175-bbdf-03e8649bcb76",
-          viewerKey: "4YIGMPUj5-fL8n0jkp1kQpJktss_UaBDMW9jwJb08f4",
-        }]}
-      />
-      {/* miris:scene-end */}
+      {/* miris:room-start */}
+      {/* Step 2.1 goes here. */}
+      {/* miris:room-end */}
+
+      {/* miris:materials-start */}
+      {/* Step 2.2 goes here. */}
+      {/* miris:materials-end */}
+
+      {/* miris:lights-start */}
+      {/* Step 2.3 goes here. */}
+      {/* miris:lights-end */}
+
+      {/* miris:rail-start */}
+      {/* Step 3.2 goes here. */}
+      {/* miris:rail-end */}
+
+      {/* miris:catalog-start */}
+      {/* Steps 4.2 and 4.3 go here. */}
+      {/* miris:catalog-end */}
 
       {/* miris:card-start */}
-      {label.texture && (
-        <Billboard position={[-1.15, 1.2, 0]}>
-          <mesh>
-            <planeGeometry args={[label.width, label.height]} />
-            <meshBasicMaterial map={label.texture} transparent toneMapped={false} />
-          </mesh>
-        </Billboard>
-      )}
+      {/* Steps 6.2 and 6.4 go here. */}
       {/* miris:card-end */}
 
-      <OrbitControls makeDefault target={[0, 0.9, 0]} />
+      <OrbitControls makeDefault target={[0, 1.2, 0]} />
     </Canvas>
   );
 }
