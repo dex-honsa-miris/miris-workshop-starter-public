@@ -6,28 +6,8 @@ import type { Track } from "./tracks";
 
 type Phase = "idle" | "image" | "review" | "model" | "done";
 
-/* The same three slots store.mjs writes, restated for the browser. store.mjs
-   imports node:fs, so the client cannot take PIECE_IDS from it without pulling
-   node builtins into the bundle. A drift between the two copies cannot pass
-   silently: the dev API validates every piece id against its own list and
-   rejects an unknown one before it touches fal. */
-export const PIECE_IDS = ["01", "02", "03"];
-
-/* What a track change writes back into a slot: emptyPiece in store.mjs without
-   its id, because the id addresses the slot rather than travelling in the
-   patch. */
-export const EMPTY_PIECE = {
-  status: "empty",
-  prompt: "",
-  imageUrl: "",
-  falRequestId: "",
-  modelStartedAt: 0,
-  glb: "",
-  uuid: "",
-  card: null,
-};
-
-/** One slot in data.json's `pieces`, as the dev API writes it. */
+/** One slot in data.json's `pieces`, as the dev API writes it. The runtime
+ *  shape is `emptyPiece` in pieces.mjs, which both this and store.mjs use. */
 export interface Piece {
   id: string;
   status: string;

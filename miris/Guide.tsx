@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import BuildTray, { EMPTY_PIECE, PIECE_IDS, usePieceBuild } from "./Build";
+import BuildTray, { usePieceBuild } from "./Build";
 import { detect, getPath, subscribePath } from "./htmlInCanvas";
 import { STEPS, type Sub } from "./curriculum";
 import { transition } from "./transition";
 import { nextSub, stepOfSub } from "./progress";
 import Rail from "./Rail";
 import StepPane, { type StepActions } from "./Step";
+import { emptyPiece, PIECE_IDS } from "./pieces.mjs";
 import { trackById } from "./tracks";
 import Start from "./Start";
 import { PanelSkeleton } from "./Skeleton";
@@ -210,7 +211,7 @@ export default function MirisGuide() {
        between the read and the write. */
     if (id && id !== data.track) {
       for (const pieceId of PIECE_IDS) {
-        const cleared = await post({ action: "piece", id: pieceId, patch: EMPTY_PIECE });
+        const cleared = await post({ action: "piece", id: pieceId, patch: emptyPiece(pieceId) });
         if (!cleared.ok) return setNote(cleared.problem!);
       }
     }
@@ -255,14 +256,19 @@ export default function MirisGuide() {
     });
   };
 
-  const writeLabel = async (num: string) => {
-    setBusy(num);
+  /* The piece is an argument, not a default. The dev API falls back to piece
+     01 for a request that omits the id, so one unaddressed button wrote every
+     attendee's card into the first niche whichever piece they meant, silently
+     and with three pieces on screen. Busy is keyed by substep AND piece,
+     because the step now renders one of these per described piece. */
+  const writeLabel = async (num: string, pieceId: string) => {
+    setBusy(`${num}:${pieceId}`);
     setNote("");
     try {
-      const r = await post({ action: "label" });
+      const r = await post({ action: "label", id: pieceId });
       if (!r.ok) return setNote(r.problem!);
       await load();
-      setNote(`Wrote "${r.data.card.name}".`);
+      setNote(`Wrote "${r.data.card.name}" for piece ${pieceId}.`);
     } catch (e) {
       setNote(`Could not write the label: ${(e as Error).message}`);
     } finally {

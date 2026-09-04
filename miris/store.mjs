@@ -1,25 +1,10 @@
 import { readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { PIECE_IDS, emptyPiece } from "./pieces.mjs";
 
-/* Three fixed slots, never grown. pieces[i] is niche.0{i+1}, so a piece that
-   arrives late lands in its own niche instead of shifting the others along. */
-export const PIECE_IDS = ["01", "02", "03"];
-
-export const emptyPiece = (id) => ({
-  id,
-  // empty | generating-image | image-ready | generating-mesh | mesh-ready
-  // | uploaded | streaming | failed
-  status: "empty",
-  prompt: "",
-  imageUrl: "",
-  falRequestId: "",
-  // Epoch ms while a mesh build is in flight, 0 otherwise. How a reloaded page
-  // knows to resume the building state instead of re-offering the review.
-  modelStartedAt: 0,
-  glb: "",
-  uuid: "",
-  card: null,
-});
+/* Re-exported, not redefined. The shape lives in pieces.mjs so the browser can
+   have it too, and every existing importer still reaches it through here. */
+export { PIECE_IDS, emptyPiece };
 
 export const DEFAULT_DATA = {
   track: "",

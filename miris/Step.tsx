@@ -13,8 +13,9 @@ import { indexOfSub, nextSub, subState } from "./progress";
 export interface StepActions {
   fill: (snippetId: string, num: string) => void | Promise<void>;
   clear: (snippetId: string) => void | Promise<void>;
-  /** Asks a model on the attendee's fal key to write the card. */
-  writeLabel: (num: string) => void | Promise<void>;
+  /** Asks a model on the attendee's fal key to write one piece's card. The
+   *  piece id is required: the dev API defaults an omitted one to piece 01. */
+  writeLabel: (num: string, pieceId: string) => void | Promise<void>;
   /** Verifies the substep actually happened, then moves the progress pointer
    *  if it did, or reports what is missing if it did not. */
   done: (sub: Sub) => void | Promise<void>;
@@ -149,6 +150,9 @@ export default function StepPane({
   // every substep between here and there as done-but-not-done.
   const browsing = openSubNum !== currentSubNum;
   const undoable = indexOfSub(openSubNum) === indexOfSub(currentSubNum) - 1;
+  // A card is written from a piece's prompt, so only a described piece has
+  // anything to label.
+  const described = builds.filter((b) => b.prompt);
 
   return (
     <div className="mw-pane">
@@ -229,15 +233,24 @@ export default function StepPane({
 
             {sub.panel && <BuildInput builds={builds} />}
 
-            {sub.label && (
-              <button
-                className="btn btn-primary btn-sm"
-                disabled={busy === sub.num}
-                onClick={() => actions.writeLabel(sub.num)}
-              >
-                {busy === sub.num ? "Writing" : "Write the label"}
-              </button>
-            )}
+            {sub.label &&
+              (described.length === 0 ? (
+                <p className="mw-note">Describe a piece first. Its card is written from its prompt.</p>
+              ) : (
+                described.map((b) => {
+                  const key = `${sub.num}:${b.pieceId}`;
+                  return (
+                    <button
+                      key={b.pieceId}
+                      className="btn btn-primary btn-sm"
+                      disabled={busy === key}
+                      onClick={() => actions.writeLabel(sub.num, b.pieceId)}
+                    >
+                      {busy === key ? "Writing" : `Write the label for ${b.pieceId}`}
+                    </button>
+                  );
+                })
+              ))}
 
             {sub.fill && (
               <>
