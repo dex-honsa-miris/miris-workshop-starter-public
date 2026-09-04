@@ -2,7 +2,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { loadEnv, type Plugin } from "vite";
-import { end as markerEnd, replaceMarker, start as markerStart } from "./markers.mjs";
+import { end as markerEnd, readMarker, replaceMarker, start as markerStart } from "./markers.mjs";
 import { PIECE_IDS, readData, writeData, writePiece } from "./store.mjs";
 import { CLEARS_TO, MARKER_FOR, SNIPPETS, PARTS } from "./snippets.mjs";
 import { BOUTIQUE, IMAGE_FRAMING, IMAGE_MODEL, LABEL_LLM, LABEL_MODEL, MODEL_3D, VIEWER_KEY } from "./config";
@@ -28,11 +28,145 @@ const MESHY_INPUT = {
   enable_safety_checker: true,
 };
 
+/** The attendee's own code for one marker, read out of their stage file. Never
+ *  the whole file: an import at the top, or a neighbouring block, would
+ *  otherwise pass a step nobody has done. */
+const stageBlock = async (marker: string) => readMarker(await readFile(STAGE, "utf8"), marker);
+
+/** Canonical 8-4-4-4-12. The one thing here matched by shape rather than
+ *  looked for: a uuid carrying a stray character or a word of surrounding text
+ *  streams nothing and reports nothing, so a substring would pass a stream that
+ *  can never arrive. */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /* One check per step that has something verifiable on disk. Each returns null
  * when the step is done, or the sentence the attendee needs to read. Steps that
  * happen elsewhere entirely, signing up or deploying, have no entry: the Done
- * button just moves them on rather than pretending to know. */
-const CHECKS: Record<string, (mode: string) => Promise<string | null>> = {};
+ * button just moves them on rather than pretending to know.
+ *
+ * Lenient on purpose, and substring-shaped: a check confirms the step happened,
+ * it never grades how. Every sentence names the file, the block and the missing
+ * thing, because the only person who reads one is stuck. */
+const CHECKS: Record<string, (mode: string) => Promise<string | null>> = {
+  async falKey(mode) {
+    return falKey(mode)
+      ? null
+      : "No FAL_KEY yet. Create .env.local at the top level of the project, put FAL_KEY=your-key in it, and save.";
+  },
+
+  async room() {
+    const block = await stageBlock("room");
+    return block.includes(".glb")
+      ? null
+      : "Nothing loads a glb in the miris:room block in app/stage.tsx yet. The shell is public/env/room.glb, so fill the step or paste the snippet between the miris:room comments.";
+  },
+
+  async lights() {
+    const block = await stageBlock("lights");
+    // A tag, not the word: the block ships with a comment in it, and prose
+    // about lighting must not read as a light.
+    return /<\w*[Ll]ight/.test(block)
+      ? null
+      : "No light in the miris:lights block in app/stage.tsx yet. The room stays black until something lights it, so fill the step or paste the snippet between the miris:lights comments.";
+  },
+
+  async quality() {
+    const block = await stageBlock("quality");
+    return /[Tt]oneMapping|environmentIntensity|RoomEnvironment|<Environment/.test(block)
+      ? null
+      : "Nothing in the miris:quality block in app/stage.tsx sets tone mapping or an environment yet. Brass has nothing to reflect until it does, so fill the step or paste the snippet between the miris:quality comments.";
+  },
+
+  async materials() {
+    const block = await stageBlock("materials");
+    return /Material/.test(block)
+      ? null
+      : "No material in the miris:materials block in app/stage.tsx yet. The room keeps whatever surfaces the glb shipped with until the block replaces them, so fill the step or paste the snippet between the miris:materials comments.";
+  },
+
+  async props() {
+    const block = await stageBlock("props");
+    return block.includes(".glb")
+      ? null
+      : "No prop in the miris:props block in app/stage.tsx yet. The props are the glb files in public/props, so fill the step or paste the snippet between the miris:props comments.";
+  },
+
+  async stops() {
+    const block = await stageBlock("stops");
+    // A numeric triple, not a field name: the empty array the template ships
+    // carries "pos" and "look" already, in its type annotation.
+    return /\[\s*-?[\d.]+\s*,\s*-?[\d.]+\s*,\s*-?[\d.]+\s*\]/.test(block)
+      ? null
+      : "STOPS is still the empty array in the miris:stops block in app/stage.tsx. Author at least one stop, with a pos and a look, above the return.";
+  },
+
+  async rail() {
+    const block = await stageBlock("rail");
+    return /STOPS|useFrame/.test(block)
+      ? null
+      : "Nothing in the miris:rail block in app/stage.tsx reads STOPS yet. The flight between your stops goes between the miris:rail comments, so fill the step or paste the snippet in.";
+  },
+
+  async image() {
+    const { pieces } = await readData(MIRIS_DIR);
+    return pieces.some((p) => p.imageUrl)
+      ? null
+      : "No piece in miris/data.json has an image yet. Write a prompt for at least one of the three slots and generate it.";
+  },
+
+  async catalog() {
+    const block = await stageBlock("catalog");
+    if (!block.includes("mirisStream"))
+      return "No mirisStream in the miris:catalog block in app/stage.tsx yet. The shelves stay empty until the catalog streams onto them, so fill the step or paste the snippet between the miris:catalog comments.";
+    // Only when a uuid was written out by hand. A block that maps over
+    // miris/catalog.json has none to read, which is the point of the map.
+    const literal = block.match(/uuid:\s*["'`]([^"'`]*)["'`]/);
+    if (literal && !UUID.test(literal[1]))
+      return `That uuid does not look like one: "${literal[1]}". Copy just the id, four dashes and nothing around it, from the asset in miris/catalog.json.`;
+    return null;
+  },
+
+  async catalogFit() {
+    const block = await stageBlock("catalog");
+    return block.includes("getBounds")
+      ? null
+      : "Nothing in the miris:catalog block in app/stage.tsx measures a stream with getBounds yet. The pieces sit at whatever size they streamed at until it does, so fill the step or paste the snippet in.";
+  },
+
+  async card() {
+    const { pieces } = await readData(MIRIS_DIR);
+    return pieces.some((p) => (p.card as any)?.name)
+      ? null
+      : "No placard in miris/data.json yet. Press Write the label on a piece you have already described.";
+  },
+
+  async cardOverlay() {
+    const block = await stageBlock("card");
+    return block.includes("<Html")
+      ? null
+      : "No <Html> in the miris:card block in app/stage.tsx yet. The placard floats over the canvas from between the miris:card comments, so fill the step or paste the snippet in.";
+  },
+
+  async labelHtml() {
+    const block = await stageBlock("label");
+    if (!block.includes("useHtmlTexture"))
+      return "No useHtmlTexture call in the miris:label block in app/stage.tsx yet. It goes above the return, because it is a hook.";
+    // The template calls it with false, which paints nothing. Done is when it
+    // has been handed markup.
+    return /useHtmlTexture\(\s*false\s*\)/.test(block)
+      ? "useHtmlTexture is still called with false in the miris:label block in app/stage.tsx. Pass it your placard markup so it has something to paint."
+      : null;
+  },
+
+  async labelMesh() {
+    const block = await stageBlock("card");
+    if (!block.includes("planeGeometry"))
+      return "No planeGeometry in the miris:card block in app/stage.tsx yet. The painted label needs a plane to sit on, so fill the step or paste the snippet in.";
+    return /texture/.test(block)
+      ? null
+      : "The plane is in the miris:card block in app/stage.tsx but nothing maps the label texture onto it.";
+  },
+};
 
 /* The register that used to live in miris/skills/curator.md, when writing the
  * label meant pasting that file into a coding agent. Same rules, smaller
