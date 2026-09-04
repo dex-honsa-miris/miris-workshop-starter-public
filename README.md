@@ -30,41 +30,32 @@ image right before you submit it for 3D.
 
 ## For presenters
 
-### Tracks
+### One house
 
-Three: Summon (creatures), Atelier (crafted goods), Reliquary (museum holdings).
+One flow, not three parallel tracks. There is no chooser: the guide and the
+stage both render as soon as `data.json` has been read.
 
-The choice is a **gate, not a setting**. `miris/Start.tsx` takes the whole
-viewport before anything else runs, and until a track is picked the sidebar does
-not render and the Miris engine does not boot. That last part matters: booting
-costs six to nine seconds on a cold JWKS, and there is no reason to spend it
-behind a screen nobody has acted on yet.
+The noun, the prompt placeholder, the style phrase the route prepends before the
+prompt reaches fal, and the dice pool are one `BOUTIQUE` constant in
+`miris/config.ts`. Nothing branches on which house an attendee is in, because
+there is only one.
 
-The choice is stored as `track` in `data.json` and drives four things: the
-accent, the prompt placeholder, the style phrase the route prepends before the
-prompt reaches fal, and what the curator writes.
-
-Adding a fourth is one entry in `miris/tracks.ts`.
+**The engine now boots on load.** The chooser used to be a gate: nothing
+rendered until an attendee picked a door, which meant the Miris engine's six to
+nine second cold JWKS start was spent behind a screen they were already acting
+on. Without the gate that cost lands on first paint. Nothing replaces it, and if
+it turns out to matter in a room it needs a real answer rather than a screen
+invented to hide it.
 
 ### Visual design
 
 Built on the Miris kit rather than an invented palette: Geist and Geist Mono,
-and the mono ramp from `tokens.css`. Each track takes a ramp from its own world:
-Summon `analog-500 #FF3500` (ember), Atelier `monitor-500 #FF9500` (brass and
-walnut), Reliquary `scanner-500 #00D5FF` (vitrine glass). The accent is a single
-CSS variable, so a track change recolours the gate, the sidebar and the
-generator overlay together.
+and the mono ramp from `tokens.css`. One accent, `scanner-500 #35ddfe`, declared
+once as `--accent` in `guide.css`. It used to be `--track`, set per house from
+`tracks.ts`; with one house the indirection bought nothing.
 
-Atelier started as `mono-200` bone, on the reasoning that materials should carry
-that track rather than colour. It was the better idea and the worse interface:
-bone as an accent is indistinguishable from body text, so the "you make a piece"
-line and every button read as unstyled. Legibility won.
-
-The gate is three full-bleed columns, not cards in a list. The whole column is
-the control, content is vertically centred, and each column carries a rail that
-is a hairline at rest and resolves into four filling blocks on hover or focus.
-That is the same level-of-detail language the step rail uses, at hero scale, and
-it is the one place the design spends any boldness.
+An accent from the mono ramp was tried and lost: bone is indistinguishable from
+body text, so every button read as unstyled. Legibility won.
 
 Mono carries the utility layer (step ids, meters, timings, code), Geist carries
 prose. The step rail is a four-block level-of-detail meter: one block ahead,

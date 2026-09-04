@@ -3,10 +3,9 @@ import { join } from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { loadEnv, type Plugin } from "vite";
 import { end as markerEnd, replaceMarker, start as markerStart } from "./markers.mjs";
-import { PIECE_IDS, chooseTrack, readData, writeData, writePiece } from "./store.mjs";
+import { PIECE_IDS, readData, writeData, writePiece } from "./store.mjs";
 import { CLEARS_TO, MARKER_FOR, SNIPPETS, PARTS } from "./snippets.mjs";
-import { IMAGE_FRAMING, IMAGE_MODEL, LABEL_LLM, LABEL_MODEL, MODEL_3D, VIEWER_KEY } from "./config";
-import { TRACKS } from "./tracks";
+import { BOUTIQUE, IMAGE_FRAMING, IMAGE_MODEL, LABEL_LLM, LABEL_MODEL, MODEL_3D, VIEWER_KEY } from "./config";
 import { checkIntegrity } from "./integrity.mjs";
 import { FLAT_SUBS } from "./progress";
 
@@ -154,18 +153,6 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
       return ok(await writePiece(MIRIS_DIR, id, body.patch ?? {}));
     }
 
-    // Picking a track and clearing the three slots for the old one used to be
-    // four sequential posts from the browser: save, then one piece write per
-    // slot. A failure partway through (or a tab closed mid-sequence) left the
-    // new track set with some slots still holding the old track's work. This
-    // is one call into the store's own write queue, so the track and all three
-    // slots land in a single file write: either every slot clears together
-    // with the new track, or nothing here changes at all.
-    case "chooseTrack": {
-      const id = String(body.id ?? "");
-      return ok(await chooseTrack(MIRIS_DIR, id));
-    }
-
     case "check": {
       const check = CHECKS[String(body.check ?? "")];
       // No check for this step is not a failure: it means nothing on disk
@@ -180,14 +167,12 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
       if (!PIECE_IDS.includes(pieceId)) return fail(`unknown piece: ${pieceId || "(none)"}`);
       if (!falKey(mode)) return fail("FAL_KEY is not set in .env.local");
       const stored = await readData(MIRIS_DIR);
-      const track = TRACKS.find((t) => t.id === stored.track);
-      if (!track) return fail("No track chosen yet. Pick one on the chooser first.");
       const piece = stored.pieces.find((p) => p.id === pieceId);
       if (!piece?.prompt) return fail("No prompt to write from. Step 1.2 is where it comes from.");
       const out: any = await falRun(LABEL_MODEL, {
         model: LABEL_LLM,
         system_prompt: CURATOR,
-        prompt: `The object: ${piece.prompt}. Its kind: ${track.noun}.`,
+        prompt: `The object: ${piece.prompt}. Its kind: ${BOUTIQUE.noun}.`,
         temperature: 0.9,
       });
       const card = parseCard(out?.output);
@@ -200,14 +185,8 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
       const pieceId = String(body.id ?? "01");
       if (!PIECE_IDS.includes(pieceId)) return fail(`unknown piece: ${pieceId || "(none)"}`);
       if (!falKey(mode)) return fail("FAL_KEY is not set in .env.local");
-      const stored = await readData(MIRIS_DIR);
-      /* Strict, unlike trackById: that falls back to TRACKS[0], so an unset
-       * track quietly rendered every attendee the first house's style
-       * whichever door they had picked. */
-      const track = TRACKS.find((t) => t.id === stored.track);
-      if (!track) return fail("No track chosen yet. Pick one on the chooser first.");
       const out: any = await falRun(IMAGE_MODEL, {
-        prompt: `${track.style}: ${body.prompt}. ${IMAGE_FRAMING}`,
+        prompt: `${BOUTIQUE.style}: ${body.prompt}. ${IMAGE_FRAMING}`,
         image_size: "square_hd",
         num_images: 1,
         quality: "medium",
@@ -225,9 +204,6 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
       // save the cost.
       if (!PIECE_IDS.includes(pieceId)) return fail(`unknown piece: ${pieceId || "(none)"}`);
       if (!falKey(mode)) return fail("FAL_KEY is not set in .env.local");
-      const stored = await readData(MIRIS_DIR);
-      const track = TRACKS.find((t) => t.id === stored.track);
-      if (!track) return fail("No track chosen yet. Pick one on the chooser first.");
       let out: any;
       try {
         out = await falRun(
@@ -235,9 +211,9 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
           {
             image_url: body.imageUrl,
             // Styled the same way the image was. The mesh takes its look from
-            // the image, but the texture pass reads this, and it was the one
-            // call in the workflow the track never reached.
-            texture_prompt: `${track.style}: ${body.prompt ?? ""}`,
+            // the image, but the texture pass reads this too, and it was the
+            // one call in the workflow the style prefix never reached.
+            texture_prompt: `${BOUTIQUE.style}: ${body.prompt ?? ""}`,
             ...MESHY_INPUT,
           },
           (patch) => writePiece(MIRIS_DIR, pieceId, patch),

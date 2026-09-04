@@ -7,7 +7,6 @@ import { PIECE_IDS, emptyPiece } from "./pieces.mjs";
 export { PIECE_IDS, emptyPiece };
 
 export const DEFAULT_DATA = {
-  track: "",
   step: "00.1",
   // Per account, not per piece.
   viewerKey: "",
@@ -74,23 +73,6 @@ export function writePiece(dir, id, patch) {
     const cur = await readData(dir);
     const pieces = cur.pieces.map((p) => (p.id === id ? { ...p, ...patch } : p));
     return persist(dir, { ...cur, pieces });
-  });
-}
-
-/* Sets the track and, when it actually changed, resets all three pieces in
-   the same write: a different track is a different subject, so the previous
-   one's prompts, renders and meshes must not carry over. One queued job
-   rather than a save-then-three-piece-writes round trip from the browser, so
-   the outcome is never half done: either this single persist lands with the
-   new track and empty pieces together, or nothing here changes at all. An
-   empty id (going back to the chooser) is never treated as a change, so
-   backing out of the chooser keeps whatever is already in progress. */
-export function chooseTrack(dir, id) {
-  return enqueue(async () => {
-    const cur = await readData(dir);
-    const changed = Boolean(id) && id !== cur.track;
-    const pieces = changed ? PIECE_IDS.map(emptyPiece) : cur.pieces;
-    return persist(dir, { ...cur, track: id, pieces });
   });
 }
 

@@ -7,8 +7,6 @@ import { nextSub, stepOfSub } from "./progress";
 import Rail from "./Rail";
 import StepPane, { type StepActions } from "./Step";
 import { PIECE_IDS } from "./pieces.mjs";
-import { trackById } from "./tracks";
-import Start from "./Start";
 import { PanelSkeleton } from "./Skeleton";
 import "./guide.css";
 
@@ -67,9 +65,10 @@ function CapabilityLine() {
 export default function MirisGuide() {
   const [open, setOpen] = useState(true);
   const [data, setData] = useState<any>({ step: "00.1" });
-  /* Separate from `data` because the seed above has no track, which is
-     indistinguishable from "no track chosen yet". Without this the chooser
-     flashed full-bleed on every reload before the panel arrived. */
+  /* Separate from `data`, because the seed above is indistinguishable from a
+     document that has actually been read. Without it the panel rendered step
+     00.1 for a frame on every reload, then jumped to wherever the attendee
+     really was. */
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState("");
   const [note, setNote] = useState("");
@@ -167,9 +166,6 @@ export default function MirisGuide() {
     }
   };
 
-  const track = trackById(data.track);
-  const trackVars = { ["--track" as string]: track.accent } as React.CSSProperties;
-
   /* Above the steps, so the tray survives an advance: a mesh takes four to six
      minutes and later steps send attendees away from the prompt field while it
      runs.
@@ -177,7 +173,7 @@ export default function MirisGuide() {
      Hooks in a loop, which looks like the rule being broken and is not:
      PIECE_IDS is a module constant of fixed length three, so the number of
      hooks this renders can never vary between renders. */
-  const builds = PIECE_IDS.map((id) => usePieceBuild(track, id, data));
+  const builds = PIECE_IDS.map((id) => usePieceBuild(id, data));
 
   /* One poll for the whole document while any mesh is in flight, rather than
      one per piece: three hooks watching this endpoint would triple the request
@@ -190,33 +186,6 @@ export default function MirisGuide() {
     const t = setInterval(load, 5000);
     return () => clearInterval(t);
   }, [building, load]);
-
-  // Swapping between the chooser and the panel is a view transition: the
-  // chooser leaves, then the panel arrives from its edge. The artwork is not
-  // part of it, deliberately, see the note in guide.css.
-  const chooseTrack = async (id: string) => {
-    // Feedback first. A tap on the chooser that turns out to fail used to
-    // produce nothing at all, because the note bar only renders inside the
-    // panel and the panel does not exist yet.
-    setNote(id ? "Setting up your track" : "Going back to the chooser");
-
-    /* One call rather than a save followed by one piece write per slot: a
-       different track is a different subject, so the previous one's prompts,
-       renders and meshes must not carry over, and a failure partway through
-       four separate posts used to leave the new track set with some slots
-       still holding the old track's work. The store does the compare and the
-       clear in a single queued write, so the reply already carries the
-       document this needs. */
-    const chosen = await post({ action: "chooseTrack", id });
-    if (!chosen.ok) return setNote(chosen.problem!);
-
-    // Clearing here, not before: the failure path above returns with its own
-    // note still showing.
-    transition(() => {
-      setNote("");
-      setData(chosen.data);
-    }, id ? "in" : "out");
-  };
 
   // Only 5 of the 16 substeps carry a `fill`, and fill() was the sole writer of
   // data.step. With every substep on screen that was cosmetic; with one step in
@@ -315,11 +284,10 @@ export default function MirisGuide() {
   };
 
   if (!loaded) return <PanelSkeleton />;
-  if (!data.track) return <Start onChoose={chooseTrack} note={note} />;
 
   if (!open) {
     return (
-      <button className="mw-tab" style={trackVars} onClick={() => setOpen(true)}>
+      <button className="mw-tab" onClick={() => setOpen(true)}>
         Guide
       </button>
     );
@@ -328,7 +296,7 @@ export default function MirisGuide() {
   return (
     <>
       <BuildTray builds={builds} />
-      <aside className="mw-panel" style={trackVars}>
+      <aside className="mw-panel">
         <header className="mw-head">
           <b className="b14">Spatial streaming</b>
           <img className="mw-mark" src="/kit/assets/miris-logo-white.svg" alt="Miris" />
@@ -336,24 +304,6 @@ export default function MirisGuide() {
             ×
           </button>
         </header>
-
-        {/* The chosen specimen carries into the sidebar as a full-width strip,
-            so the choice stays visible for the whole workshop. Same screen
-            blend and dissolve as the chooser doors, with its own focal point
-            because this band is far wider than it is tall. */}
-        <div className="mw-bar">
-          <img
-            className="mw-bar-art"
-            src={track.image}
-            alt=""
-            aria-hidden="true"
-            style={{ ["--focal-strip" as string]: track.focalStrip } as React.CSSProperties}
-          />
-          <span className="mw-bar-label">{track.label}</span>
-          <button className="mw-bar-change" onClick={() => chooseTrack("")}>
-            Change
-          </button>
-        </div>
 
         <CapabilityLine />
 
@@ -373,7 +323,6 @@ export default function MirisGuide() {
               step={shownStep}
               currentSubNum={data.step ?? "00.1"}
               data={data}
-              track={track}
               busy={busy}
               problems={problems}
               builds={builds}

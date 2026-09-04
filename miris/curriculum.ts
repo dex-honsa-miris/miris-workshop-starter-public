@@ -1,7 +1,7 @@
 export interface Sub {
   num: string;
-  /** {noun} is replaced with the track's own word: creature, product,
-   *  artifact. The same substitution runs over `body`. */
+  /** {noun} is replaced with BOUTIQUE.noun from miris/config.ts. The same
+   *  substitution runs over `body`. */
   title: string;
   body: string;
   code?: string;

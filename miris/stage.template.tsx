@@ -30,7 +30,7 @@ export default function Stage() {
   const label = useHtmlTexture(false);
   // miris:label-end
 
-  if (!data || !data.track) return <StageSkeleton />;
+  if (!data) return <StageSkeleton />;
 
   return (
     <Canvas
@@ -51,6 +51,10 @@ export default function Stage() {
       {/* miris:materials-start */}
       {/* Step 2.2 goes here. */}
       {/* miris:materials-end */}
+
+      {/* miris:props-start */}
+      {/* The step that dresses the room with props goes here. */}
+      {/* miris:props-end */}
 
       {/* miris:lights-start */}
       {/* Step 2.3 goes here. */}

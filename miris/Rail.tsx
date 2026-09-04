@@ -8,9 +8,6 @@ export interface RailProps {
   onSelect: (stepNum: string) => void;
 }
 
-/* Deliberately NOT called .mw-rail: that class is already the track chooser's
-   four-block LOD meter on each door, with its own hover cascade and entrance
-   animation. Reusing the name turns every door's pips into a 52px column. */
 export default function Rail({ progressStepNum, shownStepNum, onSelect }: RailProps) {
   const progressIndex = STEPS.findIndex((s) => s.num === progressStepNum);
 

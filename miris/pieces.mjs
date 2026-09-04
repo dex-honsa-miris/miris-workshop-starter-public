@@ -4,8 +4,8 @@
    node:fs/promises, so a browser module cannot take these from it without
    dragging node builtins into the bundle. Keeping a second copy in the client
    was worse than the import it avoided: a field added to emptyPiece would
-   quietly stop being cleared on a track change, with nothing anywhere to report
-   it.
+   quietly stop being cleared when a slot is reset, with nothing anywhere to
+   report it.
 
    Nothing in this file may import from node:. */
 

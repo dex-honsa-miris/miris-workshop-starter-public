@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { useState } from "react";
 import type { Step, Sub } from "./curriculum";
-import type { Track } from "./tracks";
+import { BOUTIQUE } from "./config";
 import { BuildInput, type BuildState } from "./Build";
 import Chevron from "./Chevron";
 import Code from "./highlight";
@@ -33,7 +33,6 @@ export interface StepPaneProps {
   /** data.step, the persisted progress pointer. */
   currentSubNum: string;
   data: { uuid?: string; viewerKey?: string };
-  track: Track;
   /** Substep number currently being written or checked, or "". */
   busy: string;
   /** What the last Done click found wrong, keyed by substep number. */
@@ -89,7 +88,7 @@ function RenderPathBadge() {
   );
 }
 
-const withNoun = (text: string, noun: string) => text.replaceAll("{noun}", noun);
+const withNoun = (text: string) => text.replaceAll("{noun}", BOUTIQUE.noun);
 
 /* The snippets carry the indentation they need inside the marker block, which
    is six columns of it. Kept for the file, dropped for a 408px panel. */
@@ -133,7 +132,6 @@ export default function StepPane({
   step,
   currentSubNum,
   data,
-  track,
   busy,
   problems,
   builds,
@@ -192,7 +190,7 @@ export default function StepPane({
               }
             >
               <span className="l12 k">{sub.num}</span>
-              <span className="c14 ttl">{withNoun(sub.title, track.noun)}</span>
+              <span className="c14 ttl">{withNoun(sub.title)}</span>
               {state === "done" && (
                 <span className="tick" aria-hidden="true">
                   &#10003;
@@ -215,8 +213,8 @@ export default function StepPane({
               </span>
             </div>
 
-            <h3 className="mw-now-title">{withNoun(sub.title, track.noun)}</h3>
-            <p className="c14">{withNoun(sub.body, track.noun)}</p>
+            <h3 className="mw-now-title">{withNoun(sub.title)}</h3>
+            <p className="c14">{withNoun(sub.body)}</p>
             {sub.renderPath && <RenderPathBadge />}
             {sub.code && (
               <pre className="k14">

@@ -1,8 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Chevron from "./Chevron";
-import { PORTAL_URL } from "./config";
-import type { Track } from "./tracks";
+import { BOUTIQUE, PORTAL_URL } from "./config";
 
 type Phase = "idle" | "image" | "review" | "model" | "done";
 
@@ -64,19 +63,16 @@ function DotWave() {
 
    One deck for the boutique rather than one per piece. Three independent bags
    can deal the same phrase into all three niches, and all three prompts are on
-   screen together, so that is the exact repeat the bag exists to prevent. Keyed
-   by track, because a different track is a different deck. */
-const decks = new Map<string, string[]>();
+   screen together, so that is the exact repeat the bag exists to prevent. */
+let bag: string[] = [];
 
-function deal(track: Track, avoid: string) {
-  let bag = decks.get(track.id);
-  if (!bag || bag.length === 0) {
-    bag = [...track.prompts];
+function deal(avoid: string) {
+  if (bag.length === 0) {
+    bag = [...BOUTIQUE.prompts];
     for (let i = bag.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [bag[i], bag[j]] = [bag[j], bag[i]];
     }
-    decks.set(track.id, bag);
   }
   let next = bag.pop()!;
   // The reshuffle seam can deal the phrase already in the box twice running.
@@ -95,7 +91,7 @@ function deal(track: Track, avoid: string) {
  * The document arrives as an argument rather than being fetched here. Guide
  * already reads the whole file, and three hooks polling the same endpoint would
  * triple the request rate for no new information. */
-export function usePieceBuild(track: Track, pieceId: string, data: Doc) {
+export function usePieceBuild(pieceId: string, data: Doc) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [prompt, setPrompt] = useState("");
   const [image, setImage] = useState("");
@@ -145,14 +141,11 @@ export function usePieceBuild(track: Track, pieceId: string, data: Doc) {
     }
   }, [piece]);
 
-  /* A track change clears this slot back to emptyPiece's shape on disk (see
-     chooseTrack in store.mjs), but the resume latch above only ever fires
-     once per mount, and Guide never unmounts across the chooser round trip.
-     Without this, the tray kept showing the OLD track's render after a
-     Change, and BuildInput stayed empty because no piece was back in "idle".
-     Checked on content fields, not `status`: nothing in the API ever moves
-     status away from "empty", so it cannot tell a cleared piece from a piece
-     that was never started. */
+  /* A slot cleared on disk must clear here too, but the resume latch above
+     only ever fires once per mount and Guide is never unmounted, so nothing
+     else would notice. Checked on content fields, not `status`: nothing in the
+     API ever moves status away from "empty", so it cannot tell a cleared piece
+     from a piece that was never started. */
   useEffect(() => {
     if (!piece) return;
     const cleared =
@@ -161,8 +154,8 @@ export function usePieceBuild(track: Track, pieceId: string, data: Doc) {
     // lands, so the slot on disk is legitimately empty for the whole minute
     // the generation is running. Without this, the 5s poll (or any load()
     // from advance/fill/writeLabel) read that normal, temporary emptiness as
-    // a track-change clear, wiped the field mid-generation, and the attendee
-    // retyped and pressed Generate again for a second billed image.
+    // a clear, wiped the field mid-generation, and the attendee retyped and
+    // pressed Generate again for a second billed image.
     if (!cleared || phase === "idle" || phase === "image") return;
     setPhase("idle");
     setPrompt("");
@@ -171,9 +164,9 @@ export function usePieceBuild(track: Track, pieceId: string, data: Doc) {
     setError("");
     setAgain(false);
     setStartedAt(null);
-    // Re-armed rather than left latched: this slot is a blank piece of a new
-    // track now, and a value it gets from here deserves the same one-time
-    // resume a fresh mount would give it.
+    // Re-armed rather than left latched: this slot is a blank piece now, and
+    // a value it gets from here deserves the same one-time resume a fresh
+    // mount would give it.
     resumed.current = false;
   }, [piece, phase]);
 
@@ -267,13 +260,12 @@ export function usePieceBuild(track: Track, pieceId: string, data: Doc) {
   };
 
   const roll = () => {
-    setPrompt(deal(track, prompt.trim()));
+    setPrompt(deal(prompt.trim()));
     setError("");
   };
 
   return {
     pieceId,
-    track,
     phase,
     prompt,
     setPrompt,
@@ -323,7 +315,7 @@ function trayStatus(builds: BuildState[]): { label: string; busy: boolean; clock
 }
 
 function PromptField({ build }: { build: BuildState }) {
-  const { track, prompt, setPrompt, roll, makeImage } = build;
+  const { prompt, setPrompt, roll, makeImage } = build;
   return (
     <>
       <div className="mw-prompt">
@@ -331,14 +323,14 @@ function PromptField({ build }: { build: BuildState }) {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           rows={3}
-          placeholder={track.hint}
+          placeholder={BOUTIQUE.hint}
         />
         <button
           type="button"
           className="mw-dice"
           onClick={roll}
-          title={`Suggest a ${track.noun}`}
-          aria-label={`Suggest a ${track.noun}`}
+          title={`Suggest a ${BOUTIQUE.noun}`}
+          aria-label={`Suggest a ${BOUTIQUE.noun}`}
         >
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
             <rect x="3.5" y="3.5" width="17" height="17" rx="4" fill="none" stroke="currentColor" strokeWidth="1.5" />

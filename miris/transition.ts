@@ -12,23 +12,15 @@ type WithVT = Document & {
  *  snapshots the DOM when its callback returns, so a batched setState would be
  *  captured as "no change" and nothing would animate.
  *
- *  `direction` lands on html[data-vt] for the chooser, which gives closing its
- *  own curve. Never let the animation decide whether the app advances: an
- *  unsupported browser and a thrown transition both fall through to committing. */
-export function transition(commit: () => void, direction?: "in" | "out") {
+ *  Never let the animation decide whether the app advances: an unsupported
+ *  browser and a thrown transition both fall through to committing. */
+export function transition(commit: () => void) {
   const doc = document as WithVT;
   if (typeof doc.startViewTransition !== "function") return commit();
 
-  const root = document.documentElement;
-  if (direction) root.dataset.vt = direction;
-  const clear = () => {
-    if (direction) delete root.dataset.vt;
-  };
-
   try {
-    doc.startViewTransition(() => flushSync(commit)).finished.finally(clear);
+    doc.startViewTransition(() => flushSync(commit));
   } catch {
-    clear();
     commit();
   }
 }

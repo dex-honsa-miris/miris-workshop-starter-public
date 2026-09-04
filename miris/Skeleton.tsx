@@ -13,10 +13,6 @@ export function PanelSkeleton() {
         <img className="mw-mark" src="/kit/assets/miris-logo-white.svg" alt="Miris" />
       </header>
 
-      {/* Matches .mw-bar's height exactly, so the specimen strip does not shove
-          the rail down when it arrives. */}
-      <div className="mw-bar mw-skel-bar" />
-
       <div className="mw-split">
         {/* Borrows .mw-steprail's own box, so the rail does not jump 52px
             sideways when the real ticks replace these. */}
