@@ -19,6 +19,8 @@ export interface StepActions {
   /** Verifies the substep actually happened, then moves the progress pointer
    *  if it did, or reports what is missing if it did not. */
   done: (sub: Sub) => void | Promise<void>;
+  /** Moves the progress pointer directly to a substep number. */
+  advance: (num: string) => void | Promise<void>;
   /** Opens a finished substep for reading, or returns to the pointer with "". */
   view: (subNum: string) => void;
   /** Moves the pointer back to a finished substep, to do it again. */
@@ -299,14 +301,18 @@ export default function StepPane({
                 </button>
               </div>
             ) : (
-              upNext && (
-                <button
-                  className="btn btn-secondary btn-sm mw-next"
-                  disabled={busy === sub.num}
-                  onClick={() => actions.done(sub)}
-                >
-                  {busy === sub.num ? "Checking" : "Done"}
+              upNext ? (
+                <button className="btn btn-primary btn-sm mw-done" onClick={() => actions.advance(upNext.num)}>
+                  Done
                 </button>
+              ) : (
+                <div className="mw-finish">
+                  <p className="l12">That is the workshop</p>
+                  <p className="c14">
+                    Your boutique is live. Send the link to someone in the room, and what they load
+                    is not a model file.
+                  </p>
+                </div>
               )
             )}
           </article>

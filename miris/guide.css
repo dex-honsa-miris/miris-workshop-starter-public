@@ -1461,3 +1461,16 @@ html[data-vt="out"]::view-transition-old(chooser) { animation: none; }
   .mw-skel-bar::before { animation: none; opacity: 0.75; }
 }
 .mw-path[data-failed] { color: var(--mono-200); border-color: var(--mono-700); }
+
+/* ── the finish state ──────────────────────────────────── */
+/* The last substep used to render nothing at all where Done sits, so the
+   workshop just stopped. */
+.mw-finish {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--mono-800);
+  border-radius: var(--radius-s);
+  background: var(--mono-900);
+}
+.mw-finish .l12 { color: var(--accent); margin-bottom: 6px; }
+.mw-finish .c14 { color: var(--mono-400); margin: 0; }
