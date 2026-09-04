@@ -375,25 +375,31 @@ export function mirisDevApi(mode: string): Plugin {
       // Fire and forget. The middleware must not wait on two file reads, and a
       // content problem is loud but never fatal.
       void (async () => {
-        const problems = checkIntegrity({
-          subs: FLAT_SUBS,
-          snippets: SNIPPETS,
-          parts: PARTS,
-          clearsTo: CLEARS_TO,
-          markerFor: MARKER_FOR,
-          checks: CHECKS,
-          files: {
-            "app/stage.tsx": await readFile(STAGE, "utf8"),
-            "miris/stage.template.tsx": await readFile(TEMPLATE, "utf8"),
-          },
-        });
-        if (!problems.length) return;
-        // A content author mid-edit should see the list rather than lose the
-        // dev server, and every one of these is a workshop that would
-        // otherwise fail in front of a room.
-        console.error(`\n  Workshop content problems (${problems.length}):`);
-        for (const p of problems) console.error(`   - ${p}`);
-        console.error("");
+        try {
+          const problems = checkIntegrity({
+            subs: FLAT_SUBS,
+            snippets: SNIPPETS,
+            parts: PARTS,
+            clearsTo: CLEARS_TO,
+            markerFor: MARKER_FOR,
+            checks: CHECKS,
+            files: {
+              "app/stage.tsx": await readFile(STAGE, "utf8"),
+              "miris/stage.template.tsx": await readFile(TEMPLATE, "utf8"),
+            },
+          });
+          if (!problems.length) return;
+          // A content author mid-edit should see the list rather than lose the
+          // dev server, and every one of these is a workshop that would
+          // otherwise fail in front of a room.
+          console.error(`\n  Workshop content problems (${problems.length}):`);
+          for (const p of problems) console.error(`   - ${p}`);
+          console.error("");
+        } catch (e) {
+          // An unhandled rejection in this floating IIFE would kill the dev
+          // server, which is the one thing this check must never do.
+          console.error(`Workshop content check could not read files: ${(e as Error).message}`);
+        }
       })();
 
       server.middlewares.use("/api/miris", async (req, res, next) => {
