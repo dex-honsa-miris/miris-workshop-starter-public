@@ -31,55 +31,9 @@ const LABEL_HTML = `  // Painted by ctx.drawElementImage() in Chrome, an SVG for
       </div>\`,
   );`;
 
-export const SNIPPETS = {
-  pedestal: PEDESTAL,
-  environment: `${PEDESTAL}\n${ENVIRONMENT}`,
-  stream: `${PEDESTAL}\n${ENVIRONMENT}\n${STREAM}`,
-  card: `      {data.card ? <Card card={data.card} /> : null}`,
-  labelHtml: LABEL_HTML,
-  // Shares the `card` marker deliberately, so the plane replaces step 5.2's
-  // overlay rather than adding a second card beside it.
-  labelMesh: `      {label.texture && (
-        <Billboard position={[-1.15, 1.2, 0]}>
-          <mesh>
-            <planeGeometry args={[label.width, label.height]} />
-            <meshBasicMaterial map={label.texture} transparent toneMapped={false} />
-          </mesh>
-        </Billboard>
-      )}`,
-};
-
-/* What each step actually adds. SNIPPETS is cumulative because the scene ones
-   share a marker, so showing an attendee SNIPPETS.environment would show them
-   the pedestal they already have. The Fill button writes the cumulative block;
-   the card shows the part. */
-export const PARTS = {
-  pedestal: PEDESTAL,
-  environment: ENVIRONMENT,
-  stream: STREAM,
-  card: SNIPPETS.card,
-  labelHtml: LABEL_HTML,
-  labelMesh: SNIPPETS.labelMesh,
-};
-
-/* Clearing a step puts the block back to the step before it, not to empty.
-   Three steps share the `scene` marker because the snippets are cumulative, so
-   a marker-wide clear at 2.2 took 2.1's pedestal with it. null means there is
-   nothing before it and the block returns to the template's blank. */
-export const CLEARS_TO = {
-  pedestal: null,
-  environment: "pedestal",
-  stream: "environment",
-  card: null,
-  labelHtml: null,
-  labelMesh: "card",
-};
-
-export const MARKER_FOR = {
-  pedestal: "scene",
-  environment: "scene",
-  stream: "scene",
-  card: "card",
-  labelHtml: "label",
-  labelMesh: "card",
-};
+/* Filled by plan 2. The four maps must stay key-for-key identical: a fill id
+   present in three of them and absent from PARTS crashes the sidebar. */
+export const SNIPPETS = {};
+export const PARTS = {};
+export const CLEARS_TO = {};
+export const MARKER_FOR = {};
