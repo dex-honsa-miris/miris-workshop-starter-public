@@ -37,8 +37,9 @@ export interface StepPaneProps {
   busy: string;
   /** What the last Done click found wrong, keyed by substep number. */
   problems: Record<string, string>;
-  /** Owned by Guide so the tray outlives step 1.2. */
-  build: BuildState;
+  /** One per piece, owned by Guide so the tray outlives the step that starts
+   *  a build. */
+  builds: BuildState[];
   /** The substep whose card is open. Usually the progress pointer, but a
    *  finished substep can be opened to re-read it. */
   openSubNum: string;
@@ -134,7 +135,7 @@ export default function StepPane({
   track,
   busy,
   problems,
-  build,
+  builds,
   openSubNum,
   actions,
 }: StepPaneProps) {
@@ -226,7 +227,7 @@ export default function StepPane({
               </a>
             )}
 
-            {sub.panel && <BuildInput build={build} />}
+            {sub.panel && <BuildInput builds={builds} />}
 
             {sub.label && (
               <button

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import BuildTray, { useBuild } from "./Build";
+import BuildTray, { EMPTY_PIECE, PIECE_IDS, usePieceBuild } from "./Build";
 import { detect, getPath, subscribePath } from "./htmlInCanvas";
 import { STEPS, type Sub } from "./curriculum";
 import { transition } from "./transition";
@@ -65,7 +65,7 @@ function CapabilityLine() {
 
 export default function MirisGuide() {
   const [open, setOpen] = useState(true);
-  const [data, setData] = useState<any>({ step: "1.1" });
+  const [data, setData] = useState<any>({ step: "00.1" });
   /* Separate from `data` because the seed above has no track, which is
      indistinguishable from "no track chosen yet". Without this the chooser
      flashed full-bleed on every reload before the panel arrived. */
@@ -169,9 +169,26 @@ export default function MirisGuide() {
   const track = trackById(data.track);
   const trackVars = { ["--track" as string]: track.accent } as React.CSSProperties;
 
-  // Above the steps, so the tray survives an advance: the mesh takes four to
-  // six minutes and later steps send attendees away from 1.2 while it runs.
-  const build = useBuild(track);
+  /* Above the steps, so the tray survives an advance: a mesh takes four to six
+     minutes and later steps send attendees away from the prompt field while it
+     runs.
+
+     Hooks in a loop, which looks like the rule being broken and is not:
+     PIECE_IDS is a module constant of fixed length three, so the number of
+     hooks this renders can never vary between renders. */
+  const builds = PIECE_IDS.map((id) => usePieceBuild(track, id, data));
+
+  /* One poll for the whole document while any mesh is in flight, rather than
+     one per piece: three hooks watching this endpoint would triple the request
+     rate for no new information. The POST that started a build dies with the
+     page, but the dev server keeps polling fal and writes each glb to disk, so
+     re-reading the file is the only path a reloaded page has to its result. */
+  const building = builds.some((b) => b.phase === "model");
+  useEffect(() => {
+    if (!building) return;
+    const t = setInterval(load, 5000);
+    return () => clearInterval(t);
+  }, [building, load]);
 
   // Swapping between the chooser and the panel is a view transition: the
   // chooser leaves, then the panel arrives from its edge. The artwork is not
@@ -182,15 +199,21 @@ export default function MirisGuide() {
     // panel and the panel does not exist yet.
     setNote(id ? "Setting up your track" : "Going back to the chooser");
 
-    // A different track means a different subject, so the previous one's
-    // prompt, render and mesh do not carry over: they were the reason a
-    // creature prompt turned up under Atelier.
-    const patch: Record<string, unknown> =
-      id && id !== data.track
-        ? { track: id, prompt: "", imageUrl: "", falRequestId: "", modelStartedAt: 0, glb: "", card: null }
-        : { track: id };
-    const saved = await post({ action: "save", patch });
+    const saved = await post({ action: "save", patch: { track: id } });
     if (!saved.ok) return setNote(saved.problem!);
+
+    /* A different track means a different subject, so the previous one's
+       prompts, renders and meshes do not carry over: they were the reason a
+       creature prompt turned up under Atelier. One write per slot, through the
+       piece action, because that is the only write that can address a piece
+       without sending the whole array back and losing whatever landed in it
+       between the read and the write. */
+    if (id && id !== data.track) {
+      for (const pieceId of PIECE_IDS) {
+        const cleared = await post({ action: "piece", id: pieceId, patch: EMPTY_PIECE });
+        if (!cleared.ok) return setNote(cleared.problem!);
+      }
+    }
 
     let next: any;
     try {
@@ -279,7 +302,7 @@ export default function MirisGuide() {
   };
 
 
-  const openSubNum = viewing || (data.step ?? "1.1");
+  const openSubNum = viewing || (data.step ?? "00.1");
   const progressStep = stepOfSub(openSubNum);
   const shownStep = selected
     ? STEPS.find((s) => s.num === selected) ?? progressStep
@@ -313,7 +336,7 @@ export default function MirisGuide() {
 
   return (
     <>
-      <BuildTray build={build} />
+      <BuildTray builds={builds} />
       <aside className="mw-panel" style={trackVars}>
         <header className="mw-head">
           <b className="b14">Spatial streaming</b>
@@ -357,12 +380,12 @@ export default function MirisGuide() {
           <div className="mw-scroll" ref={scrollKeeper}>
             <StepPane
               step={shownStep}
-              currentSubNum={data.step ?? "1.1"}
+              currentSubNum={data.step ?? "00.1"}
               data={data}
               track={track}
               busy={busy}
               problems={problems}
-              build={build}
+              builds={builds}
               openSubNum={openSubNum}
               actions={actions}
             />

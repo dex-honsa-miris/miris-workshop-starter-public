@@ -1,10 +1,47 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Chevron from "./Chevron";
 import { PORTAL_URL } from "./config";
 import type { Track } from "./tracks";
 
 type Phase = "idle" | "image" | "review" | "model" | "done";
+
+/* The same three slots store.mjs writes, restated for the browser. store.mjs
+   imports node:fs, so the client cannot take PIECE_IDS from it without pulling
+   node builtins into the bundle. A drift between the two copies cannot pass
+   silently: the dev API validates every piece id against its own list and
+   rejects an unknown one before it touches fal. */
+export const PIECE_IDS = ["01", "02", "03"];
+
+/* What a track change writes back into a slot: emptyPiece in store.mjs without
+   its id, because the id addresses the slot rather than travelling in the
+   patch. */
+export const EMPTY_PIECE = {
+  status: "empty",
+  prompt: "",
+  imageUrl: "",
+  falRequestId: "",
+  modelStartedAt: 0,
+  glb: "",
+  uuid: "",
+  card: null,
+};
+
+/** One slot in data.json's `pieces`, as the dev API writes it. */
+export interface Piece {
+  id: string;
+  status: string;
+  prompt: string;
+  imageUrl: string;
+  falRequestId: string;
+  modelStartedAt: number;
+  glb: string;
+  uuid: string;
+  card: { name: string; description: string; attributes: string[] } | null;
+}
+
+/** Only the part of the document a build reads. Guide owns the whole thing. */
+type Doc = { pieces?: Piece[] };
 
 // Past this, a recorded build start is stale rather than in flight: falRun
 // itself gives up at 25 minutes.
@@ -41,11 +78,44 @@ function DotWave() {
   );
 }
 
-/* The state lives above the steps, in Guide. It used to live inside step 1.2's
- * card, which unmounted the moment anyone advanced: step 2.3 tells attendees to
- * make their Miris account while the model builds, so the four minute job lost
- * its entire UI at exactly the point the curriculum sends them away from it. */
-export function useBuild(track: Track) {
+/* A shuffle bag, not a fresh draw: uniform draws from a small pool ping-pong
+   between the same few phrases, which reads as a broken dice. Dealing the whole
+   deck before any repeat is what people mean by random.
+
+   One deck for the boutique rather than one per piece. Three independent bags
+   can deal the same phrase into all three niches, and all three prompts are on
+   screen together, so that is the exact repeat the bag exists to prevent. Keyed
+   by track, because a different track is a different deck. */
+const decks = new Map<string, string[]>();
+
+function deal(track: Track, avoid: string) {
+  let bag = decks.get(track.id);
+  if (!bag || bag.length === 0) {
+    bag = [...track.prompts];
+    for (let i = bag.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [bag[i], bag[j]] = [bag[j], bag[i]];
+    }
+    decks.set(track.id, bag);
+  }
+  let next = bag.pop()!;
+  // The reshuffle seam can deal the phrase already in the box twice running.
+  if (next === avoid && bag.length > 0) {
+    bag.unshift(next);
+    next = bag.pop()!;
+  }
+  return next;
+}
+
+/* One of these per piece, three in all, owned by Guide rather than by a step's
+ * card: the mesh takes four to six minutes and the curriculum sends attendees
+ * away from the prompt field while it runs, so a card-owned build lost its
+ * entire UI at exactly the point it mattered.
+ *
+ * The document arrives as an argument rather than being fetched here. Guide
+ * already reads the whole file, and three hooks polling the same endpoint would
+ * triple the request rate for no new information. */
+export function usePieceBuild(track: Track, pieceId: string, data: Doc) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [prompt, setPrompt] = useState("");
   const [image, setImage] = useState("");
@@ -53,50 +123,47 @@ export function useBuild(track: Track) {
   const [error, setError] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [again, setAgain] = useState(false);
-  // Survives the reload a Fill triggers: a tray someone folded away should not
-  // spring back open because they pressed a paste button two steps later.
-  const [small, setSmall] = useState(() => {
-    try {
-      return sessionStorage.getItem("mw-tray-min") === "1";
-    } catch {
-      return false;
-    }
-  });
-  useEffect(() => {
-    try {
-      sessionStorage.setItem("mw-tray-min", small ? "1" : "0");
-    } catch {
-      // Blocked storage costs the convenience, not the tray.
-    }
-  }, [small]);
   // When the clock started, epoch ms. Comes back from data.json on a resume, so
   // the elapsed readout and the stage list survive a reload mid-build.
   const [startedAt, setStartedAt] = useState<number | null>(null);
+  /* Bumped when a result actually arrives, and deliberately never on a resume.
+     The tray reads it to unfold itself for a decision; a tray folded away
+     before a reload must not spring open again on the way back. */
+  const [landed, setLanded] = useState(0);
+
+  const piece = data.pieces?.find((p) => p.id === pieceId);
 
   // Everything durable is already on disk, written by the dev API. Without
   // this, a reload loses a $1.40 result, and a reload MID-BUILD used to
   // resurrect as "Keep this one?", inviting a second $1.40 submit while the
   // first was still running server-side.
+  //
+  // Once per piece, not once per document. The same file arrives again on every
+  // poll, and re-applying it would overwrite a prompt being typed and undo a
+  // Cancel the attendee had just pressed.
+  const resumed = useRef(false);
   useEffect(() => {
-    fetch("/api/miris")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d?.prompt) setPrompt(d.prompt);
-        if (d?.glb) {
-          setImage(d.imageUrl ?? "");
-          setGlb(d.glb);
-          setPhase("done");
-        } else if (d?.imageUrl && d?.falRequestId && d?.modelStartedAt && Date.now() - d.modelStartedAt < RESUME_WINDOW) {
-          setImage(d.imageUrl);
-          setStartedAt(d.modelStartedAt);
-          setPhase("model");
-        } else if (d?.imageUrl) {
-          setImage(d.imageUrl);
-          setPhase("review");
-        }
-      })
-      .catch(() => {});
-  }, []);
+    if (resumed.current || !piece) return;
+    resumed.current = true;
+    if (piece.prompt) setPrompt(piece.prompt);
+    if (piece.glb) {
+      setImage(piece.imageUrl);
+      setGlb(piece.glb);
+      setPhase("done");
+    } else if (
+      piece.imageUrl &&
+      piece.falRequestId &&
+      piece.modelStartedAt &&
+      Date.now() - piece.modelStartedAt < RESUME_WINDOW
+    ) {
+      setImage(piece.imageUrl);
+      setStartedAt(piece.modelStartedAt);
+      setPhase("model");
+    } else if (piece.imageUrl) {
+      setImage(piece.imageUrl);
+      setPhase("review");
+    }
+  }, [piece]);
 
   useEffect(() => {
     if (phase !== "model" && phase !== "image") return;
@@ -107,36 +174,41 @@ export function useBuild(track: Track) {
     return () => clearInterval(t);
   }, [phase, startedAt]);
 
-  // The POST that started the build dies with the page, but the dev server
-  // keeps polling fal and writes glb to disk when it lands. While the tray
-  // shows "building", watch the disk: it is the only path a resumed page has.
+  /* The POST that started the build dies with the page, but the dev server
+     keeps polling fal and writes glb into this slot when it lands. While the
+     tray shows "building", watch the document Guide is polling: it is the only
+     path a resumed page has to its own result. */
+  const recorded = useRef(false);
   useEffect(() => {
-    if (phase !== "model") return;
-    const t = setInterval(async () => {
-      try {
-        const d = await (await fetch("/api/miris")).json();
-        if (d?.glb) {
-          setGlb(d.glb);
-          setImage(d.imageUrl ?? "");
-          setPhase("done");
-          setSmall(false);
-        } else if (!d?.modelStartedAt) {
-          // The server clears this when fal reports failure.
-          setError("The build failed on fal. Submit again.");
-          setPhase("review");
-        }
-      } catch {
-        // A dropped poll is not a failed build; the next one answers.
-      }
-    }, 5000);
-    return () => clearInterval(t);
-  }, [phase]);
+    if (phase !== "model" || !piece) return;
+    if (piece.glb) {
+      setGlb(piece.glb);
+      setImage(piece.imageUrl);
+      setPhase("done");
+      setLanded((n) => n + 1);
+      return;
+    }
+    /* The server sets modelStartedAt once fal accepts the job and clears it
+       again when fal reports failure, so a zero means failure only after a
+       start has actually been seen. A submit flips this hook to "model" before
+       either has happened; without the latch the first poll to arrive in that
+       gap reads the zero the slot has always held and reports a failure that
+       never occurred. */
+    if (piece.modelStartedAt) recorded.current = true;
+    else if (recorded.current) {
+      setError("The build failed on fal. Submit again.");
+      setPhase("review");
+    }
+  }, [phase, piece]);
 
   const call = async (action: string, extra: object) => {
     const res = await fetch("/api/miris", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, ...extra }),
+      // Every request carries its piece id. The dev API rejects an id outside
+      // PIECE_IDS before it calls fal, and an omitted one would write this
+      // piece's result into slot 01.
+      body: JSON.stringify({ action, id: pieceId, ...extra }),
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error ?? `request failed: ${res.status}`);
@@ -151,8 +223,8 @@ export function useBuild(track: Track) {
       const { url } = await call("image", { prompt });
       setImage(url);
       setPhase("review");
-      // A result that wants a decision opens itself, however it was left.
-      setSmall(false);
+      // A result that wants a decision opens the tray, however it was left.
+      setLanded((n) => n + 1);
     } catch (e) {
       setError((e as Error).message);
       setPhase("idle");
@@ -161,48 +233,27 @@ export function useBuild(track: Track) {
 
   const makeModel = async () => {
     setError("");
+    recorded.current = false;
     setStartedAt(Date.now());
     setPhase("model");
     try {
       const { url } = await call("model", { imageUrl: image, prompt });
       setGlb(url);
       setPhase("done");
-      setSmall(false);
+      setLanded((n) => n + 1);
     } catch (e) {
       setError((e as Error).message);
       setPhase("review");
     }
   };
 
-  // A shuffle bag, not a fresh draw: uniform draws from a small pool ping-pong
-  // between the same few phrases, which reads as a broken dice. Dealing the
-  // whole deck before any repeat is what people mean by random.
-  const bag = useRef<string[]>([]);
   const roll = () => {
-    if (bag.current.length === 0) {
-      const deck = [...track.prompts];
-      for (let i = deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [deck[i], deck[j]] = [deck[j], deck[i]];
-      }
-      bag.current = deck;
-    }
-    let next = bag.current.pop()!;
-    // The reshuffle seam can deal the phrase already in the box twice running.
-    if (next === prompt.trim() && bag.current.length > 0) {
-      bag.current.unshift(next);
-      next = bag.current.pop()!;
-    }
-    setPrompt(next);
+    setPrompt(deal(track, prompt.trim()));
     setError("");
   };
 
-  // A different track is a different deck.
-  useEffect(() => {
-    bag.current = [];
-  }, [track.id]);
-
   return {
+    pieceId,
     track,
     phase,
     prompt,
@@ -213,8 +264,7 @@ export function useBuild(track: Track) {
     elapsed,
     again,
     setAgain,
-    small,
-    setSmall,
+    landed,
     makeImage,
     makeModel,
     roll,
@@ -222,18 +272,36 @@ export function useBuild(track: Track) {
   };
 }
 
-export type BuildState = ReturnType<typeof useBuild>;
+export type BuildState = ReturnType<typeof usePieceBuild>;
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
+const working = (phase: Phase) => phase === "image" || phase === "model";
 
-/** What the minimized bar says, and whether it should look busy. */
+/** What one piece's line says, and whether its dot should look busy. */
 const status = (phase: Phase): { label: string; busy: boolean } => {
   if (phase === "image") return { label: "Drawing", busy: true };
   if (phase === "review") return { label: "Ready to review", busy: false };
   if (phase === "model") return { label: "Building the mesh", busy: true };
   return { label: "Model ready", busy: false };
 };
+
+/* What the tray as a whole says. One piece in flight keeps its own line, so a
+   single build reads exactly as it did before there were three; several become
+   a count, because three stacked labels in one header say less than a number
+   does. The clock follows the piece that has been waiting longest. */
+function trayStatus(builds: BuildState[]): { label: string; busy: boolean; clock: string | null } {
+  const busy = builds.filter((b) => working(b.phase));
+  const clock = busy.length ? mmss(Math.max(...busy.map((b) => b.elapsed))) : null;
+  if (busy.length > 1) return { label: `${busy.length} pieces building`, busy: true, clock };
+  if (busy.length === 1) return { ...status(busy[0].phase), clock };
+
+  const review = builds.filter((b) => b.phase === "review").length;
+  if (review) return { label: review > 1 ? `${review} to review` : "Ready to review", busy: false, clock };
+
+  const done = builds.filter((b) => b.phase === "done").length;
+  return { label: done > 1 ? `${done} models ready` : "Model ready", busy: false, clock };
+}
 
 function PromptField({ build }: { build: BuildState }) {
   const { track, prompt, setPrompt, roll, makeImage } = build;
@@ -270,60 +338,49 @@ function PromptField({ build }: { build: BuildState }) {
   );
 }
 
-/** Step 1.2's card. Only the field: everything the generation produces goes to
- *  the tray, which outlives the step. */
-export function BuildInput({ build }: { build: BuildState }) {
+/** The describing step's card. Only the fields: everything a generation
+ *  produces goes to the tray, which outlives the step. One field per piece that
+ *  has not been started yet, so the three can be described in any order. */
+export function BuildInput({ builds }: { builds: BuildState[] }) {
+  const waiting = builds.filter((b) => b.phase === "idle");
   return (
     <div className="mw-build">
-      {build.phase === "idle" ? (
-        <PromptField build={build} />
-      ) : (
+      {waiting.length === 0 ? (
         <p className="mw-note">Working in the tray, to the left.</p>
+      ) : (
+        waiting.map((build) => (
+          <Fragment key={build.pieceId}>
+            <span className="mw-step">Piece {build.pieceId}</span>
+            <PromptField build={build} />
+            {build.error && <p className="mw-error">{build.error}</p>}
+          </Fragment>
+        ))
       )}
-      {build.error && <p className="mw-error">{build.error}</p>}
     </div>
   );
 }
 
-export default function BuildTray({ build }: { build: BuildState }) {
-  const { track, phase, image, glb, error, elapsed, again, setAgain, small, setSmall, makeModel, reset } = build;
-  if (phase === "idle") return null;
-
+/* One piece's run of the tray. A fragment rather than a wrapper, so every part
+ * stays a direct child of .mw-tray and keeps the column gap and the direct-child
+ * margin rules guide.css already sets for it. */
+function PiecePanel({ build }: { build: BuildState }) {
+  const { pieceId, phase, image, glb, error, elapsed, again, setAgain, makeModel, reset } = build;
   const { label, busy } = status(phase);
-  const clock = phase === "image" || phase === "model" ? mmss(elapsed) : null;
+  const clock = working(phase) ? mmss(elapsed) : null;
 
-  if (small) {
-    return createPortal(
-      <button className="mw-tray-min" onClick={() => setSmall(false)} aria-expanded="false">
-        <i className="mw-tray-dot" data-busy={busy || undefined} aria-hidden="true" />
-        <span className="l12">{label}</span>
-        {clock && <span className="mw-tray-clock">{clock}</span>}
-        <span className="mw-tray-chev">
-          <Chevron />
-        </span>
-      </button>,
-      document.body,
-    );
-  }
-
-  return createPortal(
-    <aside className="mw-tray" role="dialog" aria-label={`Building your ${track.noun}`}>
+  return (
+    <>
       <header className="mw-tray-head">
         <i className="mw-tray-dot" data-busy={busy || undefined} aria-hidden="true" />
+        <span className="l12">{pieceId}</span>
         <span className="mw-tray-eb l12">{again ? "Describe another" : label}</span>
-        <button className="mw-tray-fold" onClick={() => setSmall(true)} aria-label="Minimize the tray">
-          <Chevron up />
-        </button>
       </header>
 
       {phase === "image" && (
-        <>
-          <div className="mw-loading">
-            <DotWave />
-            <p className="mw-elapsed">{clock}</p>
-          </div>
-          <p className="mw-note">About a minute.</p>
-        </>
+        <div className="mw-loading">
+          <DotWave />
+          <p className="mw-elapsed">{clock}</p>
+        </div>
       )}
 
       {phase === "review" && (
@@ -364,11 +421,6 @@ export default function BuildTray({ build }: { build: BuildState }) {
             <div data-on={elapsed > 90 || undefined}>baking textures</div>
             <div data-on={elapsed > 200 || undefined}>packing the mesh</div>
           </div>
-          <p className="mw-note">Four to six minutes. Make your Miris account while you wait.</p>
-          <a className="btn btn-secondary btn-sm mw-goto" href={PORTAL_URL} target="_blank" rel="noopener">
-            Open Miris &rarr;
-          </a>
-          <p className="mw-note">Safe to minimize. The result is saved, and a reload brings it back.</p>
         </>
       )}
 
@@ -378,11 +430,94 @@ export default function BuildTray({ build }: { build: BuildState }) {
           <a className="btn btn-primary btn-sm mw-goto" href={glb} download target="_blank" rel="noopener">
             Download .glb
           </a>
-          <p className="mw-note">Upload this file in the Miris portal, then come back to step 4.</p>
         </>
       )}
 
       {error && <p className="mw-error">{error}</p>}
+    </>
+  );
+}
+
+export default function BuildTray({ builds }: { builds: BuildState[] }) {
+  /* One tray means one fold, so this lives here rather than in the hook: three
+     copies of it would fight over the same sessionStorage key. It survives the
+     reload a Fill triggers, because a tray someone folded away should not
+     spring back open when they press a paste button two steps later. */
+  const [small, setSmall] = useState(() => {
+    try {
+      return sessionStorage.getItem("mw-tray-min") === "1";
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      sessionStorage.setItem("mw-tray-min", small ? "1" : "0");
+    } catch {
+      // Blocked storage costs the convenience, not the tray.
+    }
+  }, [small]);
+
+  /* A result that wants a decision opens the tray, however it was left. Driven
+     by the counters rather than by the phases, so only a result that arrives
+     while the page is open unfolds it: a reload restores the phases too, and
+     reading those would undo the fold the attendee chose. */
+  const landed = builds.reduce((n, b) => n + b.landed, 0);
+  const seen = useRef(landed);
+  useEffect(() => {
+    if (landed > seen.current) setSmall(false);
+    seen.current = landed;
+  }, [landed]);
+
+  const active = builds.filter((b) => b.phase !== "idle");
+  if (active.length === 0) return null;
+
+  const { label, busy, clock } = trayStatus(active);
+  const meshing = active.some((b) => b.phase === "model");
+  const drawing = active.some((b) => b.phase === "image");
+
+  if (small) {
+    return createPortal(
+      <button className="mw-tray-min" onClick={() => setSmall(false)} aria-expanded="false">
+        <i className="mw-tray-dot" data-busy={busy || undefined} aria-hidden="true" />
+        <span className="l12">{label}</span>
+        {clock && <span className="mw-tray-clock">{clock}</span>}
+        <span className="mw-tray-chev">
+          <Chevron />
+        </span>
+      </button>,
+      document.body,
+    );
+  }
+
+  return createPortal(
+    <aside className="mw-tray" role="dialog" aria-label="Building your pieces">
+      <header className="mw-tray-head">
+        <i className="mw-tray-dot" data-busy={busy || undefined} aria-hidden="true" />
+        <span className="mw-tray-eb l12">{label}</span>
+        <button className="mw-tray-fold" onClick={() => setSmall(true)} aria-label="Minimize the tray">
+          <Chevron up />
+        </button>
+      </header>
+
+      {active.map((build) => (
+        <PiecePanel key={build.pieceId} build={build} />
+      ))}
+
+      {/* Said once for the tray, not once per piece: with three builds in
+          flight the same three sentences would be on screen three times. */}
+      {meshing && (
+        <>
+          <p className="mw-note">Four to six minutes. Make your Miris account while you wait.</p>
+          <a className="btn btn-secondary btn-sm mw-goto" href={PORTAL_URL} target="_blank" rel="noopener">
+            Open Miris &rarr;
+          </a>
+        </>
+      )}
+      {drawing && !meshing && <p className="mw-note">About a minute.</p>}
+      {(meshing || drawing) && (
+        <p className="mw-note">Safe to minimize. Every result is saved, and a reload brings it back.</p>
+      )}
     </aside>,
     document.body,
   );
