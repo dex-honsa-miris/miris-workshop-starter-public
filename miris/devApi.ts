@@ -4,9 +4,11 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { loadEnv, type Plugin } from "vite";
 import { end as markerEnd, readMarker, replaceMarker, start as markerStart } from "./markers.mjs";
 import { PIECE_IDS, readData, writeData, writePiece } from "./store.mjs";
-import { CLEARS_TO, MARKER_FOR, SNIPPETS } from "./snippets.mjs";
+import { CLEARS_TO, MARKER_FOR, SNIPPETS, PARTS } from "./snippets.mjs";
 import { DEMO_UUID, IMAGE_FRAMING, IMAGE_MODEL, LABEL_LLM, LABEL_MODEL, MODEL_3D, VIEWER_KEY } from "./config";
 import { TRACKS } from "./tracks";
+import { checkIntegrity } from "./integrity.mjs";
+import { FLAT_SUBS } from "./progress";
 
 /* Dev only, by construction: configureServer has no production counterpart, so
  * a built app has no endpoint to reach. */
@@ -370,6 +372,30 @@ export function mirisDevApi(mode: string): Plugin {
     },
 
     configureServer(server) {
+      // Fire and forget. The middleware must not wait on two file reads, and a
+      // content problem is loud but never fatal.
+      void (async () => {
+        const problems = checkIntegrity({
+          subs: FLAT_SUBS,
+          snippets: SNIPPETS,
+          parts: PARTS,
+          clearsTo: CLEARS_TO,
+          markerFor: MARKER_FOR,
+          checks: CHECKS,
+          files: {
+            "app/stage.tsx": await readFile(STAGE, "utf8"),
+            "miris/stage.template.tsx": await readFile(TEMPLATE, "utf8"),
+          },
+        });
+        if (!problems.length) return;
+        // A content author mid-edit should see the list rather than lose the
+        // dev server, and every one of these is a workshop that would
+        // otherwise fail in front of a room.
+        console.error(`\n  Workshop content problems (${problems.length}):`);
+        for (const p of problems) console.error(`   - ${p}`);
+        console.error("");
+      })();
+
       server.middlewares.use("/api/miris", async (req, res, next) => {
         try {
           if (req.method === "GET") return send(res, ok(await readData(MIRIS_DIR)));
