@@ -13,3 +13,9 @@ tsconfig.tsbuildinfo
 # drop, and the notes and specs written while building the guide.
 miris-web-kit/
 docs/
+
+# Temp test assets copied from /repos/miris-boutique. Not shipped: 25MB of
+# binaries, and WebContainer drops binary files on import anyway. The real
+# room ships slimmed and materials load from URLs we host.
+public/env/
+public/props/

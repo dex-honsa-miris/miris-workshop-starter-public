@@ -59,3 +59,8 @@ export const BOUTIQUE = {
     "a beechwood plane with a pitted iron blade",
   ],
 };
+
+/* The SDK defaults to dev.miris.com. Every viewer key we ship authorises
+   app.miris.com, so this is set on globalThis in app/main.tsx before the first
+   render, which is before the engine's first request. */
+export const MIRIS_SERVER = "https://app.miris.com/viewer/v1";
