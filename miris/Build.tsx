@@ -157,7 +157,13 @@ export function usePieceBuild(track: Track, pieceId: string, data: Doc) {
     if (!piece) return;
     const cleared =
       !piece.prompt && !piece.imageUrl && !piece.glb && !piece.falRequestId && !piece.modelStartedAt;
-    if (!cleared || phase === "idle") return;
+    // Also excluded: "image". The prompt is only persisted once the image
+    // lands, so the slot on disk is legitimately empty for the whole minute
+    // the generation is running. Without this, the 5s poll (or any load()
+    // from advance/fill/writeLabel) read that normal, temporary emptiness as
+    // a track-change clear, wiped the field mid-generation, and the attendee
+    // retyped and pressed Generate again for a second billed image.
+    if (!cleared || phase === "idle" || phase === "image") return;
     setPhase("idle");
     setPrompt("");
     setImage("");
