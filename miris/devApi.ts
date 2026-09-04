@@ -201,9 +201,9 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
       if (!PIECE_IDS.includes(pieceId)) return fail(`unknown piece: ${pieceId || "(none)"}`);
       if (!falKey(mode)) return fail("FAL_KEY is not set in .env.local");
       const stored = await readData(MIRIS_DIR);
-      /* Strict, unlike trackById: that falls back to TRACKS[0], which is summon,
-       * so an unset track quietly rendered every attendee a creature in the
-       * monster-taming style whichever door they had picked. */
+      /* Strict, unlike trackById: that falls back to TRACKS[0], so an unset
+       * track quietly rendered every attendee the first house's style
+       * whichever door they had picked. */
       const track = TRACKS.find((t) => t.id === stored.track);
       if (!track) return fail("No track chosen yet. Pick one on the chooser first.");
       const out: any = await falRun(IMAGE_MODEL, {
