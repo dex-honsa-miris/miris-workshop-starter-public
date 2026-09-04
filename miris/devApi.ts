@@ -2,10 +2,10 @@ import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { loadEnv, type Plugin } from "vite";
-import { end as markerEnd, readMarker, replaceMarker, start as markerStart } from "./markers.mjs";
-import { PIECE_IDS, readData, writeData, writePiece } from "./store.mjs";
+import { end as markerEnd, replaceMarker, start as markerStart } from "./markers.mjs";
+import { PIECE_IDS, chooseTrack, readData, writeData, writePiece } from "./store.mjs";
 import { CLEARS_TO, MARKER_FOR, SNIPPETS, PARTS } from "./snippets.mjs";
-import { DEMO_UUID, IMAGE_FRAMING, IMAGE_MODEL, LABEL_LLM, LABEL_MODEL, MODEL_3D, VIEWER_KEY } from "./config";
+import { IMAGE_FRAMING, IMAGE_MODEL, LABEL_LLM, LABEL_MODEL, MODEL_3D, VIEWER_KEY } from "./config";
 import { TRACKS } from "./tracks";
 import { checkIntegrity } from "./integrity.mjs";
 import { FLAT_SUBS } from "./progress";
@@ -33,85 +33,7 @@ const MESHY_INPUT = {
  * when the step is done, or the sentence the attendee needs to read. Steps that
  * happen elsewhere entirely, signing up or deploying, have no entry: the Done
  * button just moves them on rather than pretending to know. */
-const CHECKS: Record<string, (mode: string) => Promise<string | null>> = {
-  async falKey(mode) {
-    return falKey(mode)
-      ? null
-      : "No FAL_KEY yet. Create .env.local at the top level of the project, put your key in it, and save.";
-  },
-
-  async image() {
-    const { imageUrl } = await readData(MIRIS_DIR);
-    return imageUrl ? null : "No image yet. Write a prompt at step 1.2 and generate one.";
-  },
-
-  async pedestal() {
-    const block = readMarker(await readFile(STAGE, "utf8"), "scene");
-    return block.includes("cylinderGeometry")
-      ? null
-      : "The scene block in app/stage.tsx has no pedestal in it yet. Paste the snippet between the miris:scene comments, or let the step do it.";
-  },
-
-  async environment() {
-    const block = readMarker(await readFile(STAGE, "utf8"), "scene");
-    return block.includes("Environment")
-      ? null
-      : "No Environment line in the scene block yet. Add it under the pedestal, or let the step do it.";
-  },
-
-  async stream() {
-    const block = readMarker(await readFile(STAGE, "utf8"), "scene");
-    return block.includes("mirisStream")
-      ? null
-      : "No mirisStream in the scene block yet. Add it under the Environment line, or let the step do it.";
-  },
-
-  async streamUuid() {
-    const block = readMarker(await readFile(STAGE, "utf8"), "scene");
-    const uuid = block.match(/uuid:\s*"([^"]*)"/)?.[1];
-    if (!uuid) return "No uuid string in the mirisStream args yet. It went in at step 2.4.";
-    // A uuid pasted with surrounding text streams nothing and reports nothing.
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid))
-      return `That uuid does not look like one: "${uuid}". Copy just the id from the asset page.`;
-    if (uuid === DEMO_UUID)
-      return "The stream still points at the demo asset. Replace the uuid string in app/stage.tsx with your asset id.";
-    const key = block.match(/viewerKey:\s*"([^"]*)"/)?.[1];
-    if (!key)
-      return "The viewerKey string is empty. Paste your key from the portal: the demo key cannot read your asset.";
-    return null;
-  },
-
-  async card() {
-    const { card } = await readData(MIRIS_DIR);
-    return card && typeof card === "object" && (card as any).name
-      ? null
-      : "miris/data.json still has no card. Press Write the label.";
-  },
-
-  async cardOverlay() {
-    const block = readMarker(await readFile(STAGE, "utf8"), "card");
-    return block.includes("<Card")
-      ? null
-      : "The card is not over the canvas yet. Add the line to the miris:card block, or let the step do it.";
-  },
-
-  async labelHtml() {
-    const block = readMarker(await readFile(STAGE, "utf8"), "label");
-    return block.includes("useHtmlTexture")
-      ? null
-      : "No useHtmlTexture call in the miris:label block yet. It goes above the return, or let the step do it.";
-  },
-
-  async labelMesh() {
-    const block = readMarker(await readFile(STAGE, "utf8"), "card");
-    if (!block.includes("planeGeometry"))
-      return "No plane in the miris:card block yet. Swap the overlay for the mesh, or let the step do it.";
-    return block.includes("label.texture")
-      ? null
-      : "The plane is there but nothing maps the label texture onto it.";
-  },
-
-};
+const CHECKS: Record<string, (mode: string) => Promise<string | null>> = {};
 
 /* The register that used to live in miris/skills/curator.md, when writing the
  * label meant pasting that file into a coding agent. Same rules, smaller
@@ -230,6 +152,18 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
       const id = String(body.id ?? "");
       if (!PIECE_IDS.includes(id)) return fail(`unknown piece: ${id || "(none)"}`);
       return ok(await writePiece(MIRIS_DIR, id, body.patch ?? {}));
+    }
+
+    // Picking a track and clearing the three slots for the old one used to be
+    // four sequential posts from the browser: save, then one piece write per
+    // slot. A failure partway through (or a tab closed mid-sequence) left the
+    // new track set with some slots still holding the old track's work. This
+    // is one call into the store's own write queue, so the track and all three
+    // slots land in a single file write: either every slot clears together
+    // with the new track, or nothing here changes at all.
+    case "chooseTrack": {
+      const id = String(body.id ?? "");
+      return ok(await chooseTrack(MIRIS_DIR, id));
     }
 
     case "check": {

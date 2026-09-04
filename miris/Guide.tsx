@@ -6,7 +6,7 @@ import { transition } from "./transition";
 import { nextSub, stepOfSub } from "./progress";
 import Rail from "./Rail";
 import StepPane, { type StepActions } from "./Step";
-import { emptyPiece, PIECE_IDS } from "./pieces.mjs";
+import { PIECE_IDS } from "./pieces.mjs";
 import { trackById } from "./tracks";
 import Start from "./Start";
 import { PanelSkeleton } from "./Skeleton";
@@ -200,36 +200,21 @@ export default function MirisGuide() {
     // panel and the panel does not exist yet.
     setNote(id ? "Setting up your track" : "Going back to the chooser");
 
-    const saved = await post({ action: "save", patch: { track: id } });
-    if (!saved.ok) return setNote(saved.problem!);
+    /* One call rather than a save followed by one piece write per slot: a
+       different track is a different subject, so the previous one's prompts,
+       renders and meshes must not carry over, and a failure partway through
+       four separate posts used to leave the new track set with some slots
+       still holding the old track's work. The store does the compare and the
+       clear in a single queued write, so the reply already carries the
+       document this needs. */
+    const chosen = await post({ action: "chooseTrack", id });
+    if (!chosen.ok) return setNote(chosen.problem!);
 
-    /* A different track means a different subject, so the previous one's
-       prompts, renders and meshes do not carry over: they were the reason a
-       creature prompt turned up under Atelier. One write per slot, through the
-       piece action, because that is the only write that can address a piece
-       without sending the whole array back and losing whatever landed in it
-       between the read and the write. */
-    if (id && id !== data.track) {
-      for (const pieceId of PIECE_IDS) {
-        const cleared = await post({ action: "piece", id: pieceId, patch: emptyPiece(pieceId) });
-        if (!cleared.ok) return setNote(cleared.problem!);
-      }
-    }
-
-    let next: any;
-    try {
-      const r = await readApi(await fetch("/api/miris"));
-      if (!r.ok) return setNote(r.problem!);
-      next = r.data;
-    } catch (e) {
-      return setNote(`Could not reach the workshop API: ${(e as Error).message}`);
-    }
-
-    // Clearing here, not before: every failure path above returns with its own
+    // Clearing here, not before: the failure path above returns with its own
     // note still showing.
     transition(() => {
       setNote("");
-      setData(next);
+      setData(chosen.data);
     }, id ? "in" : "out");
   };
 

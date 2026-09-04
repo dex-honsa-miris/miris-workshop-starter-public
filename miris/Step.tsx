@@ -150,9 +150,13 @@ export default function StepPane({
   // every substep between here and there as done-but-not-done.
   const browsing = openSubNum !== currentSubNum;
   const undoable = indexOfSub(openSubNum) === indexOfSub(currentSubNum) - 1;
-  // A card is written from a piece's prompt, so only a described piece has
-  // anything to label.
-  const described = builds.filter((b) => b.prompt);
+  // A card is written from a piece's PERSISTED prompt, which the server only
+  // writes once an image has actually been generated for it (devApi.ts's
+  // "image" action writes prompt and imageUrl together). Gating on the
+  // textarea's live `prompt` instead let an attendee type a prompt, skip
+  // Generate, and press Write the label into a piece the server had nothing
+  // stored for yet, so this checks the same thing the server does: `image`.
+  const described = builds.filter((b) => b.image);
 
   return (
     <div className="mw-pane">

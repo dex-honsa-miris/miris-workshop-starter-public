@@ -77,6 +77,23 @@ export function writePiece(dir, id, patch) {
   });
 }
 
+/* Sets the track and, when it actually changed, resets all three pieces in
+   the same write: a different track is a different subject, so the previous
+   one's prompts, renders and meshes must not carry over. One queued job
+   rather than a save-then-three-piece-writes round trip from the browser, so
+   the outcome is never half done: either this single persist lands with the
+   new track and empty pieces together, or nothing here changes at all. An
+   empty id (going back to the chooser) is never treated as a change, so
+   backing out of the chooser keeps whatever is already in progress. */
+export function chooseTrack(dir, id) {
+  return enqueue(async () => {
+    const cur = await readData(dir);
+    const changed = Boolean(id) && id !== cur.track;
+    const pieces = changed ? PIECE_IDS.map(emptyPiece) : cur.pieces;
+    return persist(dir, { ...cur, track: id, pieces });
+  });
+}
+
 async function persist(dir, next) {
   const tmp = `${file(dir)}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
   await writeFile(tmp, JSON.stringify(next, null, 2));

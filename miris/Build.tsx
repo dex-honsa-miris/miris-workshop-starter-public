@@ -145,6 +145,32 @@ export function usePieceBuild(track: Track, pieceId: string, data: Doc) {
     }
   }, [piece]);
 
+  /* A track change clears this slot back to emptyPiece's shape on disk (see
+     chooseTrack in store.mjs), but the resume latch above only ever fires
+     once per mount, and Guide never unmounts across the chooser round trip.
+     Without this, the tray kept showing the OLD track's render after a
+     Change, and BuildInput stayed empty because no piece was back in "idle".
+     Checked on content fields, not `status`: nothing in the API ever moves
+     status away from "empty", so it cannot tell a cleared piece from a piece
+     that was never started. */
+  useEffect(() => {
+    if (!piece) return;
+    const cleared =
+      !piece.prompt && !piece.imageUrl && !piece.glb && !piece.falRequestId && !piece.modelStartedAt;
+    if (!cleared || phase === "idle") return;
+    setPhase("idle");
+    setPrompt("");
+    setImage("");
+    setGlb("");
+    setError("");
+    setAgain(false);
+    setStartedAt(null);
+    // Re-armed rather than left latched: this slot is a blank piece of a new
+    // track now, and a value it gets from here deserves the same one-time
+    // resume a fresh mount would give it.
+    resumed.current = false;
+  }, [piece, phase]);
+
   useEffect(() => {
     if (phase !== "model" && phase !== "image") return;
     const base = phase === "model" && startedAt ? startedAt : Date.now();
@@ -160,14 +186,21 @@ export function usePieceBuild(track: Track, pieceId: string, data: Doc) {
      path a resumed page has to its own result. */
   const recorded = useRef(false);
   useEffect(() => {
-    if (phase !== "model" || !piece) return;
-    if (piece.glb) {
+    if (!piece) return;
+    /* Also checked in "review": a reload between the model submit and the
+       server actually recording falRequestId/modelStartedAt resumes here
+       with neither, offering "Submit for 3D" on a piece that is already
+       building on fal. Watching for the glb here too is what lets that tray
+       correct itself once the mesh lands, rather than being stuck offering a
+       second, separately billed submit forever. */
+    if ((phase === "model" || phase === "review") && piece.glb) {
       setGlb(piece.glb);
       setImage(piece.imageUrl);
       setPhase("done");
       setLanded((n) => n + 1);
       return;
     }
+    if (phase !== "model") return;
     /* The server sets modelStartedAt once fal accepts the job and clears it
        again when fal reports failure, so a zero means failure only after a
        start has actually been seen. A submit flips this hook to "model" before
