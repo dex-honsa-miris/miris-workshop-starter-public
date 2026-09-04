@@ -240,11 +240,12 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
     }
 
     case "label": {
+      const pieceId = String(body.id ?? "01");
+      if (!PIECE_IDS.includes(pieceId)) return fail(`unknown piece: ${pieceId || "(none)"}`);
       if (!falKey(mode)) return fail("FAL_KEY is not set in .env.local");
       const stored = await readData(MIRIS_DIR);
       const track = TRACKS.find((t) => t.id === stored.track);
       if (!track) return fail("No track chosen yet. Pick one on the chooser first.");
-      const pieceId = String(body.id ?? "01");
       const piece = stored.pieces.find((p) => p.id === pieceId);
       if (!piece?.prompt) return fail("No prompt to write from. Step 1.2 is where it comes from.");
       const out: any = await falRun(LABEL_MODEL, {
@@ -260,6 +261,8 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
     }
 
     case "image": {
+      const pieceId = String(body.id ?? "01");
+      if (!PIECE_IDS.includes(pieceId)) return fail(`unknown piece: ${pieceId || "(none)"}`);
       if (!falKey(mode)) return fail("FAL_KEY is not set in .env.local");
       const stored = await readData(MIRIS_DIR);
       /* Strict, unlike trackById: that falls back to TRACKS[0], which is summon,
@@ -267,7 +270,6 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
        * monster-taming style whichever door they had picked. */
       const track = TRACKS.find((t) => t.id === stored.track);
       if (!track) return fail("No track chosen yet. Pick one on the chooser first.");
-      const pieceId = String(body.id ?? "01");
       const out: any = await falRun(IMAGE_MODEL, {
         prompt: `${track.style}: ${body.prompt}. ${IMAGE_FRAMING}`,
         image_size: "square_hd",
@@ -281,11 +283,15 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
     }
 
     case "model": {
+      const pieceId = String(body.id ?? "01");
+      // Checked before falKey and before any fal call. fal bills at submit, so
+      // validating once the mesh request is already out would be too late to
+      // save the cost.
+      if (!PIECE_IDS.includes(pieceId)) return fail(`unknown piece: ${pieceId || "(none)"}`);
       if (!falKey(mode)) return fail("FAL_KEY is not set in .env.local");
       const stored = await readData(MIRIS_DIR);
       const track = TRACKS.find((t) => t.id === stored.track);
       if (!track) return fail("No track chosen yet. Pick one on the chooser first.");
-      const pieceId = String(body.id ?? "01");
       let out: any;
       try {
         out = await falRun(
