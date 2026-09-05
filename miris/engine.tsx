@@ -16,6 +16,26 @@ import { MirisScene, MirisStream } from "@miris-inc/three";
  * is what lets doRendering draw the ordinary three content and the splat
  * composite in one pass. Calling gl.render alongside it would draw twice. */
 
+/* A tab that loads in the background never mounts the stage.
+ *
+ * R3F waits for its container to measure non-zero before it configures the
+ * root, and it learns that size from a ResizeObserver. A hidden tab does not
+ * deliver that callback, so the canvas sits at its default 300x150, the root is
+ * never configured, and nothing inside <Canvas> renders: no room, no request
+ * for room.glb, no error anywhere. It is indistinguishable from a broken build,
+ * and it costs a whole debugging session to find. Showing the tab does not fix
+ * it either, because becoming visible is not a resize.
+ *
+ * So: when the tab becomes visible, tell the page to re-measure. One event, and
+ * the observer fires with a real size. */
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      dispatchEvent(new Event("resize"));
+    }
+  });
+}
+
 export function mirisScene(viewerKey: string) {
   /* Constructor only. Adding setViewerKey and the MirisStream.viewerKey static
      looked like belt and braces and was the one thing the working path did not
