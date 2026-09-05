@@ -44,7 +44,7 @@ export const STEPS: Step[] = [
         num: "00.1",
         title: "Open the project",
         body:
-          "Everything you build goes in app/stage.tsx. The guide writes between the miris: comments and nowhere else, so anything you add outside them survives every Fill and every Clear. The shell of the room, fourteen props and a published catalog are already on disk, in public/ and miris/.",
+          "Everything you build goes in app/stage.tsx. The guide writes between the miris: comments and nowhere else, so anything you add outside them survives every Fill and every Clear. The shell of the room, its props and a published catalog are already on disk, in public/ and miris/.",
         explain:
           "One thing will look wrong and is not: every save of app/stage.tsx reloads the whole page rather than hot-updating it. A Fast Refresh of a mounted stream leaves the SDK's own scene objects behind, measured as two SparkRenderers in one scene with the splats drawn twice and the model smearing as the camera moves. Scoping the reload to \"only when a stream is mounted\" still ghosted on a stream's first mount through an HMR path that localhost never reproduced, so the reload is unconditional. It is cheap because everything durable lives in miris/data.json: your progress, the build tray and an in-flight mesh all come back.",
       },
@@ -103,7 +103,7 @@ export const STEPS: Step[] = [
         num: "02.1",
         title: "Choose your materials",
         body:
-          "The shell arrives with placeholder surfaces. This block overrides them by mesh name once the glTF has loaded, and it carries two palettes: a vault of dark sci-fi plating and steel, and the warmer boutique it replaced. THEME picks which table is used AND which folder the maps load from, so only the nine images you are using are ever fetched. It also builds the ceiling, because room.glb ships none. One rule, and it is not a taste rule: nothing transmissive.",
+          "The shell arrives with placeholder surfaces. This block overrides them by mesh name once the glTF has loaded, and it carries two palettes: a vault of dark sci-fi plating and steel, and the warmer boutique it replaced. THEME picks which table is used AND which folder the maps load from, so only the twelve images you are using are ever fetched. It also builds the ceiling, because room.glb ships none. One rule, and it is not a taste rule: nothing transmissive.",
         fill: "materials",
         explain:
           "That rule has a measured price on it. One glass shelf, a single KHR_materials_transmission material, cost 28.51ms of GPU per frame against 2.54ms for the same room without it, timed with EXT_disjoint_timer_query_webgl2. three renders the entire scene into a transmission buffer once per transmissive object, so what you are buying is a second full scene pass, and it scales with neither the shelf's geometry nor the canvas size: a 16x pixel reduction measured as nothing at all. Replacing that shelf with wood took the reference build from roughly 50ms of GPU in its closest view to roughly 10ms. Frosted glass is worse rather than better, because roughened transmission adds blur taps on top of the pass. And this is a scene that will soon be re-sorting splats every frame, which is the budget the pass would eat. If you want the read of glass, use polished stone or brass and let the environment from 01.3 do the reflecting.",
@@ -119,7 +119,7 @@ export const STEPS: Step[] = [
         num: "03.1",
         title: "Dress the room",
         body:
-          "Props are in public/props. The vault sets out an armoured container crate, a chair either side of it and a 2.8m cylindrical pod, and tints the door and the counter to steel so their shapes survive the change of room. The boutique fills the same space with fourteen warmer pieces instead -- a curved sofa, a marble table, olive trees. THEME picks the list, and it has to match the one you set in 02.1.",
+          "Props are in public/props. The vault sets out two armoured container crates, a facing pair of chairs and a cylindrical pod, and tints the door and the counter to steel so their shapes survive the change of room. The boutique fills the same space with eleven warmer pieces instead -- a curved sofa, a marble table, olive trees. THEME picks the list, and it has to match the one you set in 02.1.",
         fill: "props",
         explain:
           "These are files, and they deserve to be. A prop is small, static, identical for every visitor and never inspected up close, which is exactly the profile a GLB download is good at. A capture of the thing you are selling is the opposite on all four counts, and that line is the one decision this workshop is really teaching. Two practical notes while you place them. Load each prop once and reuse the loaded scene rather than fetching per instance. And put things flush to the floor or clearly off it, never a millimetre above it: the reference build had a rug 4mm off the floor and trim 20 to 30mm proud of the walls, and both streaked, which is a depth-precision problem that chapter 05 has to fix at the camera because it cannot be fixed here.",
@@ -137,9 +137,9 @@ export const STEPS: Step[] = [
         body:
           "A stop is a camera position and a point to look at. Write yours in the miris:stops block, one per thing worth seeing: the doors as you come in, the counter, each niche. Order is the order you will fly in. The block sits above the return in plain // comments, because that is JavaScript scope, not JSX.",
         code:
-          'const STOPS = [\n  { id: "doors", pos: [0, 1.6, 5.2], look: [0, 1.4, 0] },\n  { id: "counter", pos: [1.8, 1.5, -0.4], look: [2.6, 1.1, -1.9] },\n];',
+          'const STOPS = [\n  { id: "doors", pos: [5.4, 1.6, 0], look: [-1.0, 1.3, -1.6] },\n  { id: "niche", pos: [0, 1.45, -2.0], look: [0, 1.25, -4.3] },\n];',
         explain:
-          "Stops are data rather than code because three other things read them: the flight in 04.2, the idle orbit that parks on the same loop, and the placards in chapter 06. Two rules of thumb that will save you re-authoring later. Put the look point on the piece rather than on the wall behind it, since a wall-aimed stop centres the frame on nothing. And do not stand too close. A splat capture resolves as you approach it, but there is a distance past which no more detail is coming, and a stop parked inside that distance is the one that will look soft no matter how patient your connection is.",
+          "Stops are data rather than code because the flight in 04.2 and the idle orbit that parks on the same loop both read them. Two rules of thumb that will save you re-authoring later. Put the look point on the piece rather than on the wall behind it, since a wall-aimed stop centres the frame on nothing. And do not stand too close. A splat capture resolves as you approach it, but there is a distance past which no more detail is coming, and a stop parked inside that distance is the one that will look soft no matter how patient your connection is.",
         check: "stops",
       },
       {

@@ -216,11 +216,11 @@ export default function StepPane({
             <h3 className="mw-now-title">{withNoun(sub.title)}</h3>
             <p className="c14">{withNoun(sub.body)}</p>
             {sub.renderPath && <RenderPathBadge />}
-            {sub.code && (
-              <pre className="k14">
-                <Code code={sub.code} />
-              </pre>
-            )}
+            {/* Same Snippet as the fill path. These are the steps with no
+                button to press -- the .env.local line, the stops, the numbers
+                to tune, the line to comment out -- so they are the ones most
+                worth being able to copy. */}
+            {sub.code && <Snippet code={dedent(sub.code)} />}
 
             {sub.link && (
               <a
