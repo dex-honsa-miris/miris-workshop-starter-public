@@ -30,10 +30,17 @@ Publishing rewrites history to strip internal files, then force-pushes:
 git clone --single-branch -b <branch> . /tmp/pub && cd /tmp/pub
 git filter-repo --force --invert-paths \
   --path docs --path miris-web-kit --path miris/kit --path dist \
+  --path public/tex/vault --path public/props/vault \
   --path-glob '*SKILL.md' --path-glob '*voice.md'
 git remote add pub https://github.com/dex-honsa-miris/miris-workshop-starter-public.git
 git push --force pub <branch>:main
 ```
+
+`public/tex/vault` and `public/props/vault` are the CGAxis assets. They are
+tracked in this repo by an explicit decision -- controlled demo, not
+redistributed -- but their licence forbids redistribution at any resolution,
+so the mirror must never receive them. Those two `--path` arguments are the
+thing that keeps that true. Do not drop them.
 
 Two reasons it has to be this and not a plain push. `docs/miris-web-kit/` holds
 internal brand docs naming an employee; it is gitignored now, but older commits
@@ -51,6 +58,13 @@ SPA fallback: **200 and `text/html`**, not a 404. Detect it by content type.
 
 `@miris-inc/core` is a peer dependency of `@miris-inc/three`. Nothing imports it
 directly, so it looks removable from `package.json`. It is not.
+
+Slim `room.glb` with webp + `weld` + `quantize`, never `gltf-transform
+optimize`. Optimize's join/dedup pass merges meshes -- 100 became 43 -- and
+step 02.1 overrides materials BY MESH NAME, so the materials step quietly stops
+matching and the room renders in its placeholder surfaces. The safe pipeline
+took 15.4MB to 1.6MB with all 88 meshes and 114 nodes intact. The boutique
+props are already webp + quantized; they do not shrink further.
 
 WebContainer drops binary files on import. Attendees running in bolt.new may see
 the chooser artwork and fonts missing; that is the platform, not the repo.

@@ -14,20 +14,23 @@ tsconfig.tsbuildinfo
 miris-web-kit/
 docs/
 
-# Temp test assets copied from /repos/miris-boutique. Not shipped: 25MB of
-# binaries, and WebContainer drops binary files on import anyway. The real
-# room ships slimmed and materials load from URLs we host.
-public/env/
-public/props/
+# The room and the props are IN the repo now. The workshop could not be run
+# from a clean clone without them: nothing here was tracked, so step 01.1 drew
+# an empty room and 03.1 dressed it with nothing.
+#
+# room.glb is the slimmed one -- 15.4MB to 1.6MB. Textures to webp, then weld
+# and quantize. NOT `gltf-transform optimize`: its join/dedup pass merges
+# meshes, 100 of them down to 43, and 02.1 matches materials BY MESH NAME, so
+# the whole materials step silently stops working. Structure-preserving passes
+# only.
+public/env/*
+!public/env/room.glb
+!public/env/white-chapel.hdr
 
-# CGAxis assets. Licensed to us for use, NOT for redistribution: their terms
-# forbid sharing PBR materials in any form or at any resolution, free or paid,
-# and this repo is cloned by every attendee. They stay on local disk so the
-# vault build runs here; they must not enter the public mirror. See
-# public/tex/vault/SOURCES.md for what they are and how to re-fetch them.
-# The CONTENTS, not the directory: git cannot re-include a file whose parent
-# directory is excluded, so ignoring the folder itself would take the note with
-# it.
-public/tex/vault/*
-public/props/vault/*
-!public/tex/vault/SOURCES.md
+# CGAxis assets (public/tex/vault, public/props/vault) are tracked here by an
+# explicit decision: this is a controlled demo and the build is not
+# redistributed. Their licence still forbids redistribution in any form or at
+# any resolution, so that decision is load-bearing, not a licence change --
+# THE PUBLIC MIRROR MUST NOT RECEIVE THEM. AGENTS.md's publish filter strips
+# both directories; do not remove those --path arguments.
+# See public/tex/vault/SOURCES.md for what they are and how to re-fetch them.
