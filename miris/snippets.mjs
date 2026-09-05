@@ -424,8 +424,14 @@ const PROPS = `      {(() => {
           // room rather than sitting on anything.
           { url: "/props/vault/space-station-cylindrical-pod.glb", position: [-5.5, 0, -3.05], yaw: 28, scale: [1, 1, 1] },
           // One file, two nodes.
-          { url: "/props/vault/space-station-chair.glb", position: [3.05, 0, -0.85], yaw: -67, scale: [1, 1, 1] },
-          { url: "/props/vault/space-station-chair.glb", position: [3.05, 0, 0.85], yaw: -113, scale: [1, 1, 1] },
+          /* The chair ships with a rust-red pad, which was the only saturated
+             warm thing left in the room once everything else had gone cool. A
+             neutral tint multiplies it down to a dark oxblood that reads as
+             worn leather rather than as the odd one out. A colour multiply can
+             darken and shift but cannot desaturate, so this tones the red down
+             rather than removing it -- which is the right amount of it. */
+          { url: "/props/vault/space-station-chair.glb", position: [3.05, 0, -0.85], yaw: -67, scale: [1, 1, 1], tint: { color: "#6a6e76", roughness: 0.55 } },
+          { url: "/props/vault/space-station-chair.glb", position: [3.05, 0, 0.85], yaw: -113, scale: [1, 1, 1], tint: { color: "#6a6e76", roughness: 0.55 } },
           { url: "/props/vault/space-station-container-crate.glb", position: [-0.3, 0, 0.95], yaw: 12, scale: [1, 1, 1] },
           { url: "/props/vault/space-station-container-crate.glb", position: [1.45, 0, -1.15], yaw: -35, scale: [1, 1, 1] },
         ];
