@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { MirisScene, MirisStream } from "@miris-inc/three";
 
@@ -117,40 +117,4 @@ export default function StageEngine() {
   }, 1);
 
   return null;
-}
-
-/* Streams built the way the reference builds them, and the way a hand-run
-   probe in this very page proved works: construct after the engine is up,
-   then scene.add.
-   The declarative <mirisStream args={[...]} /> reads better and is what the
-   old single-asset workshop used, but with six of them nothing ever loaded:
-   the scene was the SDK's, the backend was up, update() was pumping, the
-   streams sat in the graph correctly parented, and streamloaded never fired.
-   The same six uuids on the same key load immediately when constructed by
-   hand. Until that difference is understood, this is the path that works. */
-export function useMirisStreams(
-  entries: Array<{ uuid: string; position: [number, number, number]; rotation?: [number, number, number] }>,
-  viewerKey: string,
-) {
-  const scene = useThree((s) => s.scene);
-  const ready = useMirisReady();
-
-  useEffect(() => {
-    if (!ready) return;
-    const made: any[] = [];
-    for (const e of entries) {
-      const s: any = new MirisStream({ uuid: e.uuid, viewerKey });
-      s.position.set(...e.position);
-      if (e.rotation) s.rotation.set(...e.rotation);
-      scene.add(s);
-      made.push(s);
-    }
-    return () => {
-      for (const s of made) {
-        scene.remove(s);
-        s.dispose?.();
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, scene, viewerKey, JSON.stringify(entries)]);
 }

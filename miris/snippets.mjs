@@ -423,27 +423,20 @@ const NICHE_OF = `        // 1 to 3 on the north wall, 4 to 6 on the south, in r
         const x = [-4.2, 0, 4.2][(inlet.id - 1) % 3];
         const z = inlet.id <= 3 ? -4.356 : 4.356;`;
 
-const CATALOG = `      {(() => {
-        /* Built imperatively, after the engine is up, because that is the path
-           that actually streams here. The declarative <mirisStream args={...} />
-           form reads better and is what a single-asset scene used, but with six
-           of them streamloaded never fired: right scene, backend up, update()
-           pumping, correctly parented, no data. The same uuids on the same key
-           load at once when the SDK constructs them itself. */
-        function Collection() {
-          useMirisStreams(
-            catalog.inlets.map((inlet) => ({
-              uuid: inlet.uuid,
-              // 1 to 3 on the north wall, 4 to 6 on the south, room.glb's order.
-              position: [[-4.2, 0, 4.2][(inlet.id - 1) % 3], 1.65, inlet.id <= 3 ? -4.356 : 4.356],
-              rotation: [0, inlet.id <= 3 ? 0 : Math.PI, 0],
-            })),
-            catalog.viewerKey,
-          );
-          return null;
-        }
-        return <Collection />;
-      })()}`;
+const CATALOG = `      {/* One stream per published piece, mounted on its niche anchor. They
+          arrive at whatever size they were captured at, which is exactly the
+          problem 05.3 measures away -- expect them to overflow the niche. */}
+      {catalog.inlets.map((inlet) => {
+${NICHE_OF}
+        return (
+          <mirisStream
+            key={inlet.uuid}
+            args={[{ uuid: inlet.uuid, viewerKey: catalog.viewerKey }]}
+            position={[x, 1.2, z]}
+            rotation={[0, z < 0 ? 0 : Math.PI, 0]}
+          />
+        );
+      })}`;
 
 const FIT_REF = `            ref={(stream) => {
               if (!stream) return;
@@ -458,6 +451,7 @@ const FIT_REF = `            ref={(stream) => {
               let waited = 0;
               let tries = 0;
               let last = 0;
+              let stable = 0;
               const onLoad = () => { loaded = true; };
               stream.addEventListener("streamloaded", onLoad);
 
@@ -486,12 +480,18 @@ const FIT_REF = `            ref={(stream) => {
                 }
                 const [sx, sy, sz] = box?.size ?? [];
                 if (!(sx > 0 && sy > 0 && sz > 0)) return;
-                // Settled means the characteristic size moved under 3% since
-                // the previous poll, not that any one axis did.
+                /* Settled means the characteristic size moved under 3% since
+                   the previous poll, not that any one axis did -- and it has to
+                   hold for THREE polls running. The box grows in steps as coarse
+                   levels land, and it can sit still on one of them long enough
+                   to look finished: measured here at 0.20m, then 0.50m a second
+                   later. One stable pair is not settled, it is a plateau, and
+                   fitting to it scales the piece about 2.5x too large. */
                 const size = Math.cbrt(sx * sy * sz);
-                const settled = last > 0 && Math.abs(size - last) / last < 0.03;
+                if (last > 0 && Math.abs(size - last) / last < 0.03) stable++;
+                else stable = 0;
                 last = size;
-                if (!settled) return;
+                if (stable < 3) return;
                 clearInterval(timer);
 
                 // The niche volume from room.glb, and 0.9 so nothing touches
