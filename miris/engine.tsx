@@ -32,7 +32,8 @@ export function mirisScene(viewerKey: string) {
 /** Same scene for the life of the tab. A second MirisScene means a second
  *  engine, and both would composite. */
 export function useMirisScene(viewerKey: string) {
-  return useMemo(() => mirisScene(viewerKey), [viewerKey]);
+  const s = useMemo(() => mirisScene(viewerKey), [viewerKey]);
+  return s;
 }
 
 /* Streams must not mount before the backend exists. The reference calls
@@ -112,4 +113,40 @@ export default function StageEngine() {
   }, 1);
 
   return null;
+}
+
+/* Streams built the way the reference builds them, and the way a hand-run
+   probe in this very page proved works: construct after the engine is up,
+   then scene.add.
+   The declarative <mirisStream args={[...]} /> reads better and is what the
+   old single-asset workshop used, but with six of them nothing ever loaded:
+   the scene was the SDK's, the backend was up, update() was pumping, the
+   streams sat in the graph correctly parented, and streamloaded never fired.
+   The same six uuids on the same key load immediately when constructed by
+   hand. Until that difference is understood, this is the path that works. */
+export function useMirisStreams(
+  entries: Array<{ uuid: string; position: [number, number, number]; rotation?: [number, number, number] }>,
+  viewerKey: string,
+) {
+  const scene = useThree((s) => s.scene);
+  const ready = useMirisReady();
+
+  useEffect(() => {
+    if (!ready) return;
+    const made: any[] = [];
+    for (const e of entries) {
+      const s: any = new MirisStream({ uuid: e.uuid, viewerKey });
+      s.position.set(...e.position);
+      if (e.rotation) s.rotation.set(...e.rotation);
+      scene.add(s);
+      made.push(s);
+    }
+    return () => {
+      for (const s of made) {
+        scene.remove(s);
+        s.dispose?.();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, scene, viewerKey, JSON.stringify(entries)]);
 }

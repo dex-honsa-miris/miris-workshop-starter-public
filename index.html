@@ -11,6 +11,11 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Before any module loads. ES imports are hoisted, so setting this in
+         main.tsx runs AFTER @miris-inc/three has already been evaluated, and the
+         SDK keeps the dev.miris.com default it captured. Every viewer key we ship
+         authorises app.miris.com, so that mismatch streams nothing, silently. -->
+    <script>globalThis.MIRIS_SERVER_BASE_URL = "https://app.miris.com/viewer/v1";</script>
     <script type="module" src="/app/main.tsx"></script>
   </body>
 </html>

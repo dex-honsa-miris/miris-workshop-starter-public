@@ -12,7 +12,7 @@ import {
 } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import catalog from "../miris/catalog.json";
-import StageEngine, { useMirisScene, useMirisReady } from "../miris/engine";
+import StageEngine, { useMirisScene, useMirisReady, useMirisStreams } from "../miris/engine";
 import useHtmlTexture from "../miris/htmlTexture";
 import { StageSkeleton } from "../miris/Skeleton";
 
@@ -453,30 +453,24 @@ export default function Stage() {
       {/* miris:rail-end */}
 
       {/* miris:catalog-start */}
-      {/* One stream per published piece. extend() at the top of this file is
-          what makes <mirisStream> an ordinary scene node, so it takes a
-          position and a scale like any other three.js object and is drawn in
-          the same pass as the walls. */}
       {(() => {
-        /* Gated on the engine, not just mounted. A MirisStream built before
-           the backend exists never retries: it sits in the graph with
-           children, looking healthy, and asks the network for nothing. */
+        /* Built imperatively, after the engine is up, because that is the path
+           that actually streams here. The declarative <mirisStream args={...} />
+           form reads better and is what a single-asset scene used, but with six
+           of them streamloaded never fired: right scene, backend up, update()
+           pumping, correctly parented, no data. The same uuids on the same key
+           load at once when the SDK constructs them itself. */
         function Collection() {
-          const ready = useMirisReady();
-          if (!ready) return null;
-          return <>{catalog.inlets.map((inlet) => {
-        // 1 to 3 on the north wall, 4 to 6 on the south, in room.glb's order.
-        const x = [-4.2, 0, 4.2][(inlet.id - 1) % 3];
-        const z = inlet.id <= 3 ? -4.356 : 4.356;
-        return (
-          <mirisStream
-            key={inlet.uuid}
-            args={[{ uuid: inlet.uuid, viewerKey: catalog.viewerKey }]}
-            position={[x, 1.65, z]}
-            rotation={[0, z < 0 ? 0 : Math.PI, 0]}
-          />
-        );
-      })}</>;
+          useMirisStreams(
+            catalog.inlets.map((inlet) => ({
+              uuid: inlet.uuid,
+              // 1 to 3 on the north wall, 4 to 6 on the south, room.glb's order.
+              position: [[-4.2, 0, 4.2][(inlet.id - 1) % 3], 1.65, inlet.id <= 3 ? -4.356 : 4.356],
+              rotation: [0, inlet.id <= 3 ? 0 : Math.PI, 0],
+            })),
+            catalog.viewerKey,
+          );
+          return null;
         }
         return <Collection />;
       })()}
