@@ -1,7 +1,10 @@
 import { flushSync } from "react-dom";
 
 type WithVT = Document & {
-  startViewTransition?: (cb: () => void) => { finished: Promise<void> };
+  startViewTransition?: (cb: () => void) => {
+    finished?: Promise<void>;
+    updateCallbackDone?: Promise<void>;
+  };
 };
 
 /** Commits a state change inside a view transition, so the browser can morph
@@ -19,7 +22,16 @@ export function transition(commit: () => void) {
   if (typeof doc.startViewTransition !== "function") return commit();
 
   try {
-    doc.startViewTransition(() => flushSync(commit));
+    /* Both promises get a catch. A view transition rejects ASYNCHRONOUSLY --
+       "Transition was aborted because of invalid state" when the document is
+       hidden, or when a second transition starts before this one settles -- and
+       an async rejection is not something the try/catch below can see. Left
+       unhandled it reaches the console as an uncaught InvalidStateError, which
+       is alarming, is not actionable, and is not even a real failure: the DOM
+       has already been committed by the callback. */
+    const running = doc.startViewTransition(() => flushSync(commit));
+    running?.finished?.catch(() => {});
+    running?.updateCallbackDone?.catch(() => {});
   } catch {
     commit();
   }

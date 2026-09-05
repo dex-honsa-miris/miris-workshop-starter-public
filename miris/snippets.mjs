@@ -539,7 +539,7 @@ const PROPS = `      {(() => {
           { url: "/props/counter-calacatta-brass.glb", position: [-6.7, 0.526, 1.35], yaw: 90, scale: [1.051, 2.058, 1.258], tint: { color: "#59616b", metalness: 0.9, roughness: 0.34 } },
           // 2.82m tall, so it stands on the floor and reads from across the
           // room rather than sitting on anything.
-          { url: "/props/vault/space-station-cylindrical-pod.glb", position: [-5.5, 0, -3.05], yaw: 28, scale: [1, 1, 1] },
+          { url: "/props/vault/space-station-cylindrical-pod.glb", position: [-5.5, 0, -3.05], yaw: 28, scale: [1, 1, 1], tint: { color: "#7b838d" } },
           // One file, two nodes.
           /* The chair ships with a rust-red pad, which was the only saturated
              warm thing left in the room once everything else had gone cool. A
@@ -549,8 +549,11 @@ const PROPS = `      {(() => {
              rather than removing it -- which is the right amount of it. */
           { url: "/props/vault/space-station-chair.glb", position: [3.05, 0, -0.85], yaw: -67, scale: [1, 1, 1], tint: { color: "#6a6e76", roughness: 0.55 } },
           { url: "/props/vault/space-station-chair.glb", position: [3.05, 0, 0.85], yaw: -113, scale: [1, 1, 1], tint: { color: "#6a6e76", roughness: 0.55 } },
-          { url: "/props/vault/space-station-container-crate.glb", position: [-0.3, 0, 0.95], yaw: 12, scale: [1, 1, 1] },
-          { url: "/props/vault/space-station-container-crate.glb", position: [1.45, 0, -1.15], yaw: -35, scale: [1, 1, 1] },
+          /* These ship near-white, which in a dark room reads as three bright
+             blocks rather than as equipment. The tint pulls them to steel and
+             leaves the form doing the work. */
+          { url: "/props/vault/space-station-container-crate.glb", position: [-0.3, 0, 0.95], yaw: 12, scale: [1, 1, 1], tint: { color: "#6f7780" } },
+          { url: "/props/vault/space-station-container-crate.glb", position: [1.45, 0, -1.15], yaw: -35, scale: [1, 1, 1], tint: { color: "#6f7780" } },
         ];
 
         const PROPS = { boutique: BOUTIQUE_PROPS, vault: VAULT_PROPS }[THEME] as Array<{

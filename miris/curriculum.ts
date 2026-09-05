@@ -67,7 +67,7 @@ export const STEPS: Step[] = [
         num: "01.1",
         title: "Load the room",
         body:
-          "The boutique shell is public/env/room.glb: walls, floor, ceiling, the niches and the shelf returns. Put this in the block between the miris:room comments and the whole shell arrives as one glTF scene.",
+          "The room shell is public/env/room.glb: walls, floor, the niches and the shelf returns. Put this in the block between the miris:room comments and the whole shell arrives as one glTF scene. It arrives unlit, and it arrives with no ceiling -- 01.2 and 02.1 deal with those in turn.",
         fill: "room",
         explain:
           "It is a 15MB download and it behaves like one. Nothing renders until it has arrived and parsed, every visitor pays it once, and the file is the same for all of them. Hold on to that, because chapter 05 puts things on these shelves that do not work like this at all, and the contrast is the point of the workshop. Two glTF notes worth having now: useGLTF caches by URL and suspends, so the room mounts once however many components ask for it, and the export carries geometry and materials but not one photon of the lighting rig it was authored under. Our reference room shipped for weeks with its Blender lights stranded in Blender, because the exporter only ever wrote TEXCOORD_0 and the bake had nowhere to land. Whatever the room looks like now is what three.js does with no lights at all, which is the next step.",
@@ -103,7 +103,7 @@ export const STEPS: Step[] = [
         num: "02.1",
         title: "Choose your materials",
         body:
-          "The shell arrives with placeholder surfaces. This block overrides them by mesh name once the glTF has loaded: plaster and travertine for the room, calacatta and brass for the counter, walnut where you want warmth. One rule, and it is not a taste rule: nothing transmissive.",
+          "The shell arrives with placeholder surfaces. This block overrides them by mesh name once the glTF has loaded, and it carries two palettes: a vault of dark sci-fi plating and steel, and the warmer boutique it replaced. THEME picks which table is used AND which folder the maps load from, so only the nine images you are using are ever fetched. It also builds the ceiling, because room.glb ships none. One rule, and it is not a taste rule: nothing transmissive.",
         fill: "materials",
         explain:
           "That rule has a measured price on it. One glass shelf, a single KHR_materials_transmission material, cost 28.51ms of GPU per frame against 2.54ms for the same room without it, timed with EXT_disjoint_timer_query_webgl2. three renders the entire scene into a transmission buffer once per transmissive object, so what you are buying is a second full scene pass, and it scales with neither the shelf's geometry nor the canvas size: a 16x pixel reduction measured as nothing at all. Replacing that shelf with wood took the reference build from roughly 50ms of GPU in its closest view to roughly 10ms. Frosted glass is worse rather than better, because roughened transmission adds blur taps on top of the pass. And this is a scene that will soon be re-sorting splats every frame, which is the budget the pass would eat. If you want the read of glass, use polished stone or brass and let the environment from 01.3 do the reflecting.",
@@ -119,7 +119,7 @@ export const STEPS: Step[] = [
         num: "03.1",
         title: "Dress the room",
         body:
-          "Fourteen props are in public/props: a stone plinth, the calacatta counter, a curved boucle sofa, a tan barrel chair, a sculptural marble coffee table, a round brass side table, an ottoman, a draped brass clothing rail, an ivory dress form, a walnut totem, dried florals, a ribbed olive tree, a leaning bronze mirror and the grand walnut doors. Place the ones you want in the miris:props block, each with a position and a rotation, and leave the rest out. This block sits after your materials and before the rail, because the camera stops you author next are aimed at wherever this furniture ends up.",
+          "Props are in public/props. The vault sets out an armoured container crate, a chair either side of it and a 2.8m cylindrical pod, and tints the door and the counter to steel so their shapes survive the change of room. The boutique fills the same space with fourteen warmer pieces instead -- a curved sofa, a marble table, olive trees. THEME picks the list, and it has to match the one you set in 02.1.",
         fill: "props",
         explain:
           "These are files, and they deserve to be. A prop is small, static, identical for every visitor and never inspected up close, which is exactly the profile a GLB download is good at. A capture of the thing you are selling is the opposite on all four counts, and that line is the one decision this workshop is really teaching. Two practical notes while you place them. Load each prop once and reuse the loaded scene rather than fetching per instance. And put things flush to the floor or clearly off it, never a millimetre above it: the reference build had a rug 4mm off the floor and trim 20 to 30mm proud of the walls, and both streaked, which is a depth-precision problem that chapter 05 has to fix at the camera because it cannot be fixed here.",
