@@ -12,7 +12,7 @@ import {
 } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import catalog from "../miris/catalog.json";
-import StageEngine, { useMirisScene } from "../miris/engine";
+import StageEngine, { useMirisScene, WhenEngineReady } from "../miris/engine";
 import useHtmlTexture from "../miris/htmlTexture";
 import { StageSkeleton } from "../miris/Skeleton";
 
@@ -453,22 +453,100 @@ export default function Stage() {
       {/* miris:rail-end */}
 
       {/* miris:catalog-start */}
-      {/* One stream per published piece, mounted on its niche anchor. They
-          arrive at whatever size they were captured at, which is exactly the
-          problem 05.3 measures away -- expect them to overflow the niche. */}
-      {catalog.inlets.map((inlet) => {
+      {/* One stream per published piece, each measured into its own niche.
+          Cache what you measure: after placement getBounds() answers about the
+          placed box, so anything that needs the piece's real size later has to
+          read your value rather than ask again. */}
+      <WhenEngineReady>
+        {catalog.inlets.map((inlet) => {
         // 1 to 3 on the north wall, 4 to 6 on the south, in room.glb's order.
         const x = [-4.2, 0, 4.2][(inlet.id - 1) % 3];
         const z = inlet.id <= 3 ? -4.356 : 4.356;
-        return (
-          <mirisStream
-            key={inlet.uuid}
-            args={[{ uuid: inlet.uuid, viewerKey: catalog.viewerKey }]}
-            position={[x, 1.2, z]}
-            rotation={[0, z < 0 ? 0 : Math.PI, 0]}
-          />
-        );
-      })}
+          return (
+            <mirisStream
+              key={inlet.uuid}
+              args={[{ uuid: inlet.uuid, viewerKey: catalog.viewerKey }]}
+            ref={(stream) => {
+              if (!stream) return;
+              /* Measured at IDENTITY: no position, no rotation and no scale
+                 until the box has settled, because getBounds() after placement
+                 reports the placed and scaled box rather than the clean local
+                 one. Hidden meanwhile, so the pile at the origin is never
+                 seen. */
+              stream.visible = false;
+
+              let loaded = false;
+              let waited = 0;
+              let tries = 0;
+              let last = 0;
+              let stable = 0;
+              const onLoad = () => { loaded = true; };
+              stream.addEventListener("streamloaded", onLoad);
+
+              const timer = setInterval(() => {
+                /* Two budgets, because they are two different waits. This one
+                   is the network, 120s: before the asset is in, every poll
+                   reads an all-zero box, and counting those against the fit
+                   budget was really timing the connection, so six cold streams
+                   could spend it all downloading and then be dropped as
+                   empty. */
+                if (!loaded) {
+                  if (++waited > 240) clearInterval(timer);
+                  return;
+                }
+                // And this one is the box settling once it is in, 40s of it.
+                if (++tries > 80) {
+                  clearInterval(timer);
+                  return;
+                }
+
+                let box;
+                try {
+                  box = stream.getBounds();
+                } catch {
+                  return;
+                }
+                const [sx, sy, sz] = box?.size ?? [];
+                if (!(sx > 0 && sy > 0 && sz > 0)) return;
+                /* Settled means the characteristic size moved under 3% since
+                   the previous poll, not that any one axis did -- and it has to
+                   hold for THREE polls running. The box grows in steps as coarse
+                   levels land, and it can sit still on one of them long enough
+                   to look finished: measured here at 0.20m, then 0.50m a second
+                   later. One stable pair is not settled, it is a plateau, and
+                   fitting to it scales the piece about 2.5x too large. */
+                const size = Math.cbrt(sx * sy * sz);
+                if (last > 0 && Math.abs(size - last) / last < 0.03) stable++;
+                else stable = 0;
+                last = size;
+                if (stable < 3) return;
+                clearInterval(timer);
+
+                // The niche volume from room.glb, and 0.9 so nothing touches
+                // the sides of its own niche.
+                const fit = Math.min(1.2 / sx, 0.9 / sy, 0.55 / sz) * 0.9;
+                const facing = z < 0 ? 1 : -1;
+                stream.scale.setScalar(fit);
+                stream.rotation.set(0, z < 0 ? 0 : Math.PI, 0);
+                // Bottom-centre: x and z centred in the volume, the local
+                // minimum y resting on the shelf floor at 1.2.
+                stream.position.set(
+                  x - facing * box.center[0] * fit,
+                  1.2 - box.min[1] * fit + 0.01,
+                  z - facing * box.center[2] * fit,
+                );
+                stream.visible = true;
+              }, 500);
+
+              return () => {
+                stream.removeEventListener("streamloaded", onLoad);
+                clearInterval(timer);
+              };
+            }}
+            />
+          );
+        })}
+      </WhenEngineReady>
       {/* miris:catalog-end */}
 
       {/* miris:card-start */}

@@ -426,17 +426,19 @@ const NICHE_OF = `        // 1 to 3 on the north wall, 4 to 6 on the south, in r
 const CATALOG = `      {/* One stream per published piece, mounted on its niche anchor. They
           arrive at whatever size they were captured at, which is exactly the
           problem 05.3 measures away -- expect them to overflow the niche. */}
-      {catalog.inlets.map((inlet) => {
+      <WhenEngineReady>
+        {catalog.inlets.map((inlet) => {
 ${NICHE_OF}
-        return (
-          <mirisStream
-            key={inlet.uuid}
-            args={[{ uuid: inlet.uuid, viewerKey: catalog.viewerKey }]}
-            position={[x, 1.2, z]}
-            rotation={[0, z < 0 ? 0 : Math.PI, 0]}
-          />
-        );
-      })}`;
+          return (
+            <mirisStream
+              key={inlet.uuid}
+              args={[{ uuid: inlet.uuid, viewerKey: catalog.viewerKey }]}
+              position={[x, 1.2, z]}
+              rotation={[0, z < 0 ? 0 : Math.PI, 0]}
+            />
+          );
+        })}
+      </WhenEngineReady>`;
 
 const FIT_REF = `            ref={(stream) => {
               if (!stream) return;
@@ -520,16 +522,18 @@ const CATALOG_FIT = `      {/* One stream per published piece, each measured int
           Cache what you measure: after placement getBounds() answers about the
           placed box, so anything that needs the piece's real size later has to
           read your value rather than ask again. */}
-      {catalog.inlets.map((inlet) => {
+      <WhenEngineReady>
+        {catalog.inlets.map((inlet) => {
 ${NICHE_OF}
-        return (
-          <mirisStream
-            key={inlet.uuid}
-            args={[{ uuid: inlet.uuid, viewerKey: catalog.viewerKey }]}
+          return (
+            <mirisStream
+              key={inlet.uuid}
+              args={[{ uuid: inlet.uuid, viewerKey: catalog.viewerKey }]}
 ${FIT_REF}
-          />
-        );
-      })}`;
+            />
+          );
+        })}
+      </WhenEngineReady>`;
 
 /* ── 06 the placards ─────────────────────────────────── */
 

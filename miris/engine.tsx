@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { MirisScene, MirisStream } from "@miris-inc/three";
 
@@ -65,6 +65,19 @@ export function useMirisReady() {
     () => engineReady,
     () => false,
   );
+}
+
+/** Holds its children back until the backend exists.
+ *
+ *  A MirisStream constructed before there is a backend does not wait for one:
+ *  it initialises a spork renderer of its own. Six streams mounting in the same
+ *  commit as StageEngine therefore stand up SIX renderers -- the console says
+ *  "initializing spork renderer" six times, where the working reference says it
+ *  once -- and doRendering draws through the single backend StageEngine holds
+ *  while the streams composite into the five nobody draws. They load, they
+ *  refine to a million splats, and none of it reaches the canvas. */
+export function WhenEngineReady({ children }: { children: ReactNode }) {
+  return useMirisReady() ? <>{children}</> : null;
 }
 
 export default function StageEngine() {
