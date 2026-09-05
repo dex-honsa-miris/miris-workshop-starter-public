@@ -19,3 +19,13 @@ docs/
 # room ships slimmed and materials load from URLs we host.
 public/env/
 public/props/
+
+# CGAxis assets. Licensed to us for use, NOT for redistribution: their terms
+# forbid sharing PBR materials in any form or at any resolution, free or paid,
+# and this repo is cloned by every attendee. They stay on local disk so the
+# vault build runs here; they must not enter the public mirror. See
+# public/tex/vault/SOURCES.md for what they are and how to re-fetch them.
+public/tex/vault/
+public/props/vault/
+# ...but keep the note saying what they are and where they came from.
+!public/tex/vault/SOURCES.md

@@ -138,18 +138,35 @@ const MATERIALS = `      {(() => {
            right. Keys match a mesh exactly or as a dotted prefix, so "wall"
            covers wall.north through wall.west and "shelf" covers all six.
 
+           Two palettes, one word. THEME picks which table is used AND which
+           folder the maps come from, so only nine images are ever fetched --
+           the tables are the design decision, not the download.
+
            Three surfaces wear real maps; the rest are a colour and two numbers.
-           That split is deliberate. Brass is #b08d57 at roughness 0.26 and
+           That split is deliberate. Metal is a colour, a low roughness and
            metalness 1, and the environment from 01.3 does the reflecting --
            three more downloads would buy nothing you can see.
 
            One rule, and it is not a taste rule: nothing transmissive. three
            renders the whole scene into a transmission buffer once per
            KHR_materials_transmission object, measured at 28.51ms of GPU against
-           2.54ms without. The glass shelves below become wood for exactly that
-           reason. If you want the read of glass, use polished stone or brass
+           2.54ms without. The glass shelves below become solid for exactly that
+           reason. If you want the read of glass, use polished stone or metal
            and let 01.3's environment do the reflecting. */
-        const SURFACES = {
+        const THEME = "vault"; // "vault" | "boutique"
+
+        const BOUTIQUE = {
+          // Order matters: the first key that matches wins, so anything more
+          // specific than "hall" has to be listed above it. hall.light is a
+          // glowing strip and keeps whatever the glb gave it.
+          "hall.light": { skip: true },
+          // The glb's own oak, travertine and plaster are already the boutique.
+          oak_panel: { skip: true },
+          travertine: { skip: true },
+          plaster: { skip: true },
+          hall: { tex: "wall", repeat: [4, 2], color: "#efe9e0" },
+          shelf_strip: { color: "#b08d57", roughness: 0.3, metalness: 1 },
+          glassshelf_edge: { color: "#b08d57", roughness: 0.3, metalness: 1 },
           floor: { tex: "floor", repeat: [8, 5] },
           wall: { tex: "wall", repeat: [6, 2], color: "#efe9e0" },
           ceiling: { tex: "wall", repeat: [6, 4], color: "#f2ece3" },
@@ -160,21 +177,51 @@ const MATERIALS = `      {(() => {
           crown: { color: "#b08d57", roughness: 0.3, metalness: 1 },
         };
 
+        /* Cooler, darker, and metal everywhere the boutique used brass. The
+           tints are steel rather than gold, and they are pulled DOWN rather
+           than up: a vault reads as a vault because the room is dim and the
+           niches are the only bright thing in it. */
+        const VAULT = {
+          // Order matters: first match wins, so hall.light sits above hall. The
+          // cove strips, raft glow and downlights are deliberately absent from
+          // this table -- they are the light in the room, and replacing their
+          // material with a standard one puts the vault in the dark.
+          "hall.light": { skip: true },
+          oak_panel: { tex: "wall", repeat: [2, 1] },
+          travertine: { tex: "rug", repeat: [2, 1], color: "#8e949c" },
+          plaster: { tex: "wall", repeat: [4, 3], color: "#aeb4bd" },
+          downlight_housing: { color: "#2a2e33", roughness: 0.55, metalness: 1 },
+          hall: { tex: "wall", repeat: [4, 2], color: "#8f959d" },
+          shelf_strip: { color: "#aab2bd", roughness: 0.18, metalness: 1 },
+          glassshelf_edge: { color: "#aab2bd", roughness: 0.18, metalness: 1 },
+          floor: { tex: "floor", repeat: [6, 4], color: "#9fa6ae" },
+          wall: { tex: "wall", repeat: [8, 3] },
+          ceiling: { tex: "wall", repeat: [8, 5], color: "#aeb4bd" },
+          rug: { tex: "rug", repeat: [4, 3], color: "#9aa0a8" },
+          shelf: { color: "#9aa3ad", roughness: 0.22, metalness: 1 },
+          glassshelf: { color: "#6f7782", roughness: 0.3, metalness: 1 },
+          trim: { color: "#aab2bd", roughness: 0.18, metalness: 1 },
+          crown: { color: "#8f97a1", roughness: 0.25, metalness: 1 },
+        };
+
+        const SURFACES = THEME === "vault" ? VAULT : BOUTIQUE;
+        const TEX = THEME === "vault" ? "/tex/vault" : "/tex";
+
         function Surfaces() {
           const room = useGLTF("/env/room.glb");
           /* One call with a fixed set of keys, because hooks run in the same
              order on every render: useTexture cannot be called once per surface
              inside the loop below. */
           const maps = useTexture({
-            floorColor: "/tex/floor/color.jpg",
-            floorNormal: "/tex/floor/normal.jpg",
-            floorArm: "/tex/floor/arm.jpg",
-            wallColor: "/tex/wall/color.jpg",
-            wallNormal: "/tex/wall/normal.jpg",
-            wallArm: "/tex/wall/arm.jpg",
-            rugColor: "/tex/rug/color.jpg",
-            rugNormal: "/tex/rug/normal.jpg",
-            rugArm: "/tex/rug/arm.jpg",
+            floorColor: TEX + "/floor/color.jpg",
+            floorNormal: TEX + "/floor/normal.jpg",
+            floorArm: TEX + "/floor/arm.jpg",
+            wallColor: TEX + "/wall/color.jpg",
+            wallNormal: TEX + "/wall/normal.jpg",
+            wallArm: TEX + "/wall/arm.jpg",
+            rugColor: TEX + "/rug/color.jpg",
+            rugNormal: TEX + "/rug/normal.jpg",
+            rugArm: TEX + "/rug/arm.jpg",
           });
 
           useEffect(() => {
@@ -192,10 +239,10 @@ const MATERIALS = `      {(() => {
             }
 
             /* repeat lives on the texture, not the material, so the wall and
-               the ceiling sharing one plaster image would mean whichever set it
-               last wins on both. A clone is a fresh transform over the same
-               uploaded image: cheap, and it is what lets one download tile at
-               two densities. */
+               the ceiling sharing one image would mean whichever set it last
+               wins on both. A clone is a fresh transform over the same uploaded
+               image: cheap, and it is what lets one download tile at two
+               densities. */
             const tiled = (texture, [u, v]) => {
               const copy = texture.clone();
               copy.repeat.set(u, v);
@@ -211,11 +258,20 @@ const MATERIALS = `      {(() => {
               // matching the sanitised one is how a rename silently does
               // nothing.
               const name = node.userData.name ?? node.name;
-              const key = Object.keys(SURFACES).find(
-                (k) => name === k || name.startsWith(k + "."),
-              );
+              /* Some meshes are called Cube004 and tell you nothing. Their
+                 MATERIAL is called oak_panel.wall.north, which tells you
+                 everything, so the table gets to match on either. Miss this and
+                 a warm oak panel survives every re-skin you write, sitting in
+                 the middle of a vault looking like a mistake. */
+              const materialName = Array.isArray(node.material)
+                ? node.material[0]?.name
+                : node.material?.name;
+              const pick = (n) =>
+                n && Object.keys(SURFACES).find((k) => n === k || n.startsWith(k + "."));
+              const key = pick(name) ?? pick(materialName);
               if (!key) return;
               const surface = SURFACES[key];
+              if (surface.skip) return;
 
               const material = new MeshStandardMaterial({
                 color: surface.color ?? "#ffffff",
@@ -232,12 +288,18 @@ const MATERIALS = `      {(() => {
                    rather than a ceiling on it. aoMap reads the SECOND uv set by
                    default and room.glb ships one, so it is pointed back at
                    channel 0 -- without that line the occlusion silently does
-                   nothing. Blue goes unused: wood, plaster and wool are
-                   dielectrics, and metalness stays 0. */
+                   nothing. */
                 const arm = tiled(maps[surface.tex + "Arm"], surface.repeat);
                 arm.channel = 0;
                 material.aoMap = arm;
                 material.roughnessMap = arm;
+                // The vault's surfaces are metal, so the blue channel is the
+                // answer there. The boutique's are wood, plaster and wool, and
+                // multiplying by a zero channel would only ever zero them.
+                if (THEME === "vault") {
+                  material.metalnessMap = arm;
+                  material.metalness = 1;
+                }
               }
 
               made.push(material);
