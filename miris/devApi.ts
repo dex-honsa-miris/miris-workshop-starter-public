@@ -15,6 +15,7 @@ import { FLAT_SUBS } from "./progress";
 const ROOT = process.cwd();
 const MIRIS_DIR = join(ROOT, "miris");
 const STAGE = join(ROOT, "app", "stage.tsx");
+const samePath = (a: string, b: string) => a.replace(/\\/g, "/") === b.replace(/\\/g, "/");
 const TEMPLATE = join(MIRIS_DIR, "stage.template.tsx");
 
 const MESHY_INPUT = {
@@ -409,7 +410,11 @@ export function mirisDevApi(mode: string): Plugin {
      * durable lives in data.json: the tray, its fold state, and an in-flight
      * mesh build all resume. */
     handleHotUpdate({ file, server }) {
-      if (file === STAGE) {
+      /* Compared separator-insensitively. Vite hands `file` back normalised to
+         forward slashes; join() uses the platform's, so on Windows the two
+         never match, the guard silently does not fire, and the ghosting it
+         exists to prevent comes back with nothing in the log to say why. */
+      if (samePath(file, STAGE)) {
         server.hot.send({ type: "full-reload" });
         return [];
       }
