@@ -68,7 +68,13 @@ const LIGHTS = `      {(() => {
             cove: "#fff2e2", coveIntensity: 18,
           },
           vault: {
-            sky: "#c3d6ea", ground: "#0e1216", wash: 0.95,
+            /* The ground half of a hemisphere light is what reaches anything
+               facing DOWN, and the ceiling is the largest downward face in the
+               room. At near-black it rendered as literally nothing: albedo
+               #2e2e2f multiplied by no light. This is floor bounce, dim and
+               steel-coloured, and it is what makes the plating overhead
+               visible at all. */
+            sky: "#c3d6ea", ground: "#3a444f", wash: 0.95,
             sun: "#d6e6f7", sunIntensity: 0.5,
             cove: "#eaf4ff", coveIntensity: 22,
           },
@@ -210,7 +216,6 @@ const MATERIALS = `      {(() => {
           glassshelf_edge: { color: "#b08d57", roughness: 0.3, metalness: 1 },
           floor: { tex: "floor", repeat: [8, 5] },
           wall: { tex: "wall", repeat: [6, 2], color: "#efe9e0" },
-          ceiling: { tex: "wall", repeat: [6, 4], color: "#f2ece3" },
           rug: { tex: "rug", repeat: [3, 2], color: "#cbbfa9" },
           shelf: { color: "#b08d57", roughness: 0.26, metalness: 1 },
           glassshelf: { color: "#6b5c46", roughness: 0.38, metalness: 0 },
@@ -227,17 +232,30 @@ const MATERIALS = `      {(() => {
           // cove strips, raft glow and downlights are deliberately absent from
           // this table -- they are the light in the room, and replacing their
           // material with a standard one puts the vault in the dark.
-          "hall.light": { skip: true },
+          /* The emitters are RETUNED, not replaced. They are unlit emissive
+             meshes -- the visible strip, not the light itself -- so swapping in
+             a standard material turns the ceiling off. Every one of them shipped
+             warm tungsten, which is the single thing that stopped this room
+             reading as sci-fi: a steel vault lit like a hotel lobby. Cooling
+             them is most of the redesign.
+
+             The cove strips only LOOK cool; the spotlights that actually light
+             the niches live in 01.2 and stay near-white, so the pieces on the
+             shelves keep their own colour. */
+          raft_glow: { light: { color: "#a9d9ff", intensity: 11 } },
+          downlight_lens: { light: { color: "#dff2ff", intensity: 8 } },
+          cove_strip: { light: { color: "#cfe9ff", intensity: 5 } },
+          "hall.light": { light: { color: "#9ecbf0", intensity: 5 } },
           oak_panel: { tex: "wall", repeat: [2, 1] },
           travertine: { tex: "rug", repeat: [2, 1], color: "#8e949c" },
-          plaster: { tex: "wall", repeat: [4, 3], color: "#aeb4bd" },
+          // The light raft in the middle of the ceiling, in the same plating.
+          plaster: { tex: "ceiling", repeat: [3, 2], color: "#7f868f" },
           downlight_housing: { color: "#2a2e33", roughness: 0.55, metalness: 1 },
           hall: { tex: "wall", repeat: [4, 2], color: "#8f959d" },
           shelf_strip: { color: "#aab2bd", roughness: 0.18, metalness: 1 },
           glassshelf_edge: { color: "#aab2bd", roughness: 0.18, metalness: 1 },
           floor: { tex: "floor", repeat: [6, 4], color: "#9fa6ae" },
           wall: { tex: "wall", repeat: [8, 3] },
-          ceiling: { tex: "wall", repeat: [8, 5], color: "#aeb4bd" },
           rug: { tex: "rug", repeat: [4, 3], color: "#9aa0a8" },
           shelf: { color: "#9aa3ad", roughness: 0.22, metalness: 1 },
           glassshelf: { color: "#6f7782", roughness: 0.3, metalness: 1 },
@@ -245,29 +263,98 @@ const MATERIALS = `      {(() => {
           crown: { color: "#8f97a1", roughness: 0.25, metalness: 1 },
         };
 
+        /* Four slots, and the ceiling is its own. The boutique points its
+           ceiling slot back at the plaster it already loads, so switching
+           themes never asks for a folder that is not there. */
+        const slots = (root, ceiling) => ({
+          floorColor: root + "/floor/color.jpg",
+          floorNormal: root + "/floor/normal.jpg",
+          floorArm: root + "/floor/arm.jpg",
+          wallColor: root + "/wall/color.jpg",
+          wallNormal: root + "/wall/normal.jpg",
+          wallArm: root + "/wall/arm.jpg",
+          rugColor: root + "/rug/color.jpg",
+          rugNormal: root + "/rug/normal.jpg",
+          rugArm: root + "/rug/arm.jpg",
+          ceilingColor: ceiling + "/color.jpg",
+          ceilingNormal: ceiling + "/normal.jpg",
+          ceilingArm: ceiling + "/arm.jpg",
+        });
+
+        /* room.glb ships NO ceiling mesh. The group is called "ceiling" but it
+           holds only the little light raft, so every table that has ever had a
+           "ceiling" key in it -- including the one this step started with -- was
+           matching nothing at all. Look up in the boutique and you are looking
+           at the background colour, which passes for a dark ceiling and is why
+           nobody noticed. It does not pass in a vault, so the vault builds one.
+
+           Overhead plating rather than more of the wall: the grate is too busy
+           for a floor, where it aliases the moment you walk on it, but on a
+           ceiling that density is what sells the room as built rather than
+           decorated. 10 x 6 puts a panel roughly every 1.4m. */
         const PALETTE = {
-          boutique: { surfaces: BOUTIQUE, tex: "/tex", metalFromMap: false },
-          vault: { surfaces: VAULT, tex: "/tex/vault", metalFromMap: true },
+          boutique: {
+            surfaces: BOUTIQUE, metalFromMap: false,
+            maps: slots("/tex", "/tex/wall"), ceiling: null,
+          },
+          vault: {
+            surfaces: VAULT, metalFromMap: true,
+            maps: slots("/tex/vault", "/tex/vault/ceiling"),
+            ceiling: { size: [14, 8], y: 3.42, repeat: [10, 6], color: "#e6ecf3" },
+          },
         }[THEME];
         const SURFACES = PALETTE.surfaces;
-        const TEX = PALETTE.tex;
 
         function Surfaces() {
           const room = useGLTF("/env/room.glb");
           /* One call with a fixed set of keys, because hooks run in the same
              order on every render: useTexture cannot be called once per surface
              inside the loop below. */
-          const maps = useTexture({
-            floorColor: TEX + "/floor/color.jpg",
-            floorNormal: TEX + "/floor/normal.jpg",
-            floorArm: TEX + "/floor/arm.jpg",
-            wallColor: TEX + "/wall/color.jpg",
-            wallNormal: TEX + "/wall/normal.jpg",
-            wallArm: TEX + "/wall/arm.jpg",
-            rugColor: TEX + "/rug/color.jpg",
-            rugNormal: TEX + "/rug/normal.jpg",
-            rugArm: TEX + "/rug/arm.jpg",
-          });
+          const maps = useTexture(PALETTE.maps);
+
+          /* Built here rather than in 01 because this is the step that decides
+             what the room is made of, and the maps are already in hand. */
+          const ceiling = useMemo(() => {
+            if (!PALETTE.ceiling) return null;
+            const tile = (texture, srgb) => {
+              const copy = texture.clone();
+              copy.wrapS = RepeatWrapping;
+              copy.wrapT = RepeatWrapping;
+              copy.repeat.set(PALETTE.ceiling.repeat[0], PALETTE.ceiling.repeat[1]);
+              copy.colorSpace = srgb ? SRGBColorSpace : NoColorSpace;
+              copy.needsUpdate = true;
+              return copy;
+            };
+            const arm = tile(maps.ceilingArm, false);
+            arm.channel = 0;
+            /* A ceiling faces DOWN, and that changes what lights it. The
+               hemisphere gives a downward face its GROUND colour, which in the
+               vault is almost black, and the directional is above it. Left at
+               metalness 1 like the walls it came out pure black: metal has no
+               diffuse, so with nothing above to reflect there is nothing to
+               see. So it is mostly rough dielectric here, and it carries a
+               faint emissive keyed to its own albedo -- the plating lifts
+               itself just enough to read, which is what a lit ceiling does
+               anyway. */
+            const albedo = tile(maps.ceilingColor, true);
+            return new MeshStandardMaterial({
+              color: PALETTE.ceiling.color,
+              map: albedo,
+              normalMap: tile(maps.ceilingNormal, false),
+              aoMap: arm,
+              roughnessMap: arm,
+              roughness: 0.8,
+              metalness: 0.35,
+              /* emissiveMap MULTIPLIES the emissive colour, and this albedo
+                 averages luma 46 -- about 18% -- so it quietly costs five
+                 sixths of whatever you set here. Keep the map, because it is
+                 what makes the plating read as plating rather than as a glowing
+                 sheet, and pay for it in the intensity. */
+              emissive: "#6d8296",
+              emissiveMap: albedo,
+              emissiveIntensity: 3,
+            });
+          }, [maps]);
 
           useEffect(() => {
             const previous = new Map();
@@ -318,6 +405,25 @@ const MATERIALS = `      {(() => {
               const surface = SURFACES[key];
               if (surface.skip) return;
 
+              if (surface.light) {
+                /* Keep the glb's own material and change only what it emits.
+                   Clone first: these materials are shared across all six
+                   strips, so retuning in place would be fine here and a
+                   nightmare the first time one of them differs. */
+                const retune = (m) => {
+                  const next = m.clone();
+                  next.emissive.set(surface.light.color);
+                  next.emissiveIntensity = surface.light.intensity;
+                  return next;
+                };
+                previous.set(node, node.material);
+                node.material = Array.isArray(node.material)
+                  ? node.material.map(retune)
+                  : retune(node.material);
+                for (const m of Array.isArray(node.material) ? node.material : [node.material]) made.push(m);
+                return;
+              }
+
               const material = new MeshStandardMaterial({
                 color: surface.color ?? "#ffffff",
                 roughness: surface.roughness ?? 1,
@@ -365,7 +471,18 @@ const MATERIALS = `      {(() => {
             };
           }, [room, maps]);
 
-          return null;
+          /* rotation.x = +PI/2 turns a plane's +Z normal to -Y, so it faces
+             DOWN. Rotate the other way and the ceiling is invisible from
+             underneath, which is the only place anyone stands. */
+          return ceiling ? (
+            <mesh
+              position={[0, PALETTE.ceiling.y, 0]}
+              rotation={[Math.PI / 2, 0, 0]}
+              material={ceiling}
+            >
+              <planeGeometry args={[PALETTE.ceiling.size[0], PALETTE.ceiling.size[1]]} />
+            </mesh>
+          ) : null;
         }
         return <Surfaces />;
       })()}`;
