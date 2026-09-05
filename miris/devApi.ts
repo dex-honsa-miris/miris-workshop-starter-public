@@ -128,9 +128,9 @@ const CHECKS: Record<string, (mode: string) => Promise<string | null>> = {
 
   async catalogFit() {
     const block = await stageBlock("catalog");
-    return block.includes("getBounds")
+    return block.includes("scale={inlet.scale}")
       ? null
-      : "Nothing in the miris:catalog block in app/stage.tsx measures a stream with getBounds yet. The pieces sit at whatever size they streamed at until it does, so fill the step or paste the snippet in.";
+      : "No scale on the streams in the miris:catalog block in app/stage.tsx yet. Each piece carries its display scale in miris/catalog.json; without it they mount at capture scale and read as thumbnails on the shelf. Fill the step or paste the snippet in.";
   },
 
   async card() {

@@ -419,9 +419,9 @@ const RAIL = `      {(() => {
 /* Both catalog blocks derive the niche from the entry's own id rather than
    carrying a second table that could drift out of step with room.glb: 1 to 3
    are the north wall, 4 to 6 the south, at the three x the shelves sit at. */
-const NICHE_OF = `        // 1 to 3 on the north wall, 4 to 6 on the south, in room.glb's order.
-        const x = [-4.2, 0, 4.2][(inlet.id - 1) % 3];
-        const z = inlet.id <= 3 ? -4.356 : 4.356;`;
+const NICHE_OF = `          // 1 to 3 on the north wall, 4 to 6 on the south, in room.glb's order.
+          const x = [-4.2, 0, 4.2][(inlet.id - 1) % 3];
+          const z = inlet.id <= 3 ? -4.356 : 4.356;`;
 
 const CATALOG = `      {/* One stream per published piece, mounted on its niche anchor. They
           arrive at whatever size they were captured at, which is exactly the
@@ -440,101 +440,16 @@ ${NICHE_OF}
         })}
       </WhenEngineReady>`;
 
-const FIT_REF = `            ref={(stream) => {
-              if (!stream) return;
-              /* Measured at IDENTITY: no position, no rotation and no scale
-                 until the box has settled, because getBounds() after placement
-                 reports the placed and scaled box rather than the clean local
-                 one. Hidden meanwhile, so the pile at the origin is never
-                 seen. */
-              stream.visible = false;
+const FIT_REF = `              scale={inlet.scale}`;
 
-              let loaded = false;
-              let waited = 0;
-              let tries = 0;
-              let last = 0;
-              let stable = 0;
-
-              /* Every exit shows the piece. Hiding it was only ever to measure
-                 a clean box, so the two give-up paths below must still put it
-                 back: a piece that is merely the wrong size is a problem you
-                 can SEE and fix, while a hidden one is indistinguishable from a
-                 stream that never arrived. That is exactly how six pieces --
-                 connected, loaded, refining to a million splats between them,
-                 issuing draw calls every frame -- looked like a broken
-                 renderer for a very long time. */
-              const show = () => {
-                clearInterval(timer);
-                stream.visible = true;
-              };
-              const onLoad = () => { loaded = true; };
-              stream.addEventListener("streamloaded", onLoad);
-
-              const timer = setInterval(() => {
-                /* Two budgets, because they are two different waits. This one
-                   is the network, 120s: before the asset is in, every poll
-                   reads an all-zero box, and counting those against the fit
-                   budget was really timing the connection, so six cold streams
-                   could spend it all downloading and then be dropped as
-                   empty. */
-                if (!loaded) {
-                  if (++waited > 240) show();
-                  return;
-                }
-                // And this one is the box settling once it is in, 40s of it.
-                if (++tries > 80) {
-                  show();
-                  return;
-                }
-
-                let box;
-                try {
-                  box = stream.getBounds();
-                } catch {
-                  return;
-                }
-                const [sx, sy, sz] = box?.size ?? [];
-                if (!(sx > 0 && sy > 0 && sz > 0)) return;
-                /* Settled means the characteristic size moved under 3% since
-                   the previous poll, not that any one axis did -- and it has to
-                   hold for THREE polls running. The box grows in steps as coarse
-                   levels land, and it can sit still on one of them long enough
-                   to look finished: measured here at 0.20m, then 0.50m a second
-                   later. One stable pair is not settled, it is a plateau, and
-                   fitting to it scales the piece about 2.5x too large. */
-                const size = Math.cbrt(sx * sy * sz);
-                if (last > 0 && Math.abs(size - last) / last < 0.03) stable++;
-                else stable = 0;
-                last = size;
-                if (stable < 3) return;
-                clearInterval(timer);
-
-                // The niche volume from room.glb, and 0.9 so nothing touches
-                // the sides of its own niche.
-                const fit = Math.min(1.2 / sx, 0.9 / sy, 0.55 / sz) * 0.9;
-                const facing = z < 0 ? 1 : -1;
-                stream.scale.setScalar(fit);
-                stream.rotation.set(0, z < 0 ? 0 : Math.PI, 0);
-                // Bottom-centre: x and z centred in the volume, the local
-                // minimum y resting on the shelf floor at 1.2.
-                stream.position.set(
-                  x - facing * box.center[0] * fit,
-                  1.2 - box.min[1] * fit + 0.01,
-                  z - facing * box.center[2] * fit,
-                );
-                stream.visible = true;
-              }, 500);
-
-              return () => {
-                stream.removeEventListener("streamloaded", onLoad);
-                clearInterval(timer);
-              };
-            }}`;
-
-const CATALOG_FIT = `      {/* One stream per published piece, each measured into its own niche.
-          Cache what you measure: after placement getBounds() answers about the
-          placed box, so anything that needs the piece's real size later has to
-          read your value rather than ask again. */}
+const CATALOG_FIT = `      {/* The one line 05.2 was missing. A published capture is not authored in
+          display units, so at scale 1 a handbag is a thumbnail on a 1.2m shelf.
+          The obvious move is to measure the piece and divide -- and getBounds()
+          will happily answer, which is the trap: its box is built from whatever
+          detail has streamed in so far, so the same asset measures 0.20m one
+          second and 0.50m the next, and a scale derived from it lands anywhere
+          between a thumbnail and a wardrobe. Measure once, by eye, and ship the
+          number: catalog.json carries a scale per piece. */}
       <WhenEngineReady>
         {catalog.inlets.map((inlet) => {
 ${NICHE_OF}
@@ -542,6 +457,8 @@ ${NICHE_OF}
             <mirisStream
               key={inlet.uuid}
               args={[{ uuid: inlet.uuid, viewerKey: catalog.viewerKey }]}
+              position={[x, 1.2, z]}
+              rotation={[0, z < 0 ? 0 : Math.PI, 0]}
 ${FIT_REF}
             />
           );

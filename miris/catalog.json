@@ -4,41 +4,43 @@
     {
       "id": 1,
       "uuid": "8b58ca01-2b14-47dd-81e3-eef2d2c54a7b",
-      "name": "Maison · Crème",
+      "name": "Maison \u00b7 Cr\u00e8me",
       "tagline": "Signature top-handle silhouette",
       "attributes": [
         {
           "label": "Colorway",
-          "value": "Crème"
+          "value": "Cr\u00e8me"
         },
         {
           "label": "Collection",
           "value": "Maison"
         }
       ],
-      "price": "€3,200"
+      "price": "\u20ac3,200",
+      "scale": 4
     },
     {
       "id": 2,
       "uuid": "c3e9c78e-943b-4c67-95ff-1d64c66514e5",
-      "name": "Maison · Rosé",
+      "name": "Maison \u00b7 Ros\u00e9",
       "tagline": "Signature top-handle silhouette",
       "attributes": [
         {
           "label": "Colorway",
-          "value": "Rosé"
+          "value": "Ros\u00e9"
         },
         {
           "label": "Collection",
           "value": "Maison"
         }
       ],
-      "price": "€3,200"
+      "price": "\u20ac3,200",
+      "scale": 4
     },
     {
       "id": 3,
       "uuid": "f0aee4bb-3885-4583-9fcd-83ac6b3ccc82",
-      "name": "Maison · Cognac",
+      "name": "Maison \u00b7 Cognac",
       "tagline": "Signature top-handle silhouette",
       "attributes": [
         {
@@ -50,12 +52,13 @@
           "value": "Maison"
         }
       ],
-      "price": "€3,400"
+      "price": "\u20ac3,400",
+      "scale": 4
     },
     {
       "id": 4,
       "uuid": "d803430d-ca40-4027-963e-588d38118fe7",
-      "name": "Maison · Tabac",
+      "name": "Maison \u00b7 Tabac",
       "tagline": "Signature top-handle silhouette",
       "attributes": [
         {
@@ -67,12 +70,13 @@
           "value": "Maison"
         }
       ],
-      "price": "€2,900"
+      "price": "\u20ac2,900",
+      "scale": 4
     },
     {
       "id": 5,
       "uuid": "4e61e7f3-6ed2-464a-b6ce-9d35d323f085",
-      "name": "Maison · Ardoise",
+      "name": "Maison \u00b7 Ardoise",
       "tagline": "Signature top-handle silhouette",
       "attributes": [
         {
@@ -84,24 +88,26 @@
           "value": "Maison"
         }
       ],
-      "price": "€3,800"
+      "price": "\u20ac3,800",
+      "scale": 4
     },
     {
       "id": 6,
       "uuid": "b4938975-0ba9-4a60-82cc-5b1b07875f5a",
-      "name": "Maison · Ébène",
+      "name": "Maison \u00b7 \u00c9b\u00e8ne",
       "tagline": "Signature top-handle silhouette",
       "attributes": [
         {
           "label": "Colorway",
-          "value": "Ébène"
+          "value": "\u00c9b\u00e8ne"
         },
         {
           "label": "Collection",
           "value": "Maison"
         }
       ],
-      "price": "€4,150"
+      "price": "\u20ac4,150",
+      "scale": 4
     }
   ]
 }
