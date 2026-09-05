@@ -206,6 +206,12 @@ const MATERIALS = `      {(() => {
           // Order matters: the first key that matches wins, so anything more
           // specific than "hall" has to be listed above it. hall.light is a
           // glowing strip and keeps whatever the glb gave it.
+          /* inletvol01..06 are authoring proxies: one white box per niche,
+             marking the volume a published piece is scaled into. They carry no
+             material name, so nothing above matches them and they keep the
+             glb's default white -- six lit slabs, each sitting directly behind
+             the piece the niche exists to show. Not set dressing. Hidden. */
+          inletvol: { hide: true },
           "hall.light": { skip: true },
           // The glb's own oak, travertine and plaster are already the boutique.
           oak_panel: { skip: true },
@@ -245,6 +251,8 @@ const MATERIALS = `      {(() => {
           raft_glow: { light: { color: "#a9d9ff", intensity: 11 } },
           downlight_lens: { light: { color: "#dff2ff", intensity: 8 } },
           cove_strip: { light: { color: "#cfe9ff", intensity: 5 } },
+          // Same six authoring proxies; see the note in BOUTIQUE.
+          inletvol: { hide: true },
           "hall.light": { light: { color: "#9ecbf0", intensity: 5 } },
           oak_panel: { tex: "wall", repeat: [2, 1] },
           travertine: { tex: "rug", repeat: [2, 1], color: "#8e949c" },
@@ -404,6 +412,12 @@ const MATERIALS = `      {(() => {
               if (!key) return;
               const surface = SURFACES[key];
               if (surface.skip) return;
+              /* hide is not skip. skip leaves the glb's own material alone;
+                 hide takes the mesh out of the frame entirely. */
+              if (surface.hide) {
+                node.visible = false;
+                return;
+              }
 
               if (surface.light) {
                 /* Keep the glb's own material and change only what it emits.
