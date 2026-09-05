@@ -329,18 +329,19 @@ export default function Stage() {
 
       {/* miris:props-start */}
       {(() => {
-        /* Every prop is exported normalised to fit a roughly 2m cube, so the
-           file's own size means nothing and the scale here is per-axis: it
-           lands each one on a measured width, height and depth instead. y is
-           the floor, or the top of whatever it stands on. Flush or clearly
-           clear, never a millimetre above: the reference build had a rug 4mm
-           off the floor and it streaked. */
-        const PROPS: Array<{
-          url: string;
-          position: [number, number, number];
-          yaw: number;
-          scale: [number, number, number];
-        }> = [
+        /* THEME again, and it has to match 02's. The boutique's props are
+           exported normalised to fit a roughly 2m cube, so their scale is
+           per-axis and lands each one on a measured width, height and depth.
+           The vault's come from CGAxis at real-world metres with their origin
+           on the floor, so they are placed at y = 0 and scale 1 -- mixing the
+           two conventions in one table is why each entry carries its own
+           numbers rather than sharing a rule.
+
+           Flush or clearly clear, never a millimetre above: the reference build
+           had a rug 4mm off the floor and it streaked. */
+        const THEME = "vault"; // "vault" | "boutique"
+
+        const BOUTIQUE_PROPS = [
           { url: "/props/double-door-walnut-grand.glb", position: [6.92, 1.376, 0], yaw: -90, scale: [1.156, 1.785, 0.776] },
           { url: "/props/counter-calacatta-brass.glb", position: [-6.7, 0.526, 1.35], yaw: 90, scale: [1.051, 2.058, 1.258] },
           { url: "/props/sofa-boucle-curved.glb", position: [-0.15, 0.411, 0], yaw: 90, scale: [1.156, 1.164, 0.783] },
@@ -349,18 +350,74 @@ export default function Stage() {
           { url: "/props/lounge-chair-tan-barrel.glb", position: [3.05, 0.325, -0.8], yaw: -67, scale: [0.42, 0.386, 0.423] },
           { url: "/props/lounge-chair-tan-barrel.glb", position: [3.05, 0.325, 0.8], yaw: -113, scale: [0.42, 0.386, 0.423] },
           { url: "/props/ottoman-boucle-cream.glb", position: [0.9, 0.21, 1.1], yaw: 25, scale: [0.342, 0.446, 0.342] },
-          // The totem stands on the plinth, so its y is the plinth's height.
           { url: "/props/plinth-cream-stone.glb", position: [-2.4, 0.433, -3.35], yaw: 0, scale: [0.289, 1.939, 0.615] },
           { url: "/props/totem-sculpture-walnut.glb", position: [-2.4, 1.55, -3.35], yaw: 15, scale: [0.684, 0.683, 0.68] },
           { url: "/props/olive-tree-ribbed-planter.glb", position: [6.2, 1.051, -3.2], yaw: 40, scale: [0.88, 1.105, 0.928] },
           { url: "/props/olive-tree-ribbed-planter.glb", position: [-6.2, 1.051, 3.2], yaw: -70, scale: [0.88, 1.105, 0.928] },
         ];
 
-        function Prop({ url, position, yaw, scale }: (typeof PROPS)[number]) {
+        /* Fewer things, and none of them soft. The bouclé sofa, the marble
+           table, the ottoman and both olive trees are gone rather than
+           restyled: a vault has no plants in it, and dropping five instances
+           buys back most of what the three heavier CGAxis models cost. The
+           door and the counter stay because their shapes still read, and 02
+           has already re-skinned everything they are made of. */
+        const VAULT_PROPS = [
+          /* The two survivors get a tint. Their SHAPES still read in a vault;
+             their calacatta and walnut do not, and they were the two bright
+             warm objects left in a cool dark room. tint multiplies the existing
+             map rather than replacing it, so the marble keeps its veining and
+             the door keeps its grain -- they just stop being white and brown. */
+          { url: "/props/double-door-walnut-grand.glb", position: [6.92, 1.376, 0], yaw: -90, scale: [1.156, 1.785, 0.776], tint: { color: "#4b525b", metalness: 0.85, roughness: 0.32 } },
+          { url: "/props/counter-calacatta-brass.glb", position: [-6.7, 0.526, 1.35], yaw: 90, scale: [1.051, 2.058, 1.258], tint: { color: "#59616b", metalness: 0.9, roughness: 0.34 } },
+          // 2.82m tall, so it stands on the floor and reads from across the
+          // room rather than sitting on anything.
+          { url: "/props/vault/space-station-cylindrical-pod.glb", position: [-5.5, 0, -3.05], yaw: 28, scale: [1, 1, 1] },
+          // One file, two nodes.
+          { url: "/props/vault/space-station-chair.glb", position: [3.05, 0, -0.85], yaw: -67, scale: [1, 1, 1] },
+          { url: "/props/vault/space-station-chair.glb", position: [3.05, 0, 0.85], yaw: -113, scale: [1, 1, 1] },
+          { url: "/props/vault/space-station-container-crate.glb", position: [-0.3, 0, 0.95], yaw: 12, scale: [1, 1, 1] },
+          { url: "/props/vault/space-station-container-crate.glb", position: [1.45, 0, -1.15], yaw: -35, scale: [1, 1, 1] },
+        ];
+
+        const PROPS: Array<{
+          url: string;
+          position: [number, number, number];
+          yaw: number;
+          scale: [number, number, number];
+        }> = THEME === "vault" ? (VAULT_PROPS as any) : (BOUTIQUE_PROPS as any);
+
+        function Prop({ url, position, yaw, scale, tint }: {
+          url: string;
+          position: [number, number, number];
+          yaw: number;
+          scale: [number, number, number];
+          tint?: { color: string; metalness?: number; roughness?: number };
+        }) {
           const { scene } = useGLTF(url);
           // Loaded once per URL, cloned per instance: two chairs are one
           // download and one set of geometry, two nodes in the scene.
-          const object = useMemo(() => scene.clone(true), [scene]);
+          const object = useMemo(() => {
+            const copy = scene.clone(true);
+            if (!tint) return copy;
+            /* The clone shares its materials with the cached original, so
+               tinting in place would repaint every other instance and outlive
+               this mount. Clone the material too. */
+            copy.traverse((node: any) => {
+              if (!node.isMesh) return;
+              const paint = (m: any) => {
+                const next = m.clone();
+                next.color.set(tint.color);
+                if (tint.metalness !== undefined) next.metalness = tint.metalness;
+                if (tint.roughness !== undefined) next.roughness = tint.roughness;
+                return next;
+              };
+              node.material = Array.isArray(node.material)
+                ? node.material.map(paint)
+                : paint(node.material);
+            });
+            return copy;
+          }, [scene, tint]);
           return (
             <primitive
               object={object}
@@ -377,47 +434,76 @@ export default function Stage() {
       {/* miris:props-end */}
 
       {/* miris:lights-start */}
-      {/* This room has no baked lightmap, so the wash pair carries it on its
-          own. Our production room runs 0.22 and 0.15 only because a bake on
-          TEXCOORD_1 does that job there and the pair is left for the two things
-          a lightmap cannot do: feed a specular highlight, and light the trim
-          and housings that sit outside the bake. */}
-      <hemisphereLight args={["#fff4e6", "#4a453c", 1.1]} />
-      <directionalLight color="#fff0dd" intensity={0.6} position={[3, 6, 2]} />
+      {(() => {
+        /* THEME once more, and it has to match 02's and 03's. The room has no
+           baked lightmap, so the wash pair carries it on its own. Our
+           production room runs 0.22 and 0.15 only because a bake on TEXCOORD_1
+           does that job there and the pair is left for the two things a
+           lightmap cannot do: feed a specular highlight, and light the trim and
+           housings that sit outside the bake.
 
-      {/* One cove per niche, mounted at the back of the recess near the ceiling
-          and aimed DOWN the back panel rather than at it: a spot at the niche
-          mouth hot-spots the panel dead on. 18 puts the panel's near-white
-          fraction at about 3.5%, which is what the reference render measures;
-          28 overshoots it to 5.8%, visibly more clipped without reading
-          brighter. */}
-      {[
-        [-4.2, -4.356], [0, -4.356], [4.2, -4.356],
-        [-4.2, 4.356], [0, 4.356], [4.2, 4.356],
-      ].map(([x, z], i) => {
-        // Out of the niche, into the room.
-        const out = z < 0 ? 1 : -1;
+           The vault is not simply the boutique turned down. Its wash is COOLER
+           and its ground bounce is nearly black, so the dark panels stay dark
+           instead of going muddy grey -- and its cove is slightly hotter and
+           whiter, because the whole point of the room is that the niches are
+           the only warm-bright thing in it. Turn the wash down instead and you
+           get a dim room rather than a vault. */
+        const THEME = "vault"; // "vault" | "boutique"
+
+        const LIGHTING = {
+          boutique: {
+            sky: "#fff4e6", ground: "#4a453c", wash: 1.1,
+            sun: "#fff0dd", sunIntensity: 0.6,
+            cove: "#fff2e2", coveIntensity: 18,
+          },
+          vault: {
+            sky: "#c3d6ea", ground: "#0e1216", wash: 0.95,
+            sun: "#d6e6f7", sunIntensity: 0.5,
+            cove: "#eaf4ff", coveIntensity: 22,
+          },
+        }[THEME];
+
         return (
-          <spotLight
-            key={i}
-            color="#fff2e2"
-            intensity={18}
-            distance={4}
-            angle={Math.PI / 2.4}
-            penumbra={0.98}
-            decay={1.3}
-            position={[x, 2.95, z - out * 0.22]}
-            ref={(light) => {
-              // A spotlight aims at light.target, and light.target is not in
-              // the scene graph, so nothing ever updates its world matrix for
-              // you. Pin it once; nothing moves it afterwards.
-              if (!light) return;
-              light.target.position.set(x, 0.3, z - out * 0.15);
-              light.target.updateMatrixWorld();
-            }}
-          />
+          <>
+            <hemisphereLight args={[LIGHTING.sky, LIGHTING.ground, LIGHTING.wash]} />
+            <directionalLight color={LIGHTING.sun} intensity={LIGHTING.sunIntensity} position={[3, 6, 2]} />
+
+            {/* One cove per niche, mounted at the back of the recess near the
+                ceiling and aimed DOWN the back panel rather than at it: a spot
+                at the niche mouth hot-spots the panel dead on. 18 puts the
+                panel's near-white fraction at about 3.5%, which is what the
+                reference render measures; 28 overshoots it to 5.8%, visibly
+                more clipped without reading brighter. */}
+            {[
+              [-4.2, -4.356], [0, -4.356], [4.2, -4.356],
+              [-4.2, 4.356], [0, 4.356], [4.2, 4.356],
+            ].map(([x, z], i) => {
+              // Out of the niche, into the room.
+              const out = z < 0 ? 1 : -1;
+              return (
+                <spotLight
+                  key={i}
+                  color={LIGHTING.cove}
+                  intensity={LIGHTING.coveIntensity}
+                  distance={4}
+                  angle={Math.PI / 2.4}
+                  penumbra={0.98}
+                  decay={1.3}
+                  position={[x, 2.95, z - out * 0.22]}
+                  ref={(light) => {
+                    // A spotlight aims at light.target, and light.target is not
+                    // in the scene graph, so nothing ever updates its world
+                    // matrix for you. Pin it once; nothing moves it afterwards.
+                    if (!light) return;
+                    light.target.position.set(x, 0.3, z - out * 0.15);
+                    light.target.updateMatrixWorld();
+                  }}
+                />
+              );
+            })}
+          </>
         );
-      })}
+      })()}
       {/* miris:lights-end */}
 
       {/* miris:rail-start */}
