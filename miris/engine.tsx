@@ -31,9 +31,15 @@ export function mirisScene(viewerKey: string) {
 
 /** Same scene for the life of the tab. A second MirisScene means a second
  *  engine, and both would composite. */
+/* Built at module scope, not inside render. A scene constructed during a React
+   commit never loaded a stream here, while one built by hand in the same page
+   loaded within seconds. Module scope is the closest thing to the reference's
+   plain async boot, and it also guarantees exactly one engine for the tab. */
+let singleton: MirisScene | null = null;
+
 export function useMirisScene(viewerKey: string) {
-  const s = useMemo(() => mirisScene(viewerKey), [viewerKey]);
-  return s;
+  if (!singleton) singleton = mirisScene(viewerKey);
+  return singleton;
 }
 
 /* Streams must not mount before the backend exists. The reference calls
