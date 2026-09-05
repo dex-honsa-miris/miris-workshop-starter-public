@@ -1,0 +1,45 @@
+/* The boutique's own styling, loaded by index.html rather than by the guide.
+ *
+ * The placard is scene content: 06.2 hangs it over the canvas as a DOM element
+ * and 06.3 rasterises the very same markup into a texture. Both need these
+ * rules, and both have to keep working after 07.1 comments the guide out --
+ * which is exactly what they did not do while these rules lived in guide.css.
+ * Commenting <MirisGuide /> out drops the import that carried the stylesheet,
+ * and the placards shipped as unstyled Times.
+ *
+ * Self-contained on purpose: the tokens are declared on .mw-plate itself, not
+ * inherited from a :root the guide owns, so nothing here depends on the guide
+ * being present. */
+
+@font-face { font-family: "Geist"; src: url(/kit/assets/fonts/geist-400.woff2) format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Geist"; src: url(/kit/assets/fonts/geist-500.woff2) format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Geist Mono"; src: url(/kit/assets/fonts/geistmono-400.woff2) format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+
+.mw-plate {
+  --sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, monospace;
+  --plate-000: #ffffff;
+  --plate-200: #d6d4d4;
+  --plate-400: #9e9d9f;
+  --plate-800: #252526;
+  --plate-accent: #35ddfe;
+
+  width: 200px;
+  background: rgba(17, 18, 21, 0.94);
+  border: 1px solid var(--plate-800);
+  border-left: 2px solid var(--plate-accent);
+  border-radius: 8px;
+  padding: 13px 15px;
+  font: 400 13px/1.5 var(--sans);
+  color: var(--plate-200);
+}
+.mw-plate strong { display: block; font-weight: 500; color: var(--plate-000); margin-bottom: 5px; }
+.mw-plate p { margin: 0 0 9px; font-size: 12px; color: var(--plate-400); }
+.mw-plate ul { margin: 0; padding: 0; list-style: none; }
+.mw-plate li {
+  font: 400 11px/1.7 var(--mono);
+  color: var(--plate-400);
+  border-top: 1px solid var(--plate-800);
+  padding-top: 4px;
+  margin-top: 4px;
+}

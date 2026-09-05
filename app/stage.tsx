@@ -39,9 +39,19 @@ export default function Stage() {
   // miris:stops-end
 
   // miris:label-start
-  // Step 6.3 replaces this. It stays above the return because it calls a React
-  // hook, and hooks run on every render.
-  const label = useHtmlTexture(false);
+  // Painted by ctx.drawElementImage() where the browser has HTML-in-Canvas, an
+  // SVG foreignObject serialisation everywhere else. Both paths end as pixels in
+  // a 2D canvas, and a CanvasTexture samples it from there. Anything HTML can
+  // lay out, the scene can wear.
+  const placard = data?.pieces?.find((piece) => piece.card)?.card;
+  const label = useHtmlTexture(
+    placard &&
+      `<div class="mw-plate">
+        <strong>${placard.name}</strong>
+        <p>${placard.description}</p>
+        <ul>${placard.attributes.map((a) => `<li>${a}</li>`).join("")}</ul>
+      </div>`,
+  );
   // miris:label-end
 
   /* The scene R3F owns is the SDK's own Scene subclass. Without this a
@@ -480,7 +490,20 @@ export default function Stage() {
       {/* miris:catalog-end */}
 
       {/* miris:card-start */}
-      {/* Steps 6.2 and 6.4 go here. */}
+      {/* The same markup, now geometry. Billboard turns the plane to the camera
+          every frame, and without it a plane is invisible edge-on and gone
+          entirely from behind, because single-sided geometry culls its back
+          face. transparent honours the rounded corners, toneMapped={false}
+          keeps the text out of the ACES curve from 01.3, and the width and
+          height come back from the hook already in scene units. */}
+      {label.texture && (
+        <Billboard position={[-3.15, 1.35, -3.9]}>
+          <mesh>
+            <planeGeometry args={[label.width, label.height]} />
+            <meshBasicMaterial map={label.texture} transparent toneMapped={false} />
+          </mesh>
+        </Billboard>
+      )}
       {/* miris:card-end */}
 
       <OrbitControls makeDefault target={[0, 1.2, 0]} />

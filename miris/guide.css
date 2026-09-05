@@ -149,11 +149,6 @@ a:hover { text-decoration: underline; }
 .mw-panel,
 .mw-tray,
 .mw-tab,
-.mw-plate {
-  --sans: "Geist", ui-sans-serif, system-ui, sans-serif;
-  --mono: "Geist Mono", ui-monospace, monospace;
-}
-
 .mw-panel {
   position: fixed;
   inset: 0 0 0 auto;
@@ -581,26 +576,9 @@ a:hover { text-decoration: underline; }
 .mw-stages div[data-on]::before { content: "▸"; color: var(--accent); }
 .mw-stages div:not([data-on])::before { content: "·"; }
 
-.mw-plate {
-  width: 200px;
-  background: rgba(17, 18, 21, 0.94);
-  border: 1px solid var(--mono-800);
-  border-left: 2px solid var(--accent);
-  border-radius: var(--radius-m);
-  padding: 13px 15px;
-  font: 400 13px/1.5 var(--sans);
-  color: var(--mono-200);
-}
-.mw-plate strong { display: block; font-weight: 500; color: var(--mono-000); margin-bottom: 5px; }
-.mw-plate p { margin: 0 0 9px; font-size: 12px; color: var(--mono-400); }
-.mw-plate ul { margin: 0; padding: 0; list-style: none; }
-.mw-plate li {
-  font: 400 11px/1.7 var(--mono);
-  color: var(--mono-400);
-  border-top: 1px solid var(--mono-800);
-  padding-top: 4px;
-  margin-top: 4px;
-}
+/* .mw-plate lives in app/boutique.css, which index.html loads: the placard is
+   the boutique's, not the guide's, and has to survive 07.1 commenting the guide
+   out. */
 
 @media (max-width: 720px) {
   .mw-panel { inset: auto 0 0 0; width: 100vw; height: min(62vh, 560px); border-left: 0; border-top: 1px solid var(--mono-800); }
