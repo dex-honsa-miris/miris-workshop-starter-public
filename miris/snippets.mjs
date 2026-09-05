@@ -59,7 +59,7 @@ const LIGHTS = `      {(() => {
            comparison TypeScript calls impossible the moment you set it to
            "boutique", and the build fails with an error about no overlap. An
            annotation does not save you. Indexing a table always compiles. */
-        const THEME: "vault" | "boutique" = "vault";
+        const THEME: "vault" | "boutique" = "boutique";
 
         const LIGHTING = {
           boutique: {
@@ -200,7 +200,7 @@ const MATERIALS = `      {(() => {
            comparison TypeScript calls impossible the moment you set it to
            "boutique", and the build fails with an error about no overlap. An
            annotation does not save you. Indexing a table always compiles. */
-        const THEME: "vault" | "boutique" = "vault";
+        const THEME: "vault" | "boutique" = "boutique";
 
         const BOUTIQUE = {
           // Order matters: the first key that matches wins, so anything more
@@ -520,7 +520,7 @@ const PROPS = `      {(() => {
            comparison TypeScript calls impossible the moment you set it to
            "boutique", and the build fails with an error about no overlap. An
            annotation does not save you. Indexing a table always compiles. */
-        const THEME: "vault" | "boutique" = "vault";
+        const THEME: "vault" | "boutique" = "boutique";
 
         const BOUTIQUE_PROPS = [
           { url: "/props/double-door-walnut-grand.glb", position: [6.92, 1.376, 0], yaw: -90, scale: [1.156, 1.785, 0.776] },
