@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, extend, useFrame, useThree } from "@react-three/fiber";
-import { Billboard, Html, OrbitControls, useGLTF } from "@react-three/drei";
+import { Billboard, Html, OrbitControls, useGLTF, useTexture } from "@react-three/drei";
 import { MirisStream } from "@miris-inc/three";
 import {
   ACESFilmicToneMapping,
   CatmullRomCurve3,
   Mesh,
   MeshStandardMaterial,
+  NoColorSpace,
   PMREMGenerator,
+  RepeatWrapping,
+  SRGBColorSpace,
   Vector3,
 } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";

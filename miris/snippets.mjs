@@ -138,17 +138,22 @@ const MATERIALS = `      {(() => {
            right. Keys match a mesh exactly or as a dotted prefix, so "wall"
            covers wall.north through wall.west and "shelf" covers all six.
 
+           Three surfaces wear real maps; the rest are a colour and two numbers.
+           That split is deliberate. Brass is #b08d57 at roughness 0.26 and
+           metalness 1, and the environment from 01.3 does the reflecting --
+           three more downloads would buy nothing you can see.
+
            One rule, and it is not a taste rule: nothing transmissive. three
            renders the whole scene into a transmission buffer once per
            KHR_materials_transmission object, measured at 28.51ms of GPU against
            2.54ms without. The glass shelves below become wood for exactly that
            reason. If you want the read of glass, use polished stone or brass
            and let 01.3's environment do the reflecting. */
-        const MATERIALS = {
-          floor: { color: "#c9b18a", roughness: 0.62, metalness: 0 },
-          ceiling: { color: "#efe9e0", roughness: 0.95, metalness: 0 },
-          wall: { color: "#e6ded1", roughness: 0.92, metalness: 0 },
-          rug: { color: "#b9ab97", roughness: 1, metalness: 0 },
+        const SURFACES = {
+          floor: { tex: "floor", repeat: [8, 5] },
+          wall: { tex: "wall", repeat: [6, 2], color: "#efe9e0" },
+          ceiling: { tex: "wall", repeat: [6, 4], color: "#f2ece3" },
+          rug: { tex: "rug", repeat: [3, 2], color: "#cbbfa9" },
           shelf: { color: "#b08d57", roughness: 0.26, metalness: 1 },
           glassshelf: { color: "#6b5c46", roughness: 0.38, metalness: 0 },
           trim: { color: "#b08d57", roughness: 0.3, metalness: 1 },
@@ -157,10 +162,46 @@ const MATERIALS = `      {(() => {
 
         function Surfaces() {
           const room = useGLTF("/env/room.glb");
+          /* One call with a fixed set of keys, because hooks run in the same
+             order on every render: useTexture cannot be called once per surface
+             inside the loop below. */
+          const maps = useTexture({
+            floorColor: "/tex/floor/color.jpg",
+            floorNormal: "/tex/floor/normal.jpg",
+            floorArm: "/tex/floor/arm.jpg",
+            wallColor: "/tex/wall/color.jpg",
+            wallNormal: "/tex/wall/normal.jpg",
+            wallArm: "/tex/wall/arm.jpg",
+            rugColor: "/tex/rug/color.jpg",
+            rugNormal: "/tex/rug/normal.jpg",
+            rugArm: "/tex/rug/arm.jpg",
+          });
 
           useEffect(() => {
             const previous = new Map();
             const made = [];
+
+            /* Only the colour maps carry colour. A normal or an arm map holds
+               numbers the shader reads as numbers, and tagging one sRGB bends
+               every value in it -- the usual reason a roughness map comes out
+               washed out and a surface reads flat. */
+            for (const [key, texture] of Object.entries(maps)) {
+              texture.wrapS = RepeatWrapping;
+              texture.wrapT = RepeatWrapping;
+              texture.colorSpace = key.endsWith("Color") ? SRGBColorSpace : NoColorSpace;
+            }
+
+            /* repeat lives on the texture, not the material, so the wall and
+               the ceiling sharing one plaster image would mean whichever set it
+               last wins on both. A clone is a fresh transform over the same
+               uploaded image: cheap, and it is what lets one download tile at
+               two densities. */
+            const tiled = (texture, [u, v]) => {
+              const copy = texture.clone();
+              copy.repeat.set(u, v);
+              copy.needsUpdate = true;
+              return copy;
+            };
 
             room.scene.traverse((node) => {
               if (!(node instanceof Mesh)) return;
@@ -170,12 +211,35 @@ const MATERIALS = `      {(() => {
               // matching the sanitised one is how a rename silently does
               // nothing.
               const name = node.userData.name ?? node.name;
-              const key = Object.keys(MATERIALS).find(
+              const key = Object.keys(SURFACES).find(
                 (k) => name === k || name.startsWith(k + "."),
               );
               if (!key) return;
+              const surface = SURFACES[key];
 
-              const material = new MeshStandardMaterial(MATERIALS[key]);
+              const material = new MeshStandardMaterial({
+                color: surface.color ?? "#ffffff",
+                roughness: surface.roughness ?? 1,
+                metalness: surface.metalness ?? 0,
+              });
+
+              if (surface.tex) {
+                material.map = tiled(maps[surface.tex + "Color"], surface.repeat);
+                material.normalMap = tiled(maps[surface.tex + "Normal"], surface.repeat);
+                /* One image doing three jobs: ambient occlusion in the red
+                   channel, roughness in green, metalness in blue. roughness
+                   stays at 1 above so the green channel is the whole answer
+                   rather than a ceiling on it. aoMap reads the SECOND uv set by
+                   default and room.glb ships one, so it is pointed back at
+                   channel 0 -- without that line the occlusion silently does
+                   nothing. Blue goes unused: wood, plaster and wool are
+                   dielectrics, and metalness stays 0. */
+                const arm = tiled(maps[surface.tex + "Arm"], surface.repeat);
+                arm.channel = 0;
+                material.aoMap = arm;
+                material.roughnessMap = arm;
+              }
+
               made.push(material);
               previous.set(node, node.material);
               // A mesh with several material groups gets the same one in every
@@ -187,9 +251,12 @@ const MATERIALS = `      {(() => {
 
             return () => {
               for (const [node, material] of previous) node.material = material;
+              // Only the materials. The clones above are transforms over images
+              // drei's cache owns and hands to the next mount; disposing one
+              // would pull the image out from under everything still using it.
               for (const material of made) material.dispose();
             };
-          }, [room]);
+          }, [room, maps]);
 
           return null;
         }
