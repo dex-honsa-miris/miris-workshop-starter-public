@@ -480,6 +480,19 @@ export default function Stage() {
               let tries = 0;
               let last = 0;
               let stable = 0;
+
+              /* Every exit shows the piece. Hiding it was only ever to measure
+                 a clean box, so the two give-up paths below must still put it
+                 back: a piece that is merely the wrong size is a problem you
+                 can SEE and fix, while a hidden one is indistinguishable from a
+                 stream that never arrived. That is exactly how six pieces --
+                 connected, loaded, refining to a million splats between them,
+                 issuing draw calls every frame -- looked like a broken
+                 renderer for a very long time. */
+              const show = () => {
+                clearInterval(timer);
+                stream.visible = true;
+              };
               const onLoad = () => { loaded = true; };
               stream.addEventListener("streamloaded", onLoad);
 
@@ -491,12 +504,12 @@ export default function Stage() {
                    could spend it all downloading and then be dropped as
                    empty. */
                 if (!loaded) {
-                  if (++waited > 240) clearInterval(timer);
+                  if (++waited > 240) show();
                   return;
                 }
                 // And this one is the box settling once it is in, 40s of it.
                 if (++tries > 80) {
-                  clearInterval(timer);
+                  show();
                   return;
                 }
 
