@@ -327,7 +327,7 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
       });
       const url = out?.images?.[0]?.url;
       if (!url) return fail("fal returned no image", 502);
-      await writePiece(MIRIS_DIR, pieceId, { prompt: body.prompt, imageUrl: url });
+      await writePiece(MIRIS_DIR, pieceId, { prompt: body.prompt, imageUrl: url, status: "image-ready" });
       return ok({ url });
     }
 
@@ -350,21 +350,21 @@ async function handle(action: string, body: any, mode: string): Promise<Reply> {
             texture_prompt: `${BOUTIQUE.style}: ${body.prompt ?? ""}`,
             ...MESHY_INPUT,
           },
-          (patch) => writePiece(MIRIS_DIR, pieceId, patch),
+          (patch) => writePiece(MIRIS_DIR, pieceId, { ...patch, status: "generating-mesh" }),
         );
       } catch (e) {
         // The browser that asked may be gone: a Fill reloads the page, and the
         // client resumes "building" off modelStartedAt. Clearing it is how a
         // resumed client learns the job died rather than waiting forever.
-        await writePiece(MIRIS_DIR, pieceId, { modelStartedAt: 0 });
+        await writePiece(MIRIS_DIR, pieceId, { modelStartedAt: 0, status: "failed" });
         throw e;
       }
       const url = out?.model_glb?.url;
       if (!url) {
-        await writePiece(MIRIS_DIR, pieceId, { modelStartedAt: 0 });
+        await writePiece(MIRIS_DIR, pieceId, { modelStartedAt: 0, status: "failed" });
         return fail("fal returned no mesh", 502);
       }
-      await writePiece(MIRIS_DIR, pieceId, { glb: url });
+      await writePiece(MIRIS_DIR, pieceId, { glb: url, status: "mesh-ready" });
       return ok({ url });
     }
 

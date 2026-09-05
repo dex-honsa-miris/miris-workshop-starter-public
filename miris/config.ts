@@ -34,11 +34,19 @@ export const BOUTIQUE = {
   style:
     "a crafted object from a boutique maker, studio product photograph, accurate material and wear, soft even light",
 
-  /** Placeholder for the prompt field. */
-  hint: "a bridle-leather weekend bag with solid brass hardware",
+  /** Placeholder for the prompt field, one per slot: three identical
+   *  placeholders read as the same object offered three times, and give an
+   *  attendee nothing to riff on for two of the three. Keyed by piece id
+   *  (PIECE_IDS in pieces.mjs). Same register and constraint as `prompts`
+   *  below: a material and a piece of wear, never glass, chrome or mirror. */
+  hints: {
+    "01": "a bridle-leather weekend bag with solid brass hardware",
+    "02": "a wheel-thrown stoneware pitcher with a chipped ash glaze",
+    "03": "a hand-forged iron latch with a worn, oil-blackened finish",
+  } as Record<string, string>,
 
   /** Pool for the dice on the prompt field. Subject phrases only, in the same
-   *  register as `hint`: `style` is prepended, so a prompt that names its own
+   *  register as `hints`: `style` is prepended, so a prompt that names its own
    *  lighting or backdrop fights the prefix.
    *
    *  Weighted toward what splats reconstruct well, and away from what they

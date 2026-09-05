@@ -143,9 +143,10 @@ export function usePieceBuild(pieceId: string, data: Doc) {
 
   /* A slot cleared on disk must clear here too, but the resume latch above
      only ever fires once per mount and Guide is never unmounted, so nothing
-     else would notice. Checked on content fields, not `status`: nothing in the
-     API ever moves status away from "empty", so it cannot tell a cleared piece
-     from a piece that was never started. */
+     else would notice. Checked on content fields, not `status`: the API moves
+     status forward as a piece progresses but never back to "empty" (clearing
+     a piece is a hand edit to data.json, not an API call), so a cleared piece
+     could still be carrying whatever status it last reached. */
   useEffect(() => {
     if (!piece) return;
     const cleared =
@@ -318,7 +319,7 @@ function trayStatus(builds: BuildState[]): { label: string; busy: boolean; clock
 }
 
 function PromptField({ build }: { build: BuildState }) {
-  const { prompt, setPrompt, roll, makeImage } = build;
+  const { pieceId, prompt, setPrompt, roll, makeImage } = build;
   return (
     <>
       <div className="mw-prompt">
@@ -326,7 +327,7 @@ function PromptField({ build }: { build: BuildState }) {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           rows={3}
-          placeholder={BOUTIQUE.hint}
+          placeholder={BOUTIQUE.hints[pieceId]}
         />
         <button
           type="button"
@@ -508,7 +509,11 @@ export default function BuildTray({ builds }: { builds: BuildState[] }) {
     <aside className="mw-tray" role="dialog" aria-label="Building your pieces">
       <header className="mw-tray-head">
         <i className="mw-tray-dot" data-busy={busy || undefined} aria-hidden="true" />
-        <span className="mw-tray-eb l12">{label}</span>
+        {/* A single active piece already says its own status in the row below,
+            so the aggregate label here would only repeat it: "drawing" over
+            "01 drawing", or "ready to review" over "01 ready to review". It
+            earns its place once there is more than one to summarise. */}
+        {active.length > 1 && <span className="mw-tray-eb l12">{label}</span>}
         <button className="mw-tray-fold" onClick={() => setSmall(true)} aria-label="Minimize the tray">
           <Chevron up />
         </button>

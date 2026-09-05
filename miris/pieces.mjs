@@ -15,8 +15,17 @@ export const PIECE_IDS = ["01", "02", "03"];
 
 export const emptyPiece = (id) => ({
   id,
-  // empty | generating-image | image-ready | generating-mesh | mesh-ready
-  // | uploaded | streaming | failed
+  // empty | image-ready | generating-mesh | mesh-ready | failed
+  //
+  // Every value here has a real writer in devApi.ts, alongside the write that
+  // already carries its result: image-ready and failed land with the write
+  // that produced them, generating-mesh piggybacks on the fal recorder that
+  // already stamps falRequestId/modelStartedAt. Left out rather than named
+  // and ignored: generating-image (image generation has no disk-tracked
+  // in-flight state to resume into, unlike the mesh build, so a reload mid
+  // generation just loses it and nothing ever needs to read this back),
+  // uploaded (no upload step exists yet) and streaming (nothing streams a
+  // piece onto the shelf yet). Add whichever of these once its producer does.
   status: "empty",
   prompt: "",
   imageUrl: "",
