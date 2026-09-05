@@ -31,27 +31,22 @@ export default function Stage() {
   }, []);
 
   // miris:stops-start
+  // Six stops, one per niche, read straight off the room: each camstop anchor
+  // sits 2.76m in front of the inlet it faces, at eye height 1.5.
   const STOPS: Array<{ id: string; pos: [number, number, number]; look: [number, number, number] }> = [
     { id: "01", pos: [-4.2, 1.5, -1.6], look: [-4.2, 1.2, -4.36] },
     { id: "02", pos: [0, 1.5, -1.6], look: [0, 1.2, -4.36] },
     { id: "03", pos: [4.2, 1.5, -1.6], look: [4.2, 1.2, -4.36] },
+    { id: "04", pos: [-4.2, 1.5, 1.6], look: [-4.2, 1.2, 4.36] },
+    { id: "05", pos: [0, 1.5, 1.6], look: [0, 1.2, 4.36] },
+    { id: "06", pos: [4.2, 1.5, 1.6], look: [4.2, 1.2, 4.36] },
   ];
   // miris:stops-end
 
   // miris:label-start
-  // Painted by ctx.drawElementImage() where the browser has HTML-in-Canvas, an
-  // SVG foreignObject serialisation everywhere else. Both paths end as pixels in
-  // a 2D canvas, and a CanvasTexture samples it from there. Anything HTML can
-  // lay out, the scene can wear.
-  const placard = data?.pieces?.find((piece) => piece.card)?.card;
-  const label = useHtmlTexture(
-    placard &&
-      `<div class="mw-plate">
-        <strong>${placard.name}</strong>
-        <p>${placard.description}</p>
-        <ul>${placard.attributes.map((a) => `<li>${a}</li>`).join("")}</ul>
-      </div>`,
-  );
+  // Step 6.3 replaces this. It stays above the return because it calls a React
+  // hook, and hooks run on every render.
+  const label = useHtmlTexture(false);
   // miris:label-end
 
   /* The scene R3F owns is the SDK's own Scene subclass. Without this a
@@ -463,47 +458,27 @@ export default function Stage() {
       {/* miris:rail-end */}
 
       {/* miris:catalog-start */}
-      {/* The one line 05.2 was missing. A published capture is not authored in
-          display units, so at scale 1 a handbag is a thumbnail on a 1.2m shelf.
-          The obvious move is to measure the piece and divide -- and getBounds()
-          will happily answer, which is the trap: its box is built from whatever
-          detail has streamed in so far, so the same asset measures 0.20m one
-          second and 0.50m the next, and a scale derived from it lands anywhere
-          between a thumbnail and a wardrobe. Measure once, by eye, and ship the
-          number: catalog.json carries a scale per piece. */}
-      <WhenEngineReady>
-        {catalog.inlets.map((inlet) => {
-          // 1 to 3 on the north wall, 4 to 6 on the south, in room.glb's order.
-          const x = [-4.2, 0, 4.2][(inlet.id - 1) % 3];
-          const z = inlet.id <= 3 ? -4.356 : 4.356;
-          return (
-            <mirisStream
-              key={inlet.uuid}
-              args={[{ uuid: inlet.uuid, viewerKey: catalog.viewerKey }]}
-              position={[x, 1.2, z]}
-              rotation={[0, z < 0 ? 0 : Math.PI, 0]}
-              scale={inlet.scale}
-            />
-          );
-        })}
-      </WhenEngineReady>
+      {/* One stream per published piece. extend() at the top of this file is
+          what makes <mirisStream> an ordinary scene node, so it takes a
+          position and a scale like any other three.js object and is drawn in
+          the same pass as the walls. */}
+      {catalog.inlets.map((inlet) => {
+        // 1 to 3 on the north wall, 4 to 6 on the south, in room.glb's order.
+        const x = [-4.2, 0, 4.2][(inlet.id - 1) % 3];
+        const z = inlet.id <= 3 ? -4.356 : 4.356;
+        return (
+          <mirisStream
+            key={inlet.uuid}
+            args={[{ uuid: inlet.uuid, viewerKey: catalog.viewerKey }]}
+            position={[x, 1.65, z]}
+            rotation={[0, z < 0 ? 0 : Math.PI, 0]}
+          />
+        );
+      })}
       {/* miris:catalog-end */}
 
       {/* miris:card-start */}
-      {/* The same markup, now geometry. Billboard turns the plane to the camera
-          every frame, and without it a plane is invisible edge-on and gone
-          entirely from behind, because single-sided geometry culls its back
-          face. transparent honours the rounded corners, toneMapped={false}
-          keeps the text out of the ACES curve from 01.3, and the width and
-          height come back from the hook already in scene units. */}
-      {label.texture && (
-        <Billboard position={[-3.15, 1.35, -3.9]}>
-          <mesh>
-            <planeGeometry args={[label.width, label.height]} />
-            <meshBasicMaterial map={label.texture} transparent toneMapped={false} />
-          </mesh>
-        </Billboard>
-      )}
+      {/* Steps 6.2 and 6.4 go here. */}
       {/* miris:card-end */}
 
       <OrbitControls makeDefault target={[0, 1.2, 0]} />
