@@ -154,7 +154,13 @@ export default function Stage() {
            2.54ms without. The glass shelves below become solid for exactly that
            reason. If you want the read of glass, use polished stone or metal
            and let 01.3's environment do the reflecting. */
-        const THEME = "vault"; // "vault" | "boutique"
+        /* Flip this one word. Everything below INDEXES by it rather than comparing
+           against it, and that is not a style choice: a const initialised with a
+           literal narrows to that literal, so `THEME === "vault"` becomes a
+           comparison TypeScript calls impossible the moment you set it to
+           "boutique", and the build fails with an error about no overlap. An
+           annotation does not save you. Indexing a table always compiles. */
+        const THEME: "vault" | "boutique" = "vault";
 
         const BOUTIQUE = {
           // Order matters: the first key that matches wins, so anything more
@@ -205,8 +211,12 @@ export default function Stage() {
           crown: { color: "#8f97a1", roughness: 0.25, metalness: 1 },
         };
 
-        const SURFACES = THEME === "vault" ? VAULT : BOUTIQUE;
-        const TEX = THEME === "vault" ? "/tex/vault" : "/tex";
+        const PALETTE = {
+          boutique: { surfaces: BOUTIQUE, tex: "/tex", metalFromMap: false },
+          vault: { surfaces: VAULT, tex: "/tex/vault", metalFromMap: true },
+        }[THEME];
+        const SURFACES = PALETTE.surfaces;
+        const TEX = PALETTE.tex;
 
         function Surfaces() {
           const room = useGLTF("/env/room.glb");
@@ -297,7 +307,7 @@ export default function Stage() {
                 // The vault's surfaces are metal, so the blue channel is the
                 // answer there. The boutique's are wood, plaster and wool, and
                 // multiplying by a zero channel would only ever zero them.
-                if (THEME === "vault") {
+                if (PALETTE.metalFromMap) {
                   material.metalnessMap = arm;
                   material.metalness = 1;
                 }
@@ -339,7 +349,13 @@ export default function Stage() {
 
            Flush or clearly clear, never a millimetre above: the reference build
            had a rug 4mm off the floor and it streaked. */
-        const THEME = "vault"; // "vault" | "boutique"
+        /* Flip this one word. Everything below INDEXES by it rather than comparing
+           against it, and that is not a style choice: a const initialised with a
+           literal narrows to that literal, so `THEME === "vault"` becomes a
+           comparison TypeScript calls impossible the moment you set it to
+           "boutique", and the build fails with an error about no overlap. An
+           annotation does not save you. Indexing a table always compiles. */
+        const THEME: "vault" | "boutique" = "vault";
 
         const BOUTIQUE_PROPS = [
           { url: "/props/double-door-walnut-grand.glb", position: [6.92, 1.376, 0], yaw: -90, scale: [1.156, 1.785, 0.776] },
@@ -380,12 +396,13 @@ export default function Stage() {
           { url: "/props/vault/space-station-container-crate.glb", position: [1.45, 0, -1.15], yaw: -35, scale: [1, 1, 1] },
         ];
 
-        const PROPS: Array<{
+        const PROPS = { boutique: BOUTIQUE_PROPS, vault: VAULT_PROPS }[THEME] as Array<{
           url: string;
           position: [number, number, number];
           yaw: number;
           scale: [number, number, number];
-        }> = THEME === "vault" ? (VAULT_PROPS as any) : (BOUTIQUE_PROPS as any);
+          tint?: { color: string; metalness?: number; roughness?: number };
+        }>;
 
         function Prop({ url, position, yaw, scale, tint }: {
           url: string;
@@ -448,7 +465,13 @@ export default function Stage() {
            whiter, because the whole point of the room is that the niches are
            the only warm-bright thing in it. Turn the wash down instead and you
            get a dim room rather than a vault. */
-        const THEME = "vault"; // "vault" | "boutique"
+        /* Flip this one word. Everything below INDEXES by it rather than comparing
+           against it, and that is not a style choice: a const initialised with a
+           literal narrows to that literal, so `THEME === "vault"` becomes a
+           comparison TypeScript calls impossible the moment you set it to
+           "boutique", and the build fails with an error about no overlap. An
+           annotation does not save you. Indexing a table always compiles. */
+        const THEME: "vault" | "boutique" = "vault";
 
         const LIGHTING = {
           boutique: {
