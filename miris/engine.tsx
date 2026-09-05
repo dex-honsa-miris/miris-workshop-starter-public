@@ -17,17 +17,14 @@ import { MirisScene, MirisStream } from "@miris-inc/three";
  * composite in one pass. Calling gl.render alongside it would draw twice. */
 
 export function mirisScene(viewerKey: string) {
-  const scene = new MirisScene({ viewerKey });
-  /* Belt and braces. The constructor takes the key, and the SDK also exposes
-     setViewerKey plus a static default on MirisStream. A stream with no key
-     authorises nothing and asks the network for nothing, silently, so the key
-     is set every way the published surface allows. */
-  if (viewerKey) {
-    scene.setViewerKey(viewerKey);
-    (MirisStream as unknown as { viewerKey: string }).viewerKey = viewerKey;
-  }
-  return scene;
+  /* Constructor only. Adding setViewerKey and the MirisStream.viewerKey static
+     looked like belt and braces and was the one thing the working path did not
+     do: a scene built with the plain constructor loaded a stream in seconds,
+     while the same scene with the key also pushed through those two setters
+     never fired streamloaded. Each stream carries its own key anyway. */
+  return new MirisScene({ viewerKey });
 }
+
 
 /** Same scene for the life of the tab. A second MirisScene means a second
  *  engine, and both would composite. */
@@ -39,6 +36,7 @@ let singleton: MirisScene | null = null;
 
 export function useMirisScene(viewerKey: string) {
   if (!singleton) singleton = mirisScene(viewerKey);
+  (globalThis as any).__app = singleton;
   return singleton;
 }
 
