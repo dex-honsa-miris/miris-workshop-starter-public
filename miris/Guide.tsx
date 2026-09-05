@@ -62,6 +62,41 @@ function CapabilityLine() {
   );
 }
 
+/* WebContainer drops binary files on import, and since the room and every prop
+ * are now binaries in the repo, that failure went from cosmetic to total: a
+ * dropped room.glb makes useGLTF suspend forever, so the stage stays blank with
+ * nothing thrown and nothing logged. Indistinguishable from a broken build,
+ * which is the debugging session this line exists to prevent.
+ *
+ * Content type, not status. A dropped file is served the SPA fallback -- 200
+ * and text/html -- so a 404 check would see nothing wrong. */
+function AssetsLine() {
+  const [dropped, setDropped] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      try {
+        const res = await fetch("/env/room.glb", { method: "HEAD" });
+        const type = res.headers.get("content-type") ?? "";
+        if (alive && (!res.ok || type.includes("text/html"))) setDropped(true);
+      } catch {
+        if (alive) setDropped(true);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+  if (!dropped) return null;
+  return (
+    <p className="mw-capline l12">
+      <code>public/env/room.glb</code> is not being served as a file. On WebContainer that means the
+      binaries were dropped on import; the room and props cannot load, and the stage will stay empty
+      however much of the guide you complete. Run the project locally instead.
+    </p>
+  );
+}
+
 export default function MirisGuide() {
   const [open, setOpen] = useState(true);
   const [data, setData] = useState<any>({ step: "00.1" });
@@ -306,6 +341,7 @@ export default function MirisGuide() {
         </header>
 
         <CapabilityLine />
+        <AssetsLine />
 
         <div className="mw-split">
           <Rail
