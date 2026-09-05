@@ -12,7 +12,7 @@ import {
 } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import catalog from "../miris/catalog.json";
-import StageEngine, { useMirisScene } from "../miris/engine";
+import StageEngine, { useMirisScene, useMirisReady } from "../miris/engine";
 import useHtmlTexture from "../miris/htmlTexture";
 import { StageSkeleton } from "../miris/Skeleton";
 

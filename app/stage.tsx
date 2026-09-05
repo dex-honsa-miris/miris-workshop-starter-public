@@ -12,7 +12,7 @@ import {
 } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import catalog from "../miris/catalog.json";
-import StageEngine, { useMirisScene } from "../miris/engine";
+import StageEngine, { useMirisScene, useMirisReady } from "../miris/engine";
 import useHtmlTexture from "../miris/htmlTexture";
 import { StageSkeleton } from "../miris/Skeleton";
 
@@ -457,7 +457,14 @@ export default function Stage() {
           what makes <mirisStream> an ordinary scene node, so it takes a
           position and a scale like any other three.js object and is drawn in
           the same pass as the walls. */}
-      {catalog.inlets.map((inlet) => {
+      {(() => {
+        /* Gated on the engine, not just mounted. A MirisStream built before
+           the backend exists never retries: it sits in the graph with
+           children, looking healthy, and asks the network for nothing. */
+        function Collection() {
+          const ready = useMirisReady();
+          if (!ready) return null;
+          return <>{catalog.inlets.map((inlet) => {
         // 1 to 3 on the north wall, 4 to 6 on the south, in room.glb's order.
         const x = [-4.2, 0, 4.2][(inlet.id - 1) % 3];
         const z = inlet.id <= 3 ? -4.356 : 4.356;
@@ -469,7 +476,10 @@ export default function Stage() {
             rotation={[0, z < 0 ? 0 : Math.PI, 0]}
           />
         );
-      })}
+      })}</>;
+        }
+        return <Collection />;
+      })()}
       {/* miris:catalog-end */}
 
       {/* miris:card-start */}

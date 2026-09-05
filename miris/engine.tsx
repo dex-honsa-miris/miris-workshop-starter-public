@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { MirisScene, MirisStream } from "@miris-inc/three";
 
@@ -35,11 +35,38 @@ export function useMirisScene(viewerKey: string) {
   return useMemo(() => mirisScene(viewerKey), [viewerKey]);
 }
 
+/* Streams must not mount before the backend exists. The reference calls
+   mountStreams only after createStage has awaited scene.ready and
+   initializeBackend, and a MirisStream constructed before there is an engine
+   to subscribe through never retries: it sits in the graph, fully formed, with
+   children, asking the network for nothing. That is the whole reason six
+   streams rendered nothing while every other signal looked healthy. */
+let engineReady = false;
+const readyListeners = new Set<() => void>();
+const markReady = () => {
+  if (engineReady) return;
+  engineReady = true;
+  readyListeners.forEach((l) => l());
+};
+
+export function useMirisReady() {
+  return useSyncExternalStore(
+    (cb) => {
+      readyListeners.add(cb);
+      return () => {
+        readyListeners.delete(cb);
+      };
+    },
+    () => engineReady,
+    () => false,
+  );
+}
+
 export default function StageEngine() {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   const camera = useThree((s) => s.camera);
-  const [backend, setBackend] = useState<any>(null);
+  const [engine, setEngine] = useState<{ miris: any; backend: any } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -49,7 +76,9 @@ export default function StageEngine() {
       await ms.ready;
       const miris: any = ms.miris;
       const b = miris.backend ?? (await miris.initializeBackend());
-      if (alive) setBackend(b);
+      if (!alive) return;
+      setEngine({ miris, backend: b });
+      markReady();
     })();
     return () => {
       alive = false;
@@ -68,8 +97,18 @@ export default function StageEngine() {
       cam.far = 60;
       cam.updateProjectionMatrix();
     }
-    if (backend) backend.doRendering(gl, scene, camera);
-    else gl.render(scene, camera);
+    if (!engine) {
+      gl.render(scene, camera);
+      return;
+    }
+    /* Both calls, in this order. update() is the core tick that advances
+       streaming, fades and ordering: without it a stream mounts, reports
+       children and never progresses, which looks exactly like a stream that
+       was never authorised. doRendering then draws the ordinary three content
+       and the splat composite in one pass, which is why gl.render must not be
+       called alongside it. */
+    engine.miris.update?.();
+    engine.backend.doRendering(gl, scene, camera);
   }, 1);
 
   return null;

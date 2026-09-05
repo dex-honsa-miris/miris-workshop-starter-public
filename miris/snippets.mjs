@@ -427,7 +427,14 @@ const CATALOG = `      {/* One stream per published piece. extend() at the top o
           what makes <mirisStream> an ordinary scene node, so it takes a
           position and a scale like any other three.js object and is drawn in
           the same pass as the walls. */}
-      {catalog.inlets.map((inlet) => {
+      {(() => {
+        /* Gated on the engine, not just mounted. A MirisStream built before
+           the backend exists never retries: it sits in the graph with
+           children, looking healthy, and asks the network for nothing. */
+        function Collection() {
+          const ready = useMirisReady();
+          if (!ready) return null;
+          return <>{catalog.inlets.map((inlet) => {
 ${NICHE_OF}
         return (
           <mirisStream
@@ -437,7 +444,10 @@ ${NICHE_OF}
             rotation={[0, z < 0 ? 0 : Math.PI, 0]}
           />
         );
-      })}`;
+      })}</>;
+        }
+        return <Collection />;
+      })()}`;
 
 const FIT_REF = `            ref={(stream) => {
               if (!stream) return;
