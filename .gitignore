@@ -25,7 +25,9 @@ public/props/
 # and this repo is cloned by every attendee. They stay on local disk so the
 # vault build runs here; they must not enter the public mirror. See
 # public/tex/vault/SOURCES.md for what they are and how to re-fetch them.
-public/tex/vault/
-public/props/vault/
-# ...but keep the note saying what they are and where they came from.
+# The CONTENTS, not the directory: git cannot re-include a file whose parent
+# directory is excluded, so ignoring the folder itself would take the note with
+# it.
+public/tex/vault/*
+public/props/vault/*
 !public/tex/vault/SOURCES.md
